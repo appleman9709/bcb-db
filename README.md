@@ -17,7 +17,8 @@ Telegram Mini App с красивым дашбордом для отслежив
 ```
 BabyCareBot Dashboard
 ├── 🤖 main.py              # Telegram Bot (основная логика)
-├── 🔌 api.py               # Flask API для чтения данных
+├── 🔌 api_simple.py        # Простой HTTP API (без Flask)
+├── 🚀 start_api.py         # Скрипт запуска API сервера
 ├── 📱 frontend/            # Telegram Mini App
 │   ├── index.html         # Главная страница
 │   ├── styles.css         # Стили
@@ -26,7 +27,7 @@ BabyCareBot Dashboard
 │   └── vercel.json        # Настройки Vercel
 └── 📚 Документация
     ├── DEPLOYMENT.md      # Инструкция по развертыванию
-    └── requirements.txt   # Зависимости Python
+    └── requirements.txt   # Зависимости Python (без Flask)
 ```
 
 ## 🚀 Быстрый старт
@@ -64,6 +65,17 @@ python main.py
 
 ### 5. Запуск API (в отдельном терминале)
 
+**Новый способ (без Flask):**
+```bash
+python start_api.py
+```
+
+**Или напрямую:**
+```bash
+python api_simple.py
+```
+
+**Старый способ (с Flask) - устарел:**
 ```bash
 python api.py
 ```
