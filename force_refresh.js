@@ -1,20 +1,18 @@
-// Скрипт для принудительного обновления дашборда
-// Добавьте этот код в консоль браузера (F12)
+// Скрипт для принудительного обновления фронтенда
+console.log('🔄 Принудительное обновление фронтенда...');
 
-// Очистка кэша
+// Очищаем все кэши
 if ('caches' in window) {
     caches.keys().then(function(names) {
         for (let name of names) {
             caches.delete(name);
         }
-        console.log('Кэш очищен');
+        console.log('✅ Кэши очищены');
     });
 }
 
-// Принудительное обновление
-location.reload(true);
-
-// Альтернативный способ - очистка localStorage
-localStorage.clear();
-sessionStorage.clear();
-console.log('Хранилище очищено');
+// Принудительно перезагружаем страницу
+setTimeout(() => {
+    console.log('🔄 Перезагрузка страницы...');
+    window.location.reload(true);
+}, 1000);

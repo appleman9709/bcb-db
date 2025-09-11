@@ -34,6 +34,9 @@ async function initializeApp() {
         // Добавляем обработчик для кнопки обновления
         setupRefreshButton();
         
+        // Добавляем обработчик для кнопки принудительного обновления
+        setupForceRefreshButton();
+        
     } catch (error) {
         console.error('Ошибка инициализации:', error);
         showError('Ошибка инициализации приложения');
@@ -84,6 +87,40 @@ function setupRefreshButton() {
             setTimeout(() => {
                 this.style.transform = 'rotate(0deg)';
             }, 500);
+        });
+    }
+}
+
+// Настройка кнопки принудительного обновления
+function setupForceRefreshButton() {
+    const forceRefreshBtn = document.getElementById('forceRefreshBtn');
+    
+    if (forceRefreshBtn) {
+        forceRefreshBtn.addEventListener('click', function() {
+            // Добавляем анимацию
+            this.style.transform = 'scale(1.2)';
+            this.style.transition = 'transform 0.2s ease';
+            
+            // Очищаем все кэши
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                    console.log('✅ Кэши очищены');
+                });
+            }
+            
+            // Принудительно перезагружаем страницу
+            setTimeout(() => {
+                console.log('🔄 Принудительная перезагрузка страницы...');
+                window.location.reload(true);
+            }, 500);
+            
+            // Убираем анимацию
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
         });
     }
 }
