@@ -91,7 +91,15 @@ function setupRefreshButton() {
 // Загрузка списка семей
 async function loadFamilies() {
     try {
-        const response = await fetch(`${API_BASE_URL}/families`);
+        const timestamp = new Date().getTime();
+        const response = await fetch(`${API_BASE_URL}/families?_t=${timestamp}`, {
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -149,13 +157,26 @@ async function loadDashboard(familyId) {
         showLoading();
         currentFamilyId = familyId;
         
-        // Загружаем данные дашборда с учетом периода
-        const dashboardResponse = await fetch(`${API_BASE_URL}/family/${familyId}/dashboard?period=${currentPeriod}`);
+        // Загружаем данные дашборда с учетом периода (с принудительным обновлением кэша)
+        const timestamp = new Date().getTime();
+        const dashboardResponse = await fetch(`${API_BASE_URL}/family/${familyId}/dashboard?period=${currentPeriod}&_t=${timestamp}`, {
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
         if (!dashboardResponse.ok) {
             throw new Error(`HTTP error! status: ${dashboardResponse.status}`);
         }
         
         const dashboardData = await dashboardResponse.json();
+        
+        // Отладочная информация
+        console.log('📊 Данные дашборда:', dashboardData);
+        console.log('📈 Статистика:', dashboardData.today_stats);
+        console.log('🕐 Последние события:', dashboardData.last_events);
         
         // Загружаем историю в зависимости от выбранного периода
         let days = 1; // по умолчанию сегодня
@@ -165,7 +186,14 @@ async function loadDashboard(familyId) {
             days = 30;
         }
         
-        const historyResponse = await fetch(`${API_BASE_URL}/family/${familyId}/history?days=${days}`);
+        const historyResponse = await fetch(`${API_BASE_URL}/family/${familyId}/history?days=${days}&_t=${timestamp}`, {
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
         if (!historyResponse.ok) {
             throw new Error(`HTTP error! status: ${historyResponse.status}`);
         }
@@ -173,7 +201,14 @@ async function loadDashboard(familyId) {
         const historyData = await historyResponse.json();
         
         // Загружаем членов семьи
-        const membersResponse = await fetch(`${API_BASE_URL}/family/${familyId}/members`);
+        const membersResponse = await fetch(`${API_BASE_URL}/family/${familyId}/members?_t=${timestamp}`, {
+            cache: 'no-cache',
+            headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            }
+        });
         if (!membersResponse.ok) {
             throw new Error(`HTTP error! status: ${membersResponse.status}`);
         }

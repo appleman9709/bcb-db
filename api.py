@@ -28,13 +28,13 @@ def get_thai_date():
 def get_db_connection():
     """Безопасное подключение к базе данных"""
     try:
-        # Пытаемся подключиться к локальной БД (для разработки)
-        if os.path.exists("babybot.db"):
-            conn = sqlite3.connect("babybot.db")
-            print("✅ Подключение к локальной БД babybot.db")
-        elif os.path.exists("babybot_render.db"):
+        # Сначала пытаемся подключиться к БД для Render (продакшн)
+        if os.path.exists("babybot_render.db"):
             conn = sqlite3.connect("babybot_render.db")
             print("✅ Подключение к БД babybot_render.db")
+        elif os.path.exists("babybot.db"):
+            conn = sqlite3.connect("babybot.db")
+            print("✅ Подключение к локальной БД babybot.db")
         else:
             # На Render создаем тестовую БД или возвращаем None
             print("⚠️ База данных не найдена, используем тестовые данные")
@@ -188,6 +188,13 @@ def get_family_dashboard(family_id):
         """, (family_id,))
         last_activity = cur.fetchone()
         
+        # Отладочная информация для последних событий
+        print(f"🕐 Последние события для семьи {family_id}:")
+        print(f"   • Кормление: {last_feeding['timestamp'] if last_feeding else 'Нет данных'}")
+        print(f"   • Подгузник: {last_diaper['timestamp'] if last_diaper else 'Нет данных'}")
+        print(f"   • Купание: {last_bath['timestamp'] if last_bath else 'Нет данных'}")
+        print(f"   • Активность: {last_activity['timestamp'] if last_activity else 'Нет данных'}")
+        
         # Активная сессия сна
         cur.execute("""
             SELECT start_time, author_role, author_name 
@@ -226,6 +233,14 @@ def get_family_dashboard(family_id):
             WHERE family_id = ? AND timestamp BETWEEN ? AND ?
         """, (family_id, start_date, end_date))
         today_activities = cur.fetchone()['count']
+        
+        # Отладочная информация
+        print(f"📊 Статистика для семьи {family_id} за период {period}:")
+        print(f"   • Кормления: {today_feedings}")
+        print(f"   • Подгузники: {today_diapers}")
+        print(f"   • Купания: {today_baths}")
+        print(f"   • Активности: {today_activities}")
+        print(f"   • Период: {start_date} - {end_date}")
         
         # Вычисляем время с последних событий
         current_time = get_thai_time()
