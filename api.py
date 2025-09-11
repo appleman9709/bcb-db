@@ -5,12 +5,49 @@ from datetime import datetime, timedelta
 import pytz
 import os
 from dotenv import load_dotenv
+import requests
+import json
 
 # Загружаем переменные окружения
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Разрешаем CORS для фронтенда
+
+# Конфигурация удаленной базы данных
+REMOTE_DB_CONFIG = {
+    'host': 'watermelon.fps.ms',
+    'port': 10791,
+    'path': '/home/container/',
+    'db_name': 'babybot.db'
+}
+
+def get_remote_db_url():
+    """Получить URL для подключения к удаленной базе данных"""
+    return f"http://{REMOTE_DB_CONFIG['host']}:{REMOTE_DB_CONFIG['port']}{REMOTE_DB_CONFIG['path']}{REMOTE_DB_CONFIG['db_name']}"
+
+def execute_remote_query(query, params=None):
+    """Выполнить SQL запрос к удаленной базе данных"""
+    try:
+        # Предполагаем, что на удаленном сервере есть API для работы с БД
+        api_url = f"http://{REMOTE_DB_CONFIG['host']}:{REMOTE_DB_CONFIG['port']}/api/query"
+        
+        payload = {
+            'query': query,
+            'params': params or []
+        }
+        
+        response = requests.post(api_url, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print(f"❌ Ошибка удаленного запроса: {response.status_code}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Ошибка подключения к удаленной БД: {e}")
+        return None
 
 # Функция для получения тайского времени
 def get_thai_time():
@@ -28,7 +65,16 @@ def get_thai_date():
 def get_db_connection():
     """Безопасное подключение к базе данных"""
     try:
-        # Сначала пытаемся подключиться к БД для Render (продакшн)
+        # Сначала пытаемся подключиться к удаленной БД
+        print("🔍 Попытка подключения к удаленной БД...")
+        test_query = execute_remote_query("SELECT 1 as test")
+        if test_query:
+            print("✅ Подключение к удаленной БД успешно")
+            return "remote"  # Возвращаем специальный маркер для удаленной БД
+        
+        # Если удаленная БД недоступна, пробуем локальные файлы
+        print("⚠️ Удаленная БД недоступна, пробуем локальные файлы...")
+        
         if os.path.exists("babybot_render.db"):
             conn = sqlite3.connect("babybot_render.db")
             print("✅ Подключение к БД babybot_render.db")
@@ -36,7 +82,6 @@ def get_db_connection():
             conn = sqlite3.connect("babybot.db")
             print("✅ Подключение к локальной БД babybot.db")
         else:
-            # На Render создаем тестовую БД или возвращаем None
             print("⚠️ База данных не найдена, используем тестовые данные")
             return None
             
