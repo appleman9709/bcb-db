@@ -189,10 +189,10 @@ def get_family_dashboard(family_id):
         elif period == 'month':
             start_date = datetime.combine(today - timedelta(days=29), datetime.min.time()).isoformat()
             end_date = datetime.combine(today, datetime.max.time()).isoformat()
-        else:  # today - показываем данные за последние 24 часа
-            # Для "сегодня" показываем данные за последние 24 часа, чтобы включить вчерашние события
+        else:  # today - показываем данные за последние 48 часов
+            # Для "сегодня" показываем данные за последние 48 часов, чтобы включить вчерашние события
             current_time = get_thai_time()
-            start_date = (current_time - timedelta(hours=24)).isoformat()
+            start_date = (current_time - timedelta(hours=48)).isoformat()
             end_date = current_time.isoformat()
         
         # Последнее кормление
