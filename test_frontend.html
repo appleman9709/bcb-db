@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест фронтенда</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #fff3cd; border-color: #ffeaa7; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Тест фронтенда BabyCareBot</h1>
+    
+    <div class="test-section loading" id="apiTest">
+        <h3>📡 Тест API</h3>
+        <p>Проверяем подключение к API...</p>
+        <div id="apiResult"></div>
+    </div>
+    
+    <div class="test-section loading" id="dataTest">
+        <h3>📊 Тест данных</h3>
+        <p>Проверяем получение данных...</p>
+        <div id="dataResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🎛️ Тест периодов</h3>
+        <button onclick="testPeriod('today')">Сегодня</button>
+        <button onclick="testPeriod('week')">Неделя</button>
+        <button onclick="testPeriod('month')">Месяц</button>
+        <div id="periodResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔄 Тест обновления</h3>
+        <button onclick="forceRefresh()">Принудительное обновление</button>
+        <div id="refreshResult"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://babycarebot-api.onrender.com/api';
+        
+        // Тест API
+        async function testAPI() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('apiTest').className = 'test-section success';
+                    document.getElementById('apiResult').innerHTML = `
+                        <p>✅ API работает</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                document.getElementById('apiTest').className = 'test-section error';
+                document.getElementById('apiResult').innerHTML = `<p>❌ Ошибка API: ${error.message}</p>`;
+            }
+        }
+        
+        // Тест данных
+        async function testData() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/families`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('dataTest').className = 'test-section success';
+                    document.getElementById('dataResult').innerHTML = `
+                        <p>✅ Данные получены</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                document.getElementById('dataTest').className = 'test-section error';
+                document.getElementById('dataResult').innerHTML = `<p>❌ Ошибка данных: ${error.message}</p>`;
+            }
+        }
+        
+        // Тест периодов
+        async function testPeriod(period) {
+            const resultDiv = document.getElementById('periodResult');
+            resultDiv.innerHTML = `<p>🔄 Тестируем период "${period}"...</p>`;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/family/1/dashboard?period=${period}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const stats = data.today_stats || {};
+                    
+                    resultDiv.innerHTML = `
+                        <div class="test-section success">
+                            <h4>✅ Период "${period}" работает</h4>
+                            <p><strong>Статистика:</strong></p>
+                            <ul>
+                                <li>Кормления: ${stats.feedings || 0}</li>
+                                <li>Подгузники: ${stats.diapers || 0}</li>
+                                <li>Активности: ${stats.activities || 0}</li>
+                                <li>Купания: ${stats.baths || 0}</li>
+                            </ul>
+                            <details>
+                                <summary>Полные данные</summary>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </details>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="test-section error">
+                        <p>❌ Ошибка периода "${period}": ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Принудительное обновление
+        function forceRefresh() {
+            const resultDiv = document.getElementById('refreshResult');
+            resultDiv.innerHTML = '<p>🔄 Выполняем принудительное обновление...</p>';
+            
+            // Очищаем кэш
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                    console.log('✅ Кэши очищены');
+                });
+            }
+            
+            // Перезагружаем страницу
+            setTimeout(() => {
+                resultDiv.innerHTML = '<p>✅ Страница будет перезагружена...</p>';
+                window.location.reload(true);
+            }, 1000);
+        }
+        
+        // Запускаем тесты при загрузке
+        window.addEventListener('load', () => {
+            testAPI();
+            testData();
+        });
+    </script>
+</body>
+</html>
