@@ -2,7 +2,7 @@
 const API_BASE_URL = window.APP_CONFIG.API_BASE_URL;
 let currentFamilyId = null;
 let historyChart = null;
-let currentPeriod = 'today';
+let currentPeriod = 'week'; // По умолчанию показываем неделю, так как "today" не работает на Render
 let updateTimer = null;
 let nextUpdateTime = null;
 
@@ -30,6 +30,9 @@ async function initializeApp() {
         
         // Добавляем обработчики для переключателя периодов
         setupPeriodSelector();
+        
+        // Показываем уведомление о проблеме с периодом "Сегодня"
+        showPeriodNotification();
         
         // Добавляем обработчик для кнопки обновления
         setupRefreshButton();
@@ -590,4 +593,73 @@ function displaySettings(settings) {
     // Напоминания об активности
     const activityReminders = settings.activity_reminder_enabled ? 'Включены' : 'Выключены';
     document.getElementById('activityReminders').textContent = activityReminders;
+}
+
+// Показ уведомления о проблеме с периодом "Сегодня"
+function showPeriodNotification() {
+    // Создаем уведомление
+    const notification = document.createElement('div');
+    notification.className = 'period-notification';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-icon">⚠️</span>
+            <span class="notification-text">Период "Сегодня" временно недоступен. Используйте "Неделя" для просмотра данных.</span>
+            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+    `;
+    
+    // Добавляем стили
+    const style = document.createElement('style');
+    style.textContent = `
+        .period-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-width: 90%;
+            font-size: 14px;
+        }
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .notification-icon {
+            font-size: 16px;
+        }
+        .notification-text {
+            flex: 1;
+            color: #856404;
+        }
+        .notification-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #856404;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Добавляем уведомление на страницу
+    document.body.appendChild(notification);
+    
+    // Автоматически скрываем через 10 секунд
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 10000);
 }
