@@ -6,7 +6,7 @@ import { dataService } from '../services/dataService'
 interface QuickActionModalProps {
   isOpen: boolean
   onClose: () => void
-  actionType: 'feeding' | 'diaper'
+  actionType: 'feeding' | 'diaper' | 'bath' | 'activity'
   onSuccess?: () => void
 }
 
@@ -28,6 +28,20 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       description: 'Отметить смену подгузника',
       buttonText: 'Записать смену',
       buttonVariant: 'success' as const
+    },
+    bath: {
+      title: 'Купание',
+      icon: '🛁',
+      description: 'Записать время купания',
+      buttonText: 'Записать купание',
+      buttonVariant: 'warning' as const
+    },
+    activity: {
+      title: 'Активность',
+      icon: '🎯',
+      description: 'Отметить активность',
+      buttonText: 'Записать активность',
+      buttonVariant: 'secondary' as const
     }
   }
 
@@ -44,6 +58,12 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           break
         case 'diaper':
           result = await dataService.addDiaper()
+          break
+        case 'bath':
+          result = await dataService.addBath()
+          break
+        case 'activity':
+          result = await dataService.addActivity('Игра')
           break
       }
 

@@ -4,17 +4,19 @@ import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
 import Card from '../components/Card'
 import Button from '../components/Button'
-import { dataService, Feeding, Diaper } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, Activity } from '../services/dataService'
 
 export default function Dashboard() {
   const [data, setData] = useState<{
     lastFeeding: Feeding | null
     lastDiaper: Diaper | null
+    lastBath: Bath | null
+    recentActivities: Activity[]
     todayStats: any
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
-  const [modalAction, setModalAction] = useState<'feeding' | 'diaper'>('feeding')
+  const [modalAction, setModalAction] = useState<'feeding' | 'diaper' | 'bath' | 'activity'>('feeding')
 
   useEffect(() => {
     fetchData()
@@ -23,15 +25,19 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [lastFeeding, lastDiaper, todayStats] = await Promise.all([
+      const [lastFeeding, lastDiaper, lastBath, recentActivities, todayStats] = await Promise.all([
         dataService.getLastFeeding(),
         dataService.getLastDiaper(),
+        dataService.getLastBath(),
+        dataService.getActivities(3),
         dataService.getTodayStats()
       ])
 
       setData({
         lastFeeding,
         lastDiaper,
+        lastBath,
+        recentActivities,
         todayStats
       })
     } catch (error) {
@@ -55,7 +61,7 @@ export default function Dashboard() {
     }
   }
 
-  const handleQuickAction = (action: 'feeding' | 'diaper') => {
+  const handleQuickAction = (action: 'feeding' | 'diaper' | 'bath' | 'activity') => {
     setModalAction(action)
     setModalOpen(true)
   }
@@ -91,7 +97,7 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             title="Последнее кормление"
             value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
@@ -106,12 +112,26 @@ export default function Dashboard() {
             color="green"
             subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString() : ''}
           />
+          <StatCard
+            title="Последнее купание"
+            value={data?.lastBath ? getTimeAgo(data.lastBath.timestamp) : 'Нет данных'}
+            icon="🛁"
+            color="yellow"
+            subtitle={data?.lastBath ? new Date(data.lastBath.timestamp).toLocaleString() : ''}
+          />
+          <StatCard
+            title="Активность сегодня"
+            value={data?.todayStats ? `${data.todayStats.activities}` : '0'}
+            icon="🎯"
+            color="purple"
+            subtitle="Активности за день"
+          />
         </div>
 
         {/* Quick Actions */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Быстрые действия</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <QuickAction
               title="Кормление"
               description="Записать время кормления"
@@ -125,6 +145,20 @@ export default function Dashboard() {
               icon="👶"
               onClick={() => handleQuickAction('diaper')}
               variant="success"
+            />
+            <QuickAction
+              title="Купание"
+              description="Записать время купания"
+              icon="🛁"
+              onClick={() => handleQuickAction('bath')}
+              variant="warning"
+            />
+            <QuickAction
+              title="Активность"
+              description="Отметить активность"
+              icon="🎯"
+              onClick={() => handleQuickAction('activity')}
+              variant="secondary"
             />
           </div>
         </div>
@@ -159,8 +193,34 @@ export default function Dashboard() {
                   <div className="text-sm text-gray-500">{new Date(data.lastDiaper.timestamp).toLocaleTimeString()}</div>
                 </div>
               )}
+
+              {data?.lastBath && (
+                <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-xl">
+                  <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-white">
+                    🛁
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">Купание</p>
+                    <p className="text-sm text-gray-600">{getTimeAgo(data.lastBath.timestamp)}</p>
+                  </div>
+                  <div className="text-sm text-gray-500">{new Date(data.lastBath.timestamp).toLocaleTimeString()}</div>
+                </div>
+              )}
+
+              {data?.recentActivities.map((activity, index) => (
+                <div key={activity.id} className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl">
+                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white">
+                    🎯
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{activity.activity_type}</p>
+                    <p className="text-sm text-gray-600">{getTimeAgo(activity.timestamp)}</p>
+                  </div>
+                  <div className="text-sm text-gray-500">{new Date(activity.timestamp).toLocaleTimeString()}</div>
+                </div>
+              ))}
               
-              {(!data?.lastFeeding && !data?.lastDiaper) && (
+              {(!data?.lastFeeding && !data?.lastDiaper && !data?.lastBath && (!data?.recentActivities || data.recentActivities.length === 0)) && (
                 <div className="text-center py-8 text-gray-500">
                   <div className="text-4xl mb-2">📝</div>
                   <p>Пока нет записей</p>

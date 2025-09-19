@@ -26,6 +26,27 @@ export interface Diaper {
   created_at: string
 }
 
+export interface Bath {
+  id: number
+  family_id: number
+  author_id: number
+  timestamp: string
+  author_role: string
+  author_name: string
+  created_at: string
+}
+
+export interface Activity {
+  id: number
+  family_id: number
+  author_id: number
+  timestamp: string
+  activity_type: string
+  author_role: string
+  author_name: string
+  created_at: string
+}
+
 
 export interface Settings {
   family_id: number
@@ -178,6 +199,94 @@ class DataService {
     return data
   }
 
+  // Bath operations
+  async getBaths(limit: number = 10): Promise<Bath[]> {
+    const { data, error } = await supabase
+      .from('baths')
+      .select('*')
+      .eq('family_id', this.familyId)
+      .order('timestamp', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching baths:', error)
+      return []
+    }
+    return data || []
+  }
+
+  async getLastBath(): Promise<Bath | null> {
+    const { data, error } = await supabase
+      .from('baths')
+      .select('*')
+      .eq('family_id', this.familyId)
+      .order('timestamp', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error) {
+      console.error('Error fetching last bath:', error)
+      return null
+    }
+    return data
+  }
+
+  async addBath(): Promise<Bath | null> {
+    const { data, error } = await supabase
+      .from('baths')
+      .insert({
+        family_id: this.familyId,
+        author_id: 1, // TODO: Get from user context
+        timestamp: new Date().toISOString(),
+        author_role: 'Родитель',
+        author_name: 'Пользователь'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding bath:', error)
+      return null
+    }
+    return data
+  }
+
+  // Activity operations
+  async getActivities(limit: number = 10): Promise<Activity[]> {
+    const { data, error } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('family_id', this.familyId)
+      .order('timestamp', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching activities:', error)
+      return []
+    }
+    return data || []
+  }
+
+  async addActivity(activityType: string = 'Игра'): Promise<Activity | null> {
+    const { data, error } = await supabase
+      .from('activities')
+      .insert({
+        family_id: this.familyId,
+        author_id: 1, // TODO: Get from user context
+        timestamp: new Date().toISOString(),
+        activity_type: activityType,
+        author_role: 'Родитель',
+        author_name: 'Пользователь'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding activity:', error)
+      return null
+    }
+    return data
+  }
 
   // Settings operations
   async getSettings(): Promise<Settings | null> {
@@ -238,9 +347,11 @@ class DataService {
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
-    const [feedings, diapers] = await Promise.all([
+    const [feedings, diapers, baths, activities] = await Promise.all([
       this.getFeedings(50),
-      this.getDiapers(50)
+      this.getDiapers(50),
+      this.getBaths(50),
+      this.getActivities(50)
     ])
 
     const todayFeedings = feedings.filter(f => 
@@ -249,10 +360,18 @@ class DataService {
     const todayDiapers = diapers.filter(d => 
       new Date(d.timestamp) >= today && new Date(d.timestamp) < tomorrow
     )
+    const todayBaths = baths.filter(b => 
+      new Date(b.timestamp) >= today && new Date(b.timestamp) < tomorrow
+    )
+    const todayActivities = activities.filter(a => 
+      new Date(a.timestamp) >= today && new Date(a.timestamp) < tomorrow
+    )
 
     return {
       feedings: todayFeedings.length,
-      diapers: todayDiapers.length
+      diapers: todayDiapers.length,
+      baths: todayBaths.length,
+      activities: todayActivities.length
     }
   }
 }

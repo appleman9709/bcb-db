@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
-import { dataService, Feeding, Diaper } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, Activity } from '../services/dataService'
 
 interface HistoryItem {
   id: number
-  type: 'feeding' | 'diaper'
+  type: 'feeding' | 'diaper' | 'bath' | 'activity'
   timestamp: string
-  data: Feeding | Diaper
+  data: Feeding | Diaper | Bath | Activity
 }
 
 export default function History() {
@@ -16,7 +16,9 @@ export default function History() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     feedings: 0,
-    diapers: 0
+    diapers: 0,
+    baths: 0,
+    activities: 0
   })
 
   useEffect(() => {
@@ -26,9 +28,11 @@ export default function History() {
   const fetchHistoryData = async () => {
     try {
       setLoading(true)
-      const [feedings, diapers] = await Promise.all([
+      const [feedings, diapers, baths, activities] = await Promise.all([
         dataService.getFeedings(50),
-        dataService.getDiapers(50)
+        dataService.getDiapers(50),
+        dataService.getBaths(50),
+        dataService.getActivities(50)
       ])
 
       // Filter by period
@@ -55,17 +59,23 @@ export default function History() {
 
       const filteredFeedings = filterByDate(feedings)
       const filteredDiapers = filterByDate(diapers)
+      const filteredBaths = filterByDate(baths)
+      const filteredActivities = filterByDate(activities)
 
       // Combine and sort all data
       const combinedData: HistoryItem[] = [
         ...filteredFeedings.map(f => ({ id: f.id, type: 'feeding' as const, timestamp: f.timestamp, data: f })),
-        ...filteredDiapers.map(d => ({ id: d.id, type: 'diaper' as const, timestamp: d.timestamp, data: d }))
+        ...filteredDiapers.map(d => ({ id: d.id, type: 'diaper' as const, timestamp: d.timestamp, data: d })),
+        ...filteredBaths.map(b => ({ id: b.id, type: 'bath' as const, timestamp: b.timestamp, data: b })),
+        ...filteredActivities.map(a => ({ id: a.id, type: 'activity' as const, timestamp: a.timestamp, data: a }))
       ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
       setHistoryData(combinedData)
       setStats({
         feedings: filteredFeedings.length,
-        diapers: filteredDiapers.length
+        diapers: filteredDiapers.length,
+        baths: filteredBaths.length,
+        activities: filteredActivities.length
       })
     } catch (error) {
       console.error('Error fetching history data:', error)
@@ -80,6 +90,10 @@ export default function History() {
         return 'Кормление'
       case 'diaper':
         return 'Смена подгузника'
+      case 'bath':
+        return 'Купание'
+      case 'activity':
+        return (item.data as Activity).activity_type
       default:
         return 'Неизвестно'
     }
@@ -91,6 +105,10 @@ export default function History() {
         return '🍼'
       case 'diaper':
         return '👶'
+      case 'bath':
+        return '🛁'
+      case 'activity':
+        return '🎯'
       default:
         return '📝'
     }
@@ -102,6 +120,10 @@ export default function History() {
         return 'blue'
       case 'diaper':
         return 'green'
+      case 'bath':
+        return 'yellow'
+      case 'activity':
+        return 'purple'
       default:
         return 'gray'
     }
@@ -156,7 +178,7 @@ export default function History() {
         </div>
 
         {/* Stats Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="text-center">
             <div className="text-2xl font-bold text-blue-600 mb-1">{stats.feedings}</div>
             <div className="text-sm text-gray-600">Кормлений</div>
@@ -164,6 +186,14 @@ export default function History() {
           <Card className="text-center">
             <div className="text-2xl font-bold text-green-600 mb-1">{stats.diapers}</div>
             <div className="text-sm text-gray-600">Смен подгузника</div>
+          </Card>
+          <Card className="text-center">
+            <div className="text-2xl font-bold text-yellow-600 mb-1">{stats.baths}</div>
+            <div className="text-sm text-gray-600">Купаний</div>
+          </Card>
+          <Card className="text-center">
+            <div className="text-2xl font-bold text-purple-600 mb-1">{stats.activities}</div>
+            <div className="text-sm text-gray-600">Активности</div>
           </Card>
         </div>
 
