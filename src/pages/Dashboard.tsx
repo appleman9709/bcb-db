@@ -4,7 +4,7 @@ import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
 import Card from '../components/Card'
 import Button from '../components/Button'
-import { dataService, Feeding, Diaper, Bath, Activity } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, Activity, Tip } from '../services/dataService'
 
 export default function Dashboard() {
   const [data, setData] = useState<{
@@ -13,6 +13,7 @@ export default function Dashboard() {
     lastBath: Bath | null
     recentActivities: Activity[]
     todayStats: any
+    dailyTip: Tip | null
   } | null>(null)
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -25,12 +26,13 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [lastFeeding, lastDiaper, lastBath, recentActivities, todayStats] = await Promise.all([
+      const [lastFeeding, lastDiaper, lastBath, recentActivities, todayStats, dailyTip] = await Promise.all([
         dataService.getLastFeeding(),
         dataService.getLastDiaper(),
         dataService.getLastBath(),
         dataService.getActivities(3),
-        dataService.getTodayStats()
+        dataService.getTodayStats(),
+        dataService.getRandomTip() // Получаем случайный совет
       ])
 
       setData({
@@ -38,7 +40,8 @@ export default function Dashboard() {
         lastDiaper,
         lastBath,
         recentActivities,
-        todayStats
+        todayStats,
+        dailyTip
       })
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -231,21 +234,31 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Tips */}
-        <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-          <div className="flex items-start space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl">
-              💡
+          {/* Tips */}
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <div className="flex items-start space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl">
+                💡
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 mb-2">Совет дня</h3>
+                {data?.dailyTip ? (
+                  <div>
+                    <p className="text-gray-700 mb-2">{data.dailyTip.content}</p>
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>Категория: {data.dailyTip.category}</span>
+                      <span>Возраст: {data.dailyTip.age_months} мес.</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-700">
+                    Регулярное кормление каждые 2-3 часа помогает установить режим дня для вашего малыша. 
+                    Не забывайте записывать время и количество молока!
+                  </p>
+                )}
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 mb-2">Совет дня</h3>
-              <p className="text-gray-700">
-                Регулярное кормление каждые 2-3 часа помогает установить режим дня для вашего малыша. 
-                Не забывайте записывать время и количество молока!
-              </p>
-            </div>
-          </div>
-        </Card>
+          </Card>
 
         {/* Quick Action Modal */}
         <QuickActionModal

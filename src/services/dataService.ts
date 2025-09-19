@@ -47,6 +47,14 @@ export interface Activity {
   created_at: string
 }
 
+export interface Tip {
+  id: number
+  age_months: number
+  content: string
+  category: string
+  created_at: string
+}
+
 
 export interface Settings {
   family_id: number
@@ -288,6 +296,34 @@ class DataService {
     return data
   }
 
+  // Tips operations
+  async getTips(ageMonths?: number): Promise<Tip[]> {
+    let query = supabase
+      .from('tips')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (ageMonths !== undefined) {
+      query = query.eq('age_months', ageMonths)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching tips:', error)
+      return []
+    }
+    return data || []
+  }
+
+  async getRandomTip(ageMonths?: number): Promise<Tip | null> {
+    const tips = await this.getTips(ageMonths)
+    if (tips.length === 0) return null
+    
+    const randomIndex = Math.floor(Math.random() * tips.length)
+    return tips[randomIndex]
+  }
+
   // Settings operations
   async getSettings(): Promise<Settings | null> {
     const { data, error } = await supabase
@@ -318,26 +354,6 @@ class DataService {
       return null
     }
     return data
-  }
-
-  // Tips operations
-  async getTips(ageMonths?: number): Promise<Tip[]> {
-    let query = supabase
-      .from('tips')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (ageMonths !== undefined) {
-      query = query.eq('age_months', ageMonths)
-    }
-
-    const { data, error } = await query.limit(5)
-
-    if (error) {
-      console.error('Error fetching tips:', error)
-      return []
-    }
-    return data || []
   }
 
   // Statistics
