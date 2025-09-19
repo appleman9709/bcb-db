@@ -26,28 +26,6 @@ export interface Diaper {
   created_at: string
 }
 
-export interface SleepSession {
-  id: number
-  family_id: number
-  author_id: number
-  start_time: string
-  end_time?: string
-  duration_minutes?: number
-  author_role: string
-  author_name: string
-  created_at: string
-}
-
-export interface Activity {
-  id: number
-  family_id: number
-  author_id: number
-  timestamp: string
-  activity_type: string
-  author_role: string
-  author_name: string
-  created_at: string
-}
 
 export interface Settings {
   family_id: number
@@ -200,112 +178,6 @@ class DataService {
     return data
   }
 
-  // Sleep operations
-  async getSleepSessions(limit: number = 10): Promise<SleepSession[]> {
-    const { data, error } = await supabase
-      .from('sleep_sessions')
-      .select('*')
-      .eq('family_id', this.familyId)
-      .order('start_time', { ascending: false })
-      .limit(limit)
-
-    if (error) {
-      console.error('Error fetching sleep sessions:', error)
-      return []
-    }
-    return data || []
-  }
-
-  async addSleepSession(startTime?: string): Promise<SleepSession | null> {
-    const { data, error } = await supabase
-      .from('sleep_sessions')
-      .insert({
-        family_id: this.familyId,
-        author_id: 1, // TODO: Get from user context
-        start_time: startTime || new Date().toISOString(),
-        author_role: 'Родитель',
-        author_name: 'Пользователь'
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error adding sleep session:', error)
-      return null
-    }
-    return data
-  }
-
-  async endSleepSession(sessionId: number): Promise<SleepSession | null> {
-    const endTime = new Date().toISOString()
-    
-    // Get start time to calculate duration
-    const { data: session } = await supabase
-      .from('sleep_sessions')
-      .select('start_time')
-      .eq('id', sessionId)
-      .single()
-
-    let durationMinutes: number | undefined
-    if (session) {
-      const start = new Date(session.start_time)
-      const end = new Date(endTime)
-      durationMinutes = Math.floor((end.getTime() - start.getTime()) / (1000 * 60))
-    }
-
-    const { data, error } = await supabase
-      .from('sleep_sessions')
-      .update({
-        end_time: endTime,
-        duration_minutes: durationMinutes
-      })
-      .eq('id', sessionId)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error ending sleep session:', error)
-      return null
-    }
-    return data
-  }
-
-  // Activity operations
-  async getActivities(limit: number = 10): Promise<Activity[]> {
-    const { data, error } = await supabase
-      .from('activities')
-      .select('*')
-      .eq('family_id', this.familyId)
-      .order('timestamp', { ascending: false })
-      .limit(limit)
-
-    if (error) {
-      console.error('Error fetching activities:', error)
-      return []
-    }
-    return data || []
-  }
-
-  async addActivity(activityType: string = 'Игра'): Promise<Activity | null> {
-    const { data, error } = await supabase
-      .from('activities')
-      .insert({
-        family_id: this.familyId,
-        author_id: 1, // TODO: Get from user context
-        timestamp: new Date().toISOString(),
-        activity_type: activityType,
-        author_role: 'Родитель',
-        author_name: 'Пользователь'
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error adding activity:', error)
-      return null
-    }
-    return data
-  }
 
   // Settings operations
   async getSettings(): Promise<Settings | null> {
@@ -366,11 +238,9 @@ class DataService {
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
-    const [feedings, diapers, activities, sleepSessions] = await Promise.all([
+    const [feedings, diapers] = await Promise.all([
       this.getFeedings(50),
-      this.getDiapers(50),
-      this.getActivities(50),
-      this.getSleepSessions(50)
+      this.getDiapers(50)
     ])
 
     const todayFeedings = feedings.filter(f => 
@@ -379,23 +249,10 @@ class DataService {
     const todayDiapers = diapers.filter(d => 
       new Date(d.timestamp) >= today && new Date(d.timestamp) < tomorrow
     )
-    const todayActivities = activities.filter(a => 
-      new Date(a.timestamp) >= today && new Date(a.timestamp) < tomorrow
-    )
-    const todaySleep = sleepSessions.filter(s => 
-      new Date(s.start_time) >= today && new Date(s.start_time) < tomorrow
-    )
-
-    const totalSleepMinutes = todaySleep.reduce((total, session) => 
-      total + (session.duration_minutes || 0), 0
-    )
 
     return {
       feedings: todayFeedings.length,
-      diapers: todayDiapers.length,
-      activities: todayActivities.length,
-      sleepMinutes: totalSleepMinutes,
-      sleepSessions: todaySleep.length
+      diapers: todayDiapers.length
     }
   }
 }

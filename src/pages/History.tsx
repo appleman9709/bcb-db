@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
-import { dataService, Feeding, Diaper, SleepSession, Activity } from '../services/dataService'
+import { dataService, Feeding, Diaper } from '../services/dataService'
 
 interface HistoryItem {
   id: number
-  type: 'feeding' | 'diaper' | 'sleep' | 'activity'
+  type: 'feeding' | 'diaper'
   timestamp: string
-  data: Feeding | Diaper | SleepSession | Activity
+  data: Feeding | Diaper
 }
 
 export default function History() {
@@ -16,9 +16,7 @@ export default function History() {
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     feedings: 0,
-    diapers: 0,
-    sleepSessions: 0,
-    activities: 0
+    diapers: 0
   })
 
   useEffect(() => {
@@ -28,11 +26,9 @@ export default function History() {
   const fetchHistoryData = async () => {
     try {
       setLoading(true)
-      const [feedings, diapers, sleepSessions, activities] = await Promise.all([
+      const [feedings, diapers] = await Promise.all([
         dataService.getFeedings(50),
-        dataService.getDiapers(50),
-        dataService.getSleepSessions(50),
-        dataService.getActivities(50)
+        dataService.getDiapers(50)
       ])
 
       // Filter by period
@@ -55,27 +51,21 @@ export default function History() {
       }
 
       const filterByDate = (items: any[]) => 
-        items.filter(item => new Date(item.timestamp || item.start_time) >= startDate)
+        items.filter(item => new Date(item.timestamp) >= startDate)
 
       const filteredFeedings = filterByDate(feedings)
       const filteredDiapers = filterByDate(diapers)
-      const filteredSleep = filterByDate(sleepSessions)
-      const filteredActivities = filterByDate(activities)
 
       // Combine and sort all data
       const combinedData: HistoryItem[] = [
         ...filteredFeedings.map(f => ({ id: f.id, type: 'feeding' as const, timestamp: f.timestamp, data: f })),
-        ...filteredDiapers.map(d => ({ id: d.id, type: 'diaper' as const, timestamp: d.timestamp, data: d })),
-        ...filteredSleep.map(s => ({ id: s.id, type: 'sleep' as const, timestamp: s.start_time, data: s })),
-        ...filteredActivities.map(a => ({ id: a.id, type: 'activity' as const, timestamp: a.timestamp, data: a }))
+        ...filteredDiapers.map(d => ({ id: d.id, type: 'diaper' as const, timestamp: d.timestamp, data: d }))
       ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
       setHistoryData(combinedData)
       setStats({
         feedings: filteredFeedings.length,
-        diapers: filteredDiapers.length,
-        sleepSessions: filteredSleep.length,
-        activities: filteredActivities.length
+        diapers: filteredDiapers.length
       })
     } catch (error) {
       console.error('Error fetching history data:', error)
@@ -90,10 +80,6 @@ export default function History() {
         return 'Кормление'
       case 'diaper':
         return 'Смена подгузника'
-      case 'sleep':
-        return 'Сон'
-      case 'activity':
-        return (item.data as Activity).activity_type
       default:
         return 'Неизвестно'
     }
@@ -105,10 +91,6 @@ export default function History() {
         return '🍼'
       case 'diaper':
         return '👶'
-      case 'sleep':
-        return '😴'
-      case 'activity':
-        return '🎯'
       default:
         return '📝'
     }
@@ -120,10 +102,6 @@ export default function History() {
         return 'blue'
       case 'diaper':
         return 'green'
-      case 'sleep':
-        return 'purple'
-      case 'activity':
-        return 'yellow'
       default:
         return 'gray'
     }
@@ -144,15 +122,7 @@ export default function History() {
   }
 
   const getItemDetails = (item: HistoryItem) => {
-    switch (item.type) {
-      case 'sleep':
-        const sleepData = item.data as SleepSession
-        return sleepData.duration_minutes 
-          ? `${Math.floor(sleepData.duration_minutes / 60)}ч ${sleepData.duration_minutes % 60}м`
-          : 'В процессе'
-      default:
-        return new Date(item.timestamp).toLocaleTimeString()
-    }
+    return new Date(item.timestamp).toLocaleTimeString()
   }
 
   return (
@@ -186,7 +156,7 @@ export default function History() {
         </div>
 
         {/* Stats Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card className="text-center">
             <div className="text-2xl font-bold text-blue-600 mb-1">{stats.feedings}</div>
             <div className="text-sm text-gray-600">Кормлений</div>
@@ -194,14 +164,6 @@ export default function History() {
           <Card className="text-center">
             <div className="text-2xl font-bold text-green-600 mb-1">{stats.diapers}</div>
             <div className="text-sm text-gray-600">Смен подгузника</div>
-          </Card>
-          <Card className="text-center">
-            <div className="text-2xl font-bold text-purple-600 mb-1">{stats.sleepSessions}</div>
-            <div className="text-sm text-gray-600">Периода сна</div>
-          </Card>
-          <Card className="text-center">
-            <div className="text-2xl font-bold text-yellow-600 mb-1">{stats.activities}</div>
-            <div className="text-sm text-gray-600">Активности</div>
           </Card>
         </div>
 
@@ -261,23 +223,13 @@ export default function History() {
         </Card>
 
         {/* Charts Placeholder */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <div className="mt-8">
           <Card>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">График кормлений</h3>
             <div className="h-64 bg-gradient-to-r from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
               <div className="text-center text-gray-600">
                 <div className="text-4xl mb-2">📈</div>
                 <p>График будет здесь</p>
-              </div>
-            </div>
-          </Card>
-          
-          <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Статистика сна</h3>
-            <div className="h-64 bg-gradient-to-r from-purple-100 to-purple-200 rounded-xl flex items-center justify-center">
-              <div className="text-center text-gray-600">
-                <div className="text-4xl mb-2">📊</div>
-                <p>Диаграмма будет здесь</p>
               </div>
             </div>
           </Card>

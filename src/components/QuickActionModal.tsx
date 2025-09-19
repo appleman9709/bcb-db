@@ -6,7 +6,7 @@ import { dataService } from '../services/dataService'
 interface QuickActionModalProps {
   isOpen: boolean
   onClose: () => void
-  actionType: 'feeding' | 'diaper' | 'sleep' | 'play' | 'medicine' | 'note'
+  actionType: 'feeding' | 'diaper'
   onSuccess?: () => void
 }
 
@@ -28,34 +28,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       description: 'Отметить смену подгузника',
       buttonText: 'Записать смену',
       buttonVariant: 'success' as const
-    },
-    sleep: {
-      title: 'Сон',
-      icon: '😴',
-      description: 'Записать время сна',
-      buttonText: 'Начать сон',
-      buttonVariant: 'purple' as const
-    },
-    play: {
-      title: 'Активность',
-      icon: '🎯',
-      description: 'Отметить активность',
-      buttonText: 'Записать активность',
-      buttonVariant: 'warning' as const
-    },
-    medicine: {
-      title: 'Лекарство',
-      icon: '💊',
-      description: 'Записать прием лекарств',
-      buttonText: 'Записать прием',
-      buttonVariant: 'danger' as const
-    },
-    note: {
-      title: 'Заметка',
-      icon: '📝',
-      description: 'Добавить заметку',
-      buttonText: 'Сохранить заметку',
-      buttonVariant: 'secondary' as const
     }
   }
 
@@ -72,18 +44,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           break
         case 'diaper':
           result = await dataService.addDiaper()
-          break
-        case 'sleep':
-          result = await dataService.addSleepSession()
-          break
-        case 'play':
-          result = await dataService.addActivity('Игра')
-          break
-        case 'medicine':
-          result = await dataService.addActivity('Лекарство')
-          break
-        case 'note':
-          result = await dataService.addActivity('Заметка')
           break
       }
 
@@ -118,21 +78,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           </p>
         </div>
 
-        {/* Note field for some actions */}
-        {(actionType === 'note' || actionType === 'medicine') && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {actionType === 'note' ? 'Заметка' : 'Описание лекарства'}
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-              rows={3}
-              placeholder={actionType === 'note' ? 'Введите заметку...' : 'Опишите лекарство и дозировку...'}
-            />
-          </div>
-        )}
 
         {/* Action buttons */}
         <div className="flex space-x-3">
