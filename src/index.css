@@ -4,11 +4,11 @@
 
 @layer base {
   * {
-    @apply border-gray-200 dark:border-gray-700;
+    @apply border-gray-700;
   }
   
   body {
-    @apply bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen font-sans antialiased;
+    @apply bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen font-sans antialiased;
   }
   
   html {

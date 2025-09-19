@@ -11,42 +11,13 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('theme')
-    return (saved as Theme) || 'light'
-  })
-
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light')
+  const [theme, setTheme] = useState<Theme>('dark')
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark')
 
   useEffect(() => {
-    const updateActualTheme = () => {
-      if (theme === 'auto') {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        setActualTheme(prefersDark ? 'dark' : 'light')
-      } else {
-        setActualTheme(theme)
-      }
-    }
-
-    updateActualTheme()
-
-    if (theme === 'auto') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      mediaQuery.addEventListener('change', updateActualTheme)
-      return () => mediaQuery.removeEventListener('change', updateActualTheme)
-    }
-  }, [theme])
-
-  useEffect(() => {
-    localStorage.setItem('theme', theme)
-    
-    // Применяем тему к документу
-    if (actualTheme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-  }, [theme, actualTheme])
+    // Всегда применяем темную тему
+    document.documentElement.classList.add('dark')
+  }, [])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, actualTheme }}>
