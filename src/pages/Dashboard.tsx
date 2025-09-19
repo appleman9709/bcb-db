@@ -422,28 +422,54 @@ export default function Dashboard() {
               
               <div className="space-y-4">
                 {historyData ? (
-                  [...(historyData.feedings || []), ...(historyData.diapers || []), ...(historyData.baths || []), ...(historyData.activities || [])]
-                    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                    .slice(0, 20)
-                    .map((item, index) => (
-                      <div key={`${item.id}-${index}`} className="flex items-center space-x-4 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md">
-                        <div className="flex-shrink-0">
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg bg-gradient-to-r from-blue-500 to-blue-600">
-                            {'timestamp' in item ? '🍼' : 'timestamp' in item ? '👶' : 'timestamp' in item ? '🛁' : '🎯'}
+                  (() => {
+                    // Создаем массив всех событий с типом
+                    const allEvents = [
+                      ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' })),
+                      ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' })),
+                      ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' })),
+                      ...(historyData.activities || []).map(item => ({ ...item, type: 'activity' }))
+                    ]
+                      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                      .slice(0, 20)
+
+                    return allEvents.map((item, index) => {
+                      const getTypeInfo = (type: string) => {
+                        switch (type) {
+                          case 'feeding':
+                            return { icon: '🍼', label: 'Кормление', color: 'from-blue-500 to-blue-600' }
+                          case 'diaper':
+                            return { icon: '👶', label: 'Смена подгузника', color: 'from-green-500 to-green-600' }
+                          case 'bath':
+                            return { icon: '🛁', label: 'Купание', color: 'from-yellow-500 to-yellow-600' }
+                          case 'activity':
+                            return { icon: '🎯', label: 'Активность', color: 'from-purple-500 to-purple-600' }
+                          default:
+                            return { icon: '📝', label: 'Событие', color: 'from-gray-500 to-gray-600' }
+                        }
+                      }
+
+                      const typeInfo = getTypeInfo(item.type)
+
+                      return (
+                        <div key={`${item.type}-${item.id}-${index}`} className="flex items-center space-x-4 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md">
+                          <div className="flex-shrink-0">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg bg-gradient-to-r ${typeInfo.color}`}>
+                              {typeInfo.icon}
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-lg font-medium text-gray-900">{typeInfo.label}</h3>
+                              <span className="text-sm font-medium text-gray-500">{getTimeAgo(item.timestamp)}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{new Date(item.timestamp).toLocaleTimeString()}</p>
                           </div>
                         </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-medium text-gray-900">
-                              {'timestamp' in item ? 'Кормление' : 'timestamp' in item ? 'Смена подгузника' : 'timestamp' in item ? 'Купание' : 'Активность'}
-                            </h3>
-                            <span className="text-sm font-medium text-gray-500">{getTimeAgo(item.timestamp)}</span>
-                          </div>
-                          <p className="text-sm text-gray-600 mt-1">{new Date(item.timestamp).toLocaleTimeString()}</p>
-                        </div>
-                      </div>
-                    ))
+                      )
+                    })
+                  })()
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <div className="text-4xl mb-2">📝</div>
