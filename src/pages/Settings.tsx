@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import { dataService, Settings as DBSettings } from '../services/dataService'
 
 export default function Settings() {
   const [settings, setSettings] = useState({
@@ -11,9 +12,69 @@ export default function Settings() {
     notifications: true,
     theme: 'light'
   })
+  const [dbSettings, setDbSettings] = useState<DBSettings | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true)
+      const settingsData = await dataService.getSettings()
+      if (settingsData) {
+        setDbSettings(settingsData)
+        setSettings({
+          babyName: 'Малыш', // TODO: Get from family data
+          birthDate: settingsData.baby_birth_date || settingsData.birth_date || '2024-01-01',
+          feedingInterval: settingsData.feed_interval,
+          reminderEnabled: settingsData.tips_enabled,
+          notifications: settingsData.activity_reminder_enabled,
+          theme: 'light'
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSettingChange = (key: string, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }))
+  }
+
+  const handleSaveSettings = async () => {
+    try {
+      setSaving(true)
+      const updatedSettings = await dataService.updateSettings({
+        feed_interval: settings.feedingInterval,
+        tips_enabled: settings.reminderEnabled,
+        activity_reminder_enabled: settings.notifications,
+        baby_birth_date: settings.birthDate,
+        baby_age_months: calculateAgeInMonths(settings.birthDate)
+      })
+
+      if (updatedSettings) {
+        setDbSettings(updatedSettings)
+        // Show success message
+        alert('Настройки сохранены успешно!')
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error)
+      alert('Ошибка при сохранении настроек')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const calculateAgeInMonths = (birthDate: string) => {
+    const birth = new Date(birthDate)
+    const now = new Date()
+    const diffInMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
+    return Math.max(0, diffInMonths)
   }
 
   return (
@@ -177,8 +238,13 @@ export default function Settings() {
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <Button variant="primary" size="lg">
-            💾 Сохранить настройки
+          <Button 
+            variant="primary" 
+            size="lg"
+            onClick={handleSaveSettings}
+            disabled={saving || loading}
+          >
+            {saving ? 'Сохранение...' : '💾 Сохранить настройки'}
           </Button>
         </div>
       </div>

@@ -1,39 +1,51 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
 import StatCard from '../components/StatCard'
 import QuickAction from '../components/QuickAction'
+import QuickActionModal from '../components/QuickActionModal'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import { dataService, Feeding, Diaper, SleepSession, Activity } from '../services/dataService'
 
 export default function Dashboard() {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<{
+    lastFeeding: Feeding | null
+    lastDiaper: Diaper | null
+    lastSleep: SleepSession | null
+    recentActivities: Activity[]
+    todayStats: any
+  } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalAction, setModalAction] = useState<'feeding' | 'diaper' | 'sleep' | 'play' | 'medicine' | 'note'>('feeding')
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const familyId = 1 // TODO: заменить на актуальный ID семьи
-        const { data: feed } = await supabase
-          .from('feedings')
-          .select('timestamp')
-          .eq('family_id', familyId)
-          .order('timestamp', { ascending: false })
-          .limit(1)
-        const { data: diaper } = await supabase
-          .from('diapers')
-          .select('timestamp')
-          .eq('family_id', familyId)
-          .order('timestamp', { ascending: false })
-          .limit(1)
-        setData({ feed: feed?.[0], diaper: diaper?.[0] })
-      } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
     fetchData()
   }, [])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      const [lastFeeding, lastDiaper, sleepSessions, recentActivities, todayStats] = await Promise.all([
+        dataService.getLastFeeding(),
+        dataService.getLastDiaper(),
+        dataService.getSleepSessions(1),
+        dataService.getActivities(3),
+        dataService.getTodayStats()
+      ])
+
+      setData({
+        lastFeeding,
+        lastDiaper,
+        lastSleep: sleepSessions[0] || null,
+        recentActivities,
+        todayStats
+      })
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getTimeAgo = (timestamp: string) => {
     const now = new Date()
@@ -49,9 +61,13 @@ export default function Dashboard() {
     }
   }
 
-  const handleQuickAction = (action: string) => {
-    console.log(`Quick action: ${action}`)
-    // TODO: Implement quick actions
+  const handleQuickAction = (action: 'feeding' | 'diaper' | 'sleep' | 'play' | 'medicine' | 'note') => {
+    setModalAction(action)
+    setModalOpen(true)
+  }
+
+  const handleModalSuccess = () => {
+    fetchData() // Refresh data after successful action
   }
 
   if (loading) {
@@ -84,31 +100,31 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             title="Последнее кормление"
-            value={data?.feed ? getTimeAgo(data.feed.timestamp) : 'Нет данных'}
+            value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
             icon="🍼"
             color="blue"
-            subtitle={data?.feed ? new Date(data.feed.timestamp).toLocaleString() : ''}
+            subtitle={data?.lastFeeding ? new Date(data.lastFeeding.timestamp).toLocaleString() : ''}
           />
           <StatCard
             title="Последняя смена"
-            value={data?.diaper ? getTimeAgo(data.diaper.timestamp) : 'Нет данных'}
+            value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'Нет данных'}
             icon="👶"
             color="green"
-            subtitle={data?.diaper ? new Date(data.diaper.timestamp).toLocaleString() : ''}
+            subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString() : ''}
           />
           <StatCard
             title="Сон сегодня"
-            value="2ч 30м"
+            value={data?.todayStats ? `${Math.floor(data.todayStats.sleepMinutes / 60)}ч ${data.todayStats.sleepMinutes % 60}м` : '0ч 0м'}
             icon="😴"
             color="purple"
-            subtitle="3 периода сна"
+            subtitle={`${data?.todayStats?.sleepSessions || 0} периодов сна`}
           />
           <StatCard
-            title="Активность"
-            value="1ч 15м"
+            title="Активность сегодня"
+            value={data?.todayStats ? `${data.todayStats.activities}` : '0'}
             icon="🎯"
             color="pink"
-            subtitle="Игры и развитие"
+            subtitle="Активности за день"
           />
         </div>
 
@@ -166,38 +182,67 @@ export default function Dashboard() {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Недавняя активность</h2>
           <Card>
             <div className="space-y-4">
-              <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white">
-                  🍼
+              {data?.lastFeeding && (
+                <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white">
+                    🍼
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">Кормление</p>
+                    <p className="text-sm text-gray-600">{getTimeAgo(data.lastFeeding.timestamp)}</p>
+                  </div>
+                  <div className="text-sm text-gray-500">{new Date(data.lastFeeding.timestamp).toLocaleTimeString()}</div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">Кормление</p>
-                  <p className="text-sm text-gray-600">2 часа назад</p>
-                </div>
-                <div className="text-sm text-gray-500">150 мл</div>
-              </div>
+              )}
               
-              <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-xl">
-                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
-                  👶
+              {data?.lastDiaper && (
+                <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-xl">
+                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
+                    👶
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">Смена подгузника</p>
+                    <p className="text-sm text-gray-600">{getTimeAgo(data.lastDiaper.timestamp)}</p>
+                  </div>
+                  <div className="text-sm text-gray-500">{new Date(data.lastDiaper.timestamp).toLocaleTimeString()}</div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">Смена подгузника</p>
-                  <p className="text-sm text-gray-600">3 часа назад</p>
-                </div>
-                <div className="text-sm text-gray-500">Мокрый</div>
-              </div>
+              )}
               
-              <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl">
-                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white">
-                  😴
+              {data?.lastSleep && (
+                <div className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl">
+                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white">
+                    😴
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">Сон</p>
+                    <p className="text-sm text-gray-600">{getTimeAgo(data.lastSleep.start_time)}</p>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {data.lastSleep.duration_minutes ? `${Math.floor(data.lastSleep.duration_minutes / 60)}ч ${data.lastSleep.duration_minutes % 60}м` : 'В процессе'}
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900">Сон</p>
-                  <p className="text-sm text-gray-600">4 часа назад</p>
+              )}
+
+              {data?.recentActivities.map((activity, index) => (
+                <div key={activity.id} className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-xl">
+                  <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-white">
+                    🎯
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{activity.activity_type}</p>
+                    <p className="text-sm text-gray-600">{getTimeAgo(activity.timestamp)}</p>
+                  </div>
+                  <div className="text-sm text-gray-500">{new Date(activity.timestamp).toLocaleTimeString()}</div>
                 </div>
-                <div className="text-sm text-gray-500">1ч 30м</div>
-              </div>
+              ))}
+
+              {(!data?.lastFeeding && !data?.lastDiaper && !data?.lastSleep && (!data?.recentActivities || data.recentActivities.length === 0)) && (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-4xl mb-2">📝</div>
+                  <p>Пока нет записей</p>
+                  <p className="text-sm">Начните отслеживать активность вашего малыша!</p>
+                </div>
+              )}
             </div>
           </Card>
         </div>
@@ -217,6 +262,14 @@ export default function Dashboard() {
             </div>
           </div>
         </Card>
+
+        {/* Quick Action Modal */}
+        <QuickActionModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          actionType={modalAction}
+          onSuccess={handleModalSuccess}
+        />
       </div>
     </div>
   )

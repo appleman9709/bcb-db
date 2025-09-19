@@ -1,40 +1,158 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import { dataService, Feeding, Diaper, SleepSession, Activity } from '../services/dataService'
+
+interface HistoryItem {
+  id: number
+  type: 'feeding' | 'diaper' | 'sleep' | 'activity'
+  timestamp: string
+  data: Feeding | Diaper | SleepSession | Activity
+}
 
 export default function History() {
   const [selectedPeriod, setSelectedPeriod] = useState('today')
+  const [historyData, setHistoryData] = useState<HistoryItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    feedings: 0,
+    diapers: 0,
+    sleepSessions: 0,
+    activities: 0
+  })
 
-  const mockData = [
-    { id: 1, type: 'feeding', time: '14:30', amount: '150 мл', icon: '🍼', color: 'blue' },
-    { id: 2, type: 'diaper', time: '13:45', amount: 'Мокрый', icon: '👶', color: 'green' },
-    { id: 3, type: 'sleep', time: '12:00', amount: '1ч 30м', icon: '😴', color: 'purple' },
-    { id: 4, type: 'feeding', time: '11:15', amount: '120 мл', icon: '🍼', color: 'blue' },
-    { id: 5, type: 'play', time: '10:30', amount: '30 мин', icon: '🎯', color: 'yellow' },
-    { id: 6, type: 'diaper', time: '09:20', amount: 'Сухой', icon: '👶', color: 'green' },
-  ]
+  useEffect(() => {
+    fetchHistoryData()
+  }, [selectedPeriod])
 
-  const getTypeLabel = (type: string) => {
-    const labels: { [key: string]: string } = {
-      feeding: 'Кормление',
-      diaper: 'Смена подгузника',
-      sleep: 'Сон',
-      play: 'Игра',
-      medicine: 'Лекарство',
-      note: 'Заметка'
+  const fetchHistoryData = async () => {
+    try {
+      setLoading(true)
+      const [feedings, diapers, sleepSessions, activities] = await Promise.all([
+        dataService.getFeedings(50),
+        dataService.getDiapers(50),
+        dataService.getSleepSessions(50),
+        dataService.getActivities(50)
+      ])
+
+      // Filter by period
+      const now = new Date()
+      let startDate = new Date()
+      
+      switch (selectedPeriod) {
+        case 'today':
+          startDate.setHours(0, 0, 0, 0)
+          break
+        case 'week':
+          startDate.setDate(startDate.getDate() - 7)
+          break
+        case 'month':
+          startDate.setMonth(startDate.getMonth() - 1)
+          break
+        case 'all':
+          startDate = new Date(0) // Beginning of time
+          break
+      }
+
+      const filterByDate = (items: any[]) => 
+        items.filter(item => new Date(item.timestamp || item.start_time) >= startDate)
+
+      const filteredFeedings = filterByDate(feedings)
+      const filteredDiapers = filterByDate(diapers)
+      const filteredSleep = filterByDate(sleepSessions)
+      const filteredActivities = filterByDate(activities)
+
+      // Combine and sort all data
+      const combinedData: HistoryItem[] = [
+        ...filteredFeedings.map(f => ({ id: f.id, type: 'feeding' as const, timestamp: f.timestamp, data: f })),
+        ...filteredDiapers.map(d => ({ id: d.id, type: 'diaper' as const, timestamp: d.timestamp, data: d })),
+        ...filteredSleep.map(s => ({ id: s.id, type: 'sleep' as const, timestamp: s.start_time, data: s })),
+        ...filteredActivities.map(a => ({ id: a.id, type: 'activity' as const, timestamp: a.timestamp, data: a }))
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+
+      setHistoryData(combinedData)
+      setStats({
+        feedings: filteredFeedings.length,
+        diapers: filteredDiapers.length,
+        sleepSessions: filteredSleep.length,
+        activities: filteredActivities.length
+      })
+    } catch (error) {
+      console.error('Error fetching history data:', error)
+    } finally {
+      setLoading(false)
     }
-    return labels[type] || type
   }
 
-  const getColorClasses = (color: string) => {
-    const colors: { [key: string]: string } = {
-      blue: 'bg-blue-50 border-blue-200',
-      green: 'bg-green-50 border-green-200',
-      purple: 'bg-purple-50 border-purple-200',
-      yellow: 'bg-yellow-50 border-yellow-200',
-      pink: 'bg-pink-50 border-pink-200'
+  const getTypeLabel = (item: HistoryItem) => {
+    switch (item.type) {
+      case 'feeding':
+        return 'Кормление'
+      case 'diaper':
+        return 'Смена подгузника'
+      case 'sleep':
+        return 'Сон'
+      case 'activity':
+        return (item.data as Activity).activity_type
+      default:
+        return 'Неизвестно'
     }
-    return colors[color] || 'bg-gray-50 border-gray-200'
+  }
+
+  const getTypeIcon = (item: HistoryItem) => {
+    switch (item.type) {
+      case 'feeding':
+        return '🍼'
+      case 'diaper':
+        return '👶'
+      case 'sleep':
+        return '😴'
+      case 'activity':
+        return '🎯'
+      default:
+        return '📝'
+    }
+  }
+
+  const getTypeColor = (item: HistoryItem) => {
+    switch (item.type) {
+      case 'feeding':
+        return 'blue'
+      case 'diaper':
+        return 'green'
+      case 'sleep':
+        return 'purple'
+      case 'activity':
+        return 'yellow'
+      default:
+        return 'gray'
+    }
+  }
+
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date()
+    const time = new Date(timestamp)
+    const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60))
+    
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} мин назад`
+    } else if (diffInMinutes < 1440) {
+      return `${Math.floor(diffInMinutes / 60)} ч назад`
+    } else {
+      return `${Math.floor(diffInMinutes / 1440)} дн назад`
+    }
+  }
+
+  const getItemDetails = (item: HistoryItem) => {
+    switch (item.type) {
+      case 'sleep':
+        const sleepData = item.data as SleepSession
+        return sleepData.duration_minutes 
+          ? `${Math.floor(sleepData.duration_minutes / 60)}ч ${sleepData.duration_minutes % 60}м`
+          : 'В процессе'
+      default:
+        return new Date(item.timestamp).toLocaleTimeString()
+    }
   }
 
   return (
@@ -70,19 +188,19 @@ export default function History() {
         {/* Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="text-center">
-            <div className="text-2xl font-bold text-blue-600 mb-1">8</div>
+            <div className="text-2xl font-bold text-blue-600 mb-1">{stats.feedings}</div>
             <div className="text-sm text-gray-600">Кормлений</div>
           </Card>
           <Card className="text-center">
-            <div className="text-2xl font-bold text-green-600 mb-1">6</div>
+            <div className="text-2xl font-bold text-green-600 mb-1">{stats.diapers}</div>
             <div className="text-sm text-gray-600">Смен подгузника</div>
           </Card>
           <Card className="text-center">
-            <div className="text-2xl font-bold text-purple-600 mb-1">3</div>
+            <div className="text-2xl font-bold text-purple-600 mb-1">{stats.sleepSessions}</div>
             <div className="text-sm text-gray-600">Периода сна</div>
           </Card>
           <Card className="text-center">
-            <div className="text-2xl font-bold text-yellow-600 mb-1">2</div>
+            <div className="text-2xl font-bold text-yellow-600 mb-1">{stats.activities}</div>
             <div className="text-sm text-gray-600">Активности</div>
           </Card>
         </div>
@@ -97,35 +215,48 @@ export default function History() {
           </div>
           
           <div className="space-y-4">
-            {mockData.map((item, index) => (
-              <div key={item.id} className="flex items-center space-x-4 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md">
-                <div className="flex-shrink-0">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg bg-gradient-to-r ${
-                    item.color === 'blue' ? 'from-blue-500 to-blue-600' :
-                    item.color === 'green' ? 'from-green-500 to-green-600' :
-                    item.color === 'purple' ? 'from-purple-500 to-purple-600' :
-                    item.color === 'yellow' ? 'from-yellow-500 to-yellow-600' :
-                    'from-gray-500 to-gray-600'
-                  }`}>
-                    {item.icon}
-                  </div>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium text-gray-900">{getTypeLabel(item.type)}</h3>
-                    <span className="text-sm font-medium text-gray-500">{item.time}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">{item.amount}</p>
-                </div>
-                
-                <div className="flex-shrink-0">
-                  <Button variant="secondary" size="sm">
-                    ✏️
-                  </Button>
-                </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-600">Загрузка данных...</p>
               </div>
-            ))}
+            ) : historyData.length > 0 ? (
+              historyData.map((item) => (
+                <div key={`${item.type}-${item.id}`} className="flex items-center space-x-4 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md">
+                  <div className="flex-shrink-0">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg bg-gradient-to-r ${
+                      getTypeColor(item) === 'blue' ? 'from-blue-500 to-blue-600' :
+                      getTypeColor(item) === 'green' ? 'from-green-500 to-green-600' :
+                      getTypeColor(item) === 'purple' ? 'from-purple-500 to-purple-600' :
+                      getTypeColor(item) === 'yellow' ? 'from-yellow-500 to-yellow-600' :
+                      'from-gray-500 to-gray-600'
+                    }`}>
+                      {getTypeIcon(item)}
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium text-gray-900">{getTypeLabel(item)}</h3>
+                      <span className="text-sm font-medium text-gray-500">{getTimeAgo(item.timestamp)}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{getItemDetails(item)}</p>
+                  </div>
+                  
+                  <div className="flex-shrink-0">
+                    <Button variant="secondary" size="sm">
+                      ✏️
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">📝</div>
+                <p>Нет записей за выбранный период</p>
+                <p className="text-sm">Начните отслеживать активность вашего малыша!</p>
+              </div>
+            )}
           </div>
         </Card>
 
