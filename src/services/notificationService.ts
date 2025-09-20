@@ -1,4 +1,4 @@
-import { dataService, Settings } from './dataService'
+import { dataService, Settings, ScheduledNotification } from './dataService'
 
 export interface ReminderCheck {
   type: 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -46,6 +46,13 @@ class NotificationService {
   // Проверяем все напоминания
   private async checkReminders() {
     try {
+      // Очищаем старые уведомления
+      await dataService.cleanupOldNotifications()
+
+      // Проверяем запланированные уведомления
+      await this.checkScheduledNotifications()
+
+      // Проверяем обычные напоминания (для купания и активности)
       const settings = await dataService.getSettings()
       if (!settings) {
         console.log('No settings found, skipping reminder check')
@@ -74,6 +81,44 @@ class NotificationService {
       }
     } catch (error) {
       console.error('Error checking reminders:', error)
+    }
+  }
+
+  // Проверяем запланированные уведомления
+  private async checkScheduledNotifications() {
+    try {
+      const scheduledNotifications = await dataService.getScheduledNotifications()
+      const now = new Date()
+
+      for (const notification of scheduledNotifications) {
+        const scheduledTime = new Date(notification.scheduled_time)
+        const reminderTime = new Date(notification.reminder_time)
+        
+        // Проверяем, нужно ли отправить предупреждение за 5 минут
+        const warningTime = new Date(scheduledTime.getTime() - 5 * 60 * 1000) // -5 минут
+        if (now >= warningTime && now < scheduledTime && !notification.is_sent && this.onNotificationCallback) {
+          console.log('Sending scheduled notification warning:', notification.notification_type)
+          this.onNotificationCallback(
+            'warning',
+            `Скоро время ${this.getReminderTitle(notification.notification_type)}`,
+            `Через 5 минут пора ${this.getActionText(notification.notification_type)}`
+          )
+          await dataService.markNotificationSent(notification.id)
+        }
+
+        // Проверяем, нужно ли отправить напоминание через 15 минут после пропущенного события
+        if (now >= reminderTime && !notification.is_reminder_sent && !notification.is_completed && this.onNotificationCallback) {
+          console.log('Sending reminder notification:', notification.notification_type)
+          this.onNotificationCallback(
+            'reminder',
+            `Напоминание: ${this.getReminderTitle(notification.notification_type)}`,
+            `Прошло 15 минут после запланированного времени ${this.getActionText(notification.notification_type)}`
+          )
+          await dataService.markReminderSent(notification.id)
+        }
+      }
+    } catch (error) {
+      console.error('Error checking scheduled notifications:', error)
     }
   }
 
@@ -186,6 +231,22 @@ class NotificationService {
     }
   }
 
+  // Получаем текст действия для типа напоминания
+  private getActionText(type: string): string {
+    switch (type) {
+      case 'feeding':
+        return 'покормить малыша'
+      case 'diaper':
+        return 'сменить подгузник'
+      case 'bath':
+        return 'искупать малыша'
+      case 'activity':
+        return 'поиграть с малышом'
+      default:
+        return 'выполнить действие'
+    }
+  }
+
   // Создаем уведомление об успешном действии
   createSuccessNotification(action: string): { type: 'success'; title: string; message: string } {
     const messages = {
@@ -231,6 +292,28 @@ class NotificationService {
       type: 'info',
       title,
       message
+    }
+  }
+
+  // Отмечаем запланированное уведомление как выполненное
+  async markScheduledNotificationCompleted(actionType: 'feeding' | 'diaper'): Promise<void> {
+    try {
+      const scheduledNotifications = await dataService.getScheduledNotifications()
+      const now = new Date()
+      
+      // Находим ближайшее невыполненное уведомление данного типа
+      const relevantNotification = scheduledNotifications.find(n => 
+        n.notification_type === actionType && 
+        !n.is_completed &&
+        new Date(n.scheduled_time) <= now
+      )
+
+      if (relevantNotification) {
+        await dataService.markNotificationCompleted(relevantNotification.id)
+        console.log(`Marked ${actionType} notification as completed`)
+      }
+    } catch (error) {
+      console.error('Error marking notification as completed:', error)
     }
   }
 }

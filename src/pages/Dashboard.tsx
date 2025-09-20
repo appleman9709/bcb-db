@@ -692,6 +692,47 @@ export default function Dashboard() {
                   🔔 Тест Reminder
                 </Button>
               </div>
+              
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Тестирование запланированных уведомлений</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button
+                    variant="primary"
+                    onClick={async () => {
+                      // Создаем тестовое уведомление о кормлении через 1 минуту
+                      const testTime = new Date()
+                      testTime.setMinutes(testTime.getMinutes() + 1)
+                      await dataService.createScheduledNotification('feeding', testTime)
+                      addNotification({
+                        type: 'success',
+                        title: 'Тестовое уведомление создано!',
+                        message: `Уведомление о кормлении запланировано на ${testTime.toLocaleTimeString()}`
+                      })
+                    }}
+                  >
+                    🍼 Тест кормления (через 1 мин)
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={async () => {
+                      // Создаем тестовое уведомление о смене подгузника через 1 минуту
+                      const testTime = new Date()
+                      testTime.setMinutes(testTime.getMinutes() + 1)
+                      await dataService.createScheduledNotification('diaper', testTime)
+                      addNotification({
+                        type: 'success',
+                        title: 'Тестовое уведомление создано!',
+                        message: `Уведомление о смене подгузника запланировано на ${testTime.toLocaleTimeString()}`
+                      })
+                    }}
+                  >
+                    👶 Тест подгузника (через 1 мин)
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Предупреждение придет за 5 минут до события, напоминание - через 15 минут после пропуска
+                </p>
+              </div>
             </Card>
 
             {/* Save Button */}
