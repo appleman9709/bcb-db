@@ -7,7 +7,7 @@ interface QuickActionModalProps {
   isOpen: boolean
   onClose: () => void
   actionType: 'feeding' | 'diaper' | 'bath' | 'activity'
-  onSuccess?: () => void
+  onSuccess?: (action: 'feeding' | 'diaper' | 'bath' | 'activity') => void
 }
 
 export default function QuickActionModal({ isOpen, onClose, actionType, onSuccess }: QuickActionModalProps) {
@@ -68,7 +68,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       }
 
       if (result) {
-        onSuccess?.()
+        onSuccess?.(actionType)
         onClose()
         setNote('')
       }
