@@ -43,7 +43,7 @@ const DebugPanel: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm">
+    <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm w-80 sm:w-auto hidden sm:block">
       <h3 className="font-bold mb-2">🐛 Debug Panel</h3>
       
       <div className="space-y-2 mb-3">

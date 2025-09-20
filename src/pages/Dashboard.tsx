@@ -222,32 +222,37 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Navigation */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex space-x-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
+            <div className="flex flex-wrap gap-2 sm:space-x-4 sm:gap-0">
               <Button
                 variant={activeSection === 'dashboard' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('dashboard')}
+                className="text-sm sm:text-base"
               >
-                🏠 Главная
+                🏠 <span className="hidden sm:inline">Главная</span>
               </Button>
               <Button
                 variant={activeSection === 'history' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('history')}
+                className="text-sm sm:text-base"
               >
-                📊 История
+                📊 <span className="hidden sm:inline">История</span>
               </Button>
               <Button
                 variant={activeSection === 'settings' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('settings')}
+                className="text-sm sm:text-base"
               >
-                ⚙️ Настройки
+                ⚙️ <span className="hidden sm:inline">Настройки</span>
               </Button>
             </div>
-            <NotificationPanel />
+            <div className="flex justify-end">
+              <NotificationPanel />
+            </div>
           </div>
         </div>
 
@@ -294,7 +299,7 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Быстрые действия</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Быстрые действия</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <QuickAction
               title="Кормление"
@@ -329,7 +334,7 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Недавняя активность</h2>
+          <h2 className="text-2xl font-bold text-white mb-6">Недавняя активность</h2>
           <Card>
             <div className="space-y-4">
               {data?.lastFeeding && (
@@ -402,7 +407,7 @@ export default function Dashboard() {
                 💡
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 mb-2">Совет дня</h3>
+                <h3 className="font-semibold text-white mb-2">Совет дня</h3>
                 {data?.dailyTip ? (
                   <div>
                     <p className="text-gray-700 mb-2">{data.dailyTip.content}</p>
@@ -454,7 +459,7 @@ export default function Dashboard() {
             {/* Timeline */}
             <Card>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Хронология событий</h2>
+                <h2 className="text-xl font-semibold text-white">Хронология событий</h2>
               </div>
               
               <div className="space-y-4">
@@ -558,7 +563,7 @@ export default function Dashboard() {
 
             {/* Interval Settings */}
             <Card className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Настройки интервалов</h2>
+              <h2 className="text-xl font-semibold text-white mb-6">Настройки интервалов</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -45,7 +45,7 @@ const NotificationPanel: React.FC = () => {
 
         {/* Панель уведомлений */}
         {isOpen && (
-          <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden">
+          <div className="absolute right-0 sm:right-0 left-0 sm:left-auto top-full mt-2 w-full max-w-sm sm:w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-96 overflow-hidden">
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-gray-900">Уведомления</h3>
