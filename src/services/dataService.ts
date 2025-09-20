@@ -85,17 +85,6 @@ export interface Tip {
   created_at: string
 }
 
-export interface ScheduledNotification {
-  id: number
-  family_id: number
-  notification_type: 'feeding' | 'diaper'
-  scheduled_time: string
-  reminder_time: string
-  is_sent: boolean
-  is_reminder_sent: boolean
-  is_completed: boolean
-  created_at: string
-}
 
 class DataService {
   private familyId: number = 1 // TODO: Get from user context
@@ -165,16 +154,6 @@ class DataService {
       return null
     }
 
-    // Отмечаем текущее запланированное уведомление как выполненное
-    await this.markCurrentNotificationCompleted('feeding')
-
-    // Создаем запланированное уведомление для следующего кормления
-    const settings = await this.getSettings()
-    if (settings && settings.feed_interval > 0) {
-      const nextFeedingTime = new Date()
-      nextFeedingTime.setHours(nextFeedingTime.getHours() + settings.feed_interval)
-      await this.createScheduledNotification('feeding', nextFeedingTime)
-    }
 
     return data
   }
@@ -229,16 +208,6 @@ class DataService {
       return null
     }
 
-    // Отмечаем текущее запланированное уведомление как выполненное
-    await this.markCurrentNotificationCompleted('diaper')
-
-    // Создаем запланированное уведомление для следующей смены подгузника
-    const settings = await this.getSettings()
-    if (settings && settings.diaper_interval > 0) {
-      const nextDiaperTime = new Date()
-      nextDiaperTime.setHours(nextDiaperTime.getHours() + settings.diaper_interval)
-      await this.createScheduledNotification('diaper', nextDiaperTime)
-    }
 
     return data
   }
@@ -392,98 +361,6 @@ class DataService {
     return data
   }
 
-  // Scheduled Notifications operations
-  async getScheduledNotifications(): Promise<ScheduledNotification[]> {
-    const { data, error } = await supabase
-      .from('scheduled_notifications')
-      .select('*')
-      .eq('family_id', this.familyId)
-      .eq('is_completed', false)
-      .order('scheduled_time', { ascending: true })
-
-    if (error) {
-      console.error('Error fetching scheduled notifications:', error)
-      return []
-    }
-    return data || []
-  }
-
-  async createScheduledNotification(
-    notificationType: 'feeding' | 'diaper',
-    scheduledTime: Date
-  ): Promise<ScheduledNotification | null> {
-    const reminderTime = new Date(scheduledTime.getTime() + 15 * 60 * 1000) // +15 минут
-
-    const { data, error } = await supabase
-      .from('scheduled_notifications')
-      .insert({
-        family_id: this.familyId,
-        notification_type: notificationType,
-        scheduled_time: scheduledTime.toISOString(),
-        reminder_time: reminderTime.toISOString()
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating scheduled notification:', error)
-      return null
-    }
-    return data
-  }
-
-  async markNotificationSent(id: number): Promise<void> {
-    await supabase
-      .from('scheduled_notifications')
-      .update({ is_sent: true })
-      .eq('id', id)
-  }
-
-  async markReminderSent(id: number): Promise<void> {
-    await supabase
-      .from('scheduled_notifications')
-      .update({ is_reminder_sent: true })
-      .eq('id', id)
-  }
-
-  async markNotificationCompleted(id: number): Promise<void> {
-    await supabase
-      .from('scheduled_notifications')
-      .update({ is_completed: true })
-      .eq('id', id)
-  }
-
-  async cleanupOldNotifications(): Promise<void> {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    
-    await supabase
-      .from('scheduled_notifications')
-      .update({ is_completed: true })
-      .eq('family_id', this.familyId)
-      .lt('scheduled_time', yesterday.toISOString())
-      .eq('is_completed', false)
-  }
-
-  async markCurrentNotificationCompleted(notificationType: 'feeding' | 'diaper'): Promise<void> {
-    const now = new Date()
-    
-    // Находим ближайшее невыполненное уведомление данного типа
-    const { data, error } = await supabase
-      .from('scheduled_notifications')
-      .select('*')
-      .eq('family_id', this.familyId)
-      .eq('notification_type', notificationType)
-      .eq('is_completed', false)
-      .lte('scheduled_time', now.toISOString())
-      .order('scheduled_time', { ascending: true })
-      .limit(1)
-      .single()
-
-    if (data && !error) {
-      await this.markNotificationCompleted(data.id)
-    }
-  }
 
   // Statistics
   async getTodayStats() {

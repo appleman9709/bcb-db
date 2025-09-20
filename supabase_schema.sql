@@ -73,8 +73,6 @@ CREATE TABLE IF NOT EXISTS sleep_sessions (
     duration_minutes INTEGER,
     author_role TEXT DEFAULT 'Родитель',
     author_name TEXT DEFAULT 'Неизвестно',
-    feeding_notification_sent BOOLEAN DEFAULT FALSE,
-    diaper_notification_sent BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -109,18 +107,6 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Таблица запланированных уведомлений
-CREATE TABLE IF NOT EXISTS scheduled_notifications (
-    id SERIAL PRIMARY KEY,
-    family_id INTEGER REFERENCES families(id) ON DELETE CASCADE,
-    notification_type TEXT NOT NULL CHECK (notification_type IN ('feeding', 'diaper')),
-    scheduled_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    reminder_time TIMESTAMP WITH TIME ZONE NOT NULL,
-    is_sent BOOLEAN DEFAULT FALSE,
-    is_reminder_sent BOOLEAN DEFAULT FALSE,
-    is_completed BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
 
 -- Создание индексов для оптимизации запросов
 CREATE INDEX IF NOT EXISTS idx_family_members_user_id ON family_members(user_id);
@@ -136,9 +122,6 @@ CREATE INDEX IF NOT EXISTS idx_sleep_sessions_family_id ON sleep_sessions(family
 CREATE INDEX IF NOT EXISTS idx_sleep_sessions_start_time ON sleep_sessions(start_time);
 CREATE INDEX IF NOT EXISTS idx_tips_age_months ON tips(age_months);
 CREATE INDEX IF NOT EXISTS idx_tips_category ON tips(category);
-CREATE INDEX IF NOT EXISTS idx_scheduled_notifications_family_id ON scheduled_notifications(family_id);
-CREATE INDEX IF NOT EXISTS idx_scheduled_notifications_scheduled_time ON scheduled_notifications(scheduled_time);
-CREATE INDEX IF NOT EXISTS idx_scheduled_notifications_reminder_time ON scheduled_notifications(reminder_time);
 
 -- Функция для автоматического обновления updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -165,7 +148,6 @@ ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sleep_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tips ENABLE ROW LEVEL SECURITY;
-ALTER TABLE scheduled_notifications ENABLE ROW LEVEL SECURITY;
 
 -- Политики безопасности (разрешаем все операции для аутентифицированных пользователей)
 -- В реальном проекте здесь должны быть более строгие политики
@@ -178,4 +160,3 @@ CREATE POLICY "Enable all operations for authenticated users" ON activities FOR 
 CREATE POLICY "Enable all operations for authenticated users" ON sleep_sessions FOR ALL USING (true);
 CREATE POLICY "Enable all operations for authenticated users" ON settings FOR ALL USING (true);
 CREATE POLICY "Enable all operations for authenticated users" ON tips FOR ALL USING (true);
-CREATE POLICY "Enable all operations for authenticated users" ON scheduled_notifications FOR ALL USING (true);

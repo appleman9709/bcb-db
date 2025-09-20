@@ -4,14 +4,10 @@ import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
 import Card from '../components/Card'
 import Button from '../components/Button'
-import NotificationPanel from '../components/NotificationPanel'
 import DebugPanel from '../components/DebugPanel'
 import { dataService, Feeding, Diaper, Bath, Activity, Tip, Settings as DBSettings } from '../services/dataService'
-import { useNotifications } from '../contexts/NotificationContext'
-import { notificationService } from '../services/notificationService'
 
 export default function Dashboard() {
-  const { addNotification } = useNotifications()
   const [activeSection, setActiveSection] = useState<'dashboard' | 'history' | 'settings'>('dashboard')
   const [data, setData] = useState<{
     lastFeeding: Feeding | null
@@ -42,24 +38,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchData()
     fetchSettingsData()
-    
-    // Инициализируем систему уведомлений
-    notificationService.setNotificationCallback((type, title, message) => {
-      addNotification({
-        type: type as any,
-        title,
-        message
-      })
-    })
-    
-    // Запускаем проверку напоминаний
-    notificationService.startReminderChecks()
-    
-    // Очистка при размонтировании
-    return () => {
-      notificationService.stopReminderChecks()
-    }
-  }, []) // Убираем addNotification из зависимостей
+  }, [])
 
   useEffect(() => {
     if (activeSection === 'history') {
@@ -120,10 +99,6 @@ export default function Dashboard() {
   const handleModalSuccess = (action: 'feeding' | 'diaper' | 'bath' | 'activity') => {
     fetchData() // Refresh data after successful action
     setModalOpen(false)
-    
-    // Показываем уведомление об успешном действии
-    const notification = notificationService.createSuccessNotification(action)
-    addNotification(notification)
   }
 
   const fetchHistoryData = async () => {
@@ -180,20 +155,10 @@ export default function Dashboard() {
       })
 
       if (updatedSettings) {
-        addNotification({
-          type: 'success',
-          title: 'Настройки сохранены!',
-          message: 'Все настройки успешно обновлены'
-        })
         fetchData() // Refresh data to get updated age-based tips
       }
     } catch (error) {
       console.error('Error saving settings:', error)
-      addNotification({
-        type: 'error',
-        title: 'Ошибка сохранения',
-        message: 'Не удалось сохранить настройки. Попробуйте еще раз.'
-      })
     }
   }
 
@@ -249,9 +214,6 @@ export default function Dashboard() {
               >
                 ⚙️ <span className="hidden sm:inline">Настройки</span>
               </Button>
-            </div>
-            <div className="flex justify-end">
-              <NotificationPanel />
             </div>
           </div>
         </div>
@@ -643,97 +605,6 @@ export default function Dashboard() {
               </div>
             </Card>
 
-            {/* Test Notifications */}
-            <Card className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 mb-6">Тестирование уведомлений</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button
-                  variant="secondary"
-                  onClick={() => addNotification({
-                    type: 'info',
-                    title: 'Тестовое уведомление',
-                    message: 'Это информационное уведомление для тестирования системы'
-                  })}
-                >
-                  ℹ️ Тест Info
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => addNotification({
-                    type: 'success',
-                    title: 'Успех!',
-                    message: 'Это уведомление об успешном действии'
-                  })}
-                >
-                  ✅ Тест Success
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => addNotification({
-                    type: 'warning',
-                    title: 'Предупреждение',
-                    message: 'Это предупреждающее уведомление'
-                  })}
-                >
-                  ⚠️ Тест Warning
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => addNotification({
-                    type: 'reminder',
-                    title: 'Напоминание о кормлении',
-                    message: 'Пора покормить малыша!',
-                    action: {
-                      label: 'Записать кормление',
-                      onClick: () => handleQuickAction('feeding')
-                    }
-                  })}
-                >
-                  🔔 Тест Reminder
-                </Button>
-              </div>
-              
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Тестирование запланированных уведомлений</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Button
-                    variant="primary"
-                    onClick={async () => {
-                      // Создаем тестовое уведомление о кормлении через 1 минуту
-                      const testTime = new Date()
-                      testTime.setMinutes(testTime.getMinutes() + 1)
-                      await dataService.createScheduledNotification('feeding', testTime)
-                      addNotification({
-                        type: 'success',
-                        title: 'Тестовое уведомление создано!',
-                        message: `Уведомление о кормлении запланировано на ${testTime.toLocaleTimeString()}`
-                      })
-                    }}
-                  >
-                    🍼 Тест кормления (через 1 мин)
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={async () => {
-                      // Создаем тестовое уведомление о смене подгузника через 1 минуту
-                      const testTime = new Date()
-                      testTime.setMinutes(testTime.getMinutes() + 1)
-                      await dataService.createScheduledNotification('diaper', testTime)
-                      addNotification({
-                        type: 'success',
-                        title: 'Тестовое уведомление создано!',
-                        message: `Уведомление о смене подгузника запланировано на ${testTime.toLocaleTimeString()}`
-                      })
-                    }}
-                  >
-                    👶 Тест подгузника (через 1 мин)
-                  </Button>
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Предупреждение придет за 5 минут до события, напоминание - через 15 минут после пропуска
-                </p>
-              </div>
-            </Card>
 
             {/* Save Button */}
             <div className="flex justify-end">
