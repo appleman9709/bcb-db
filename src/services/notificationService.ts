@@ -11,6 +11,7 @@ export interface ReminderCheck {
 class NotificationService {
   private checkInterval: NodeJS.Timeout | null = null
   private onNotificationCallback: ((type: string, title: string, message: string) => void) | null = null
+  private lastNotificationTimes: Map<string, number> = new Map()
 
   // Устанавливаем callback для отправки уведомлений
   setNotificationCallback(callback: (type: string, title: string, message: string) => void) {
@@ -23,13 +24,15 @@ class NotificationService {
       clearInterval(this.checkInterval)
     }
 
-    // Проверяем каждые 5 минут
+    // Проверяем каждые 30 секунд для тестирования (в продакшене можно увеличить до 5 минут)
     this.checkInterval = setInterval(async () => {
       await this.checkReminders()
-    }, 5 * 60 * 1000)
+    }, 30 * 1000)
 
-    // Первая проверка сразу
-    this.checkReminders()
+    // Первая проверка через 2 секунды после запуска
+    setTimeout(() => {
+      this.checkReminders()
+    }, 2000)
   }
 
   // Останавливаем проверку напоминаний
@@ -44,17 +47,29 @@ class NotificationService {
   private async checkReminders() {
     try {
       const settings = await dataService.getSettings()
-      if (!settings) return
+      if (!settings) {
+        console.log('No settings found, skipping reminder check')
+        return
+      }
 
       const reminders = await this.getReminderChecks(settings)
       
       for (const reminder of reminders) {
         if (reminder.shouldNotify && this.onNotificationCallback) {
-          this.onNotificationCallback(
-            'reminder',
-            `Напоминание: ${this.getReminderTitle(reminder.type)}`,
-            reminder.message
-          )
+          const now = Date.now()
+          const lastNotificationTime = this.lastNotificationTimes.get(reminder.type) || 0
+          const timeSinceLastNotification = now - lastNotificationTime
+          
+          // Отправляем уведомление только если прошло больше 10 минут с последнего
+          if (timeSinceLastNotification > 10 * 60 * 1000) {
+            console.log('Sending reminder:', reminder.type, reminder.message)
+            this.onNotificationCallback(
+              'reminder',
+              `Напоминание: ${this.getReminderTitle(reminder.type)}`,
+              reminder.message
+            )
+            this.lastNotificationTimes.set(reminder.type, now)
+          }
         }
       }
     } catch (error) {
@@ -82,11 +97,14 @@ class NotificationService {
         ? (now.getTime() - lastFeedingTime.getTime()) / (1000 * 60 * 60)
         : Infinity
 
+      // Добавляем буфер в 0.5 часа, чтобы не спамить уведомлениями
+      const shouldNotify = hoursSinceFeeding >= (settings.feed_interval + 0.5)
+
       checks.push({
         type: 'feeding',
         lastTime: lastFeedingTime,
         intervalHours: settings.feed_interval,
-        shouldNotify: hoursSinceFeeding >= settings.feed_interval,
+        shouldNotify,
         message: lastFeedingTime 
           ? `Прошло ${Math.floor(hoursSinceFeeding)} часов с последнего кормления`
           : 'Пора покормить малыша!'
@@ -100,11 +118,13 @@ class NotificationService {
         ? (now.getTime() - lastDiaperTime.getTime()) / (1000 * 60 * 60)
         : Infinity
 
+      const shouldNotify = hoursSinceDiaper >= (settings.diaper_interval + 0.5)
+
       checks.push({
         type: 'diaper',
         lastTime: lastDiaperTime,
         intervalHours: settings.diaper_interval,
-        shouldNotify: hoursSinceDiaper >= settings.diaper_interval,
+        shouldNotify,
         message: lastDiaperTime 
           ? `Прошло ${Math.floor(hoursSinceDiaper)} часов с последней смены подгузника`
           : 'Пора сменить подгузник!'

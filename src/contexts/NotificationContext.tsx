@@ -61,7 +61,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
     // Автоматически удаляем уведомление через 5 секунд для info и success
     if (notification.type === 'info' || notification.type === 'success') {
       setTimeout(() => {
-        removeNotification(newNotification.id)
+        setNotifications(prev => prev.filter(n => n.id !== newNotification.id))
       }, 5000)
     }
 
@@ -70,7 +70,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       sendBrowserNotification(notification.title, {
         body: notification.message,
         icon: '/favicon.ico',
-        tag: notification.id
+        tag: newNotification.id
       })
     }
   }

@@ -5,6 +5,7 @@ import QuickActionModal from '../components/QuickActionModal'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import NotificationPanel from '../components/NotificationPanel'
+import DebugPanel from '../components/DebugPanel'
 import { dataService, Feeding, Diaper, Bath, Activity, Tip, Settings as DBSettings } from '../services/dataService'
 import { useNotifications } from '../contexts/NotificationContext'
 import { notificationService } from '../services/notificationService'
@@ -58,7 +59,7 @@ export default function Dashboard() {
     return () => {
       notificationService.stopReminderChecks()
     }
-  }, [addNotification])
+  }, []) // Убираем addNotification из зависимостей
 
   useEffect(() => {
     if (activeSection === 'history') {
@@ -708,6 +709,9 @@ export default function Dashboard() {
           actionType={modalAction}
           onSuccess={handleModalSuccess}
         />
+
+        {/* Debug Panel - только в режиме разработки */}
+        {process.env.NODE_ENV === 'development' && <DebugPanel />}
       </div>
     </div>
   )
