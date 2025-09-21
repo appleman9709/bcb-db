@@ -406,7 +406,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="h-32 bg-gray-200 rounded-2xl"></div>
               ))}
@@ -471,7 +471,7 @@ export default function Dashboard() {
               </Card>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <StatCard
                 title="Последнее кормление"
                 value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
@@ -480,37 +480,11 @@ export default function Dashboard() {
                 subtitle={data?.lastFeeding ? new Date(data.lastFeeding.timestamp).toLocaleString('ru-RU') : ''}
               />
               <StatCard
-                title="До следующего кормления"
-                value={nextFeedingInfo
-                  ? nextFeedingInfo.overdue
-                    ? `Пора покормить (${formatDuration(Math.abs(nextFeedingInfo.diffMinutes))} просрочено)`
-                    : `Через ${formatDuration(nextFeedingInfo.diffMinutes)}`
-                  : 'Добавьте запись'}
-                icon="⏰"
-                color={nextFeedingInfo?.overdue ? 'pink' : 'purple'}
-                subtitle={nextFeedingInfo
-                  ? `${nextFeedingInfo.overdue ? 'Планировалось' : 'Запланировано'}: ${formatTime(nextFeedingInfo.nextTime)}`
-                  : 'Используется интервал из настроек'}
-              />
-              <StatCard
                 title="Последняя смена подгузника"
                 value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'Нет данных'}
                 icon="🧷"
                 color="green"
                 subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString('ru-RU') : ''}
-              />
-              <StatCard
-                title="До следующей смены"
-                value={nextDiaperInfo
-                  ? nextDiaperInfo.overdue
-                    ? `Пора сменить (${formatDuration(Math.abs(nextDiaperInfo.diffMinutes))} просрочено)`
-                    : `Через ${formatDuration(nextDiaperInfo.diffMinutes)}`
-                  : 'Добавьте запись'}
-                icon="🔔"
-                color={nextDiaperInfo?.overdue ? 'pink' : 'yellow'}
-                subtitle={nextDiaperInfo
-                  ? `${nextDiaperInfo.overdue ? 'Планировалось' : 'Запланировано'}: ${formatTime(nextDiaperInfo.nextTime)}`
-                  : 'Настройте интервал в разделе "Настройки"'}
               />
             </div>
 
