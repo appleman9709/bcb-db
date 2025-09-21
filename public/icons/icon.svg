@@ -1,8 +1,32 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="64" fill="#3B82F6"/>
-  <circle cx="256" cy="200" r="60" fill="white"/>
-  <path d="M196 320C196 280.5 220.5 256 260 256H252C291.5 256 316 280.5 316 320V380C316 419.5 291.5 444 252 444H260C220.5 444 196 419.5 196 380V320Z" fill="white"/>
-  <circle cx="200" cy="180" r="8" fill="#3B82F6"/>
-  <circle cx="312" cy="180" r="8" fill="#3B82F6"/>
-  <path d="M240 200C240 200 260 220 272 200" stroke="#3B82F6" stroke-width="4" stroke-linecap="round"/>
+﻿<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="128" y1="64" x2="400" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF4FC" />
+      <stop offset="1" stop-color="#C9E4FF" />
+    </linearGradient>
+    <radialGradient id="panel" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 256) rotate(90) scale(184)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.75" />
+    </radialGradient>
+    <radialGradient id="bodyGradient" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 240) rotate(90) scale(156)">
+      <stop stop-color="#60A5FA" />
+      <stop offset="1" stop-color="#8B5CF6" />
+    </radialGradient>
+    <radialGradient id="slingGradient" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 256) rotate(90) scale(120)">
+      <stop stop-color="#81C7D4" />
+      <stop offset="1" stop-color="#3B82F6" />
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)" />
+  <circle cx="256" cy="256" r="184" fill="url(#panel)" />
+  <path d="M256 214C360 232 354 360 256 388C158 360 152 232 256 214Z" fill="url(#bodyGradient)" />
+  <path d="M256 236C320 264 314 330 256 348C198 330 192 264 256 236Z" fill="url(#slingGradient)" />
+  <circle cx="256" cy="218" r="50" fill="#FFE6D6" />
+  <ellipse cx="254" cy="202" rx="28" ry="18" fill="white" fill-opacity="0.35" />
+  <circle cx="243" cy="217" r="9" fill="#242F44" />
+  <circle cx="269" cy="217" r="9" fill="#242F44" />
+  <path d="M236 242C246 258 266 258 276 242" stroke="#2F3E5A" stroke-width="7" stroke-linecap="round" />
+  <path d="M242 188C256 184 268 194 272 204" stroke="#2F3E5A" stroke-width="6" stroke-linecap="round" />
+  <path d="M336 176C336 154 310 154 310 176C310 200 336 210 336 232C336 210 362 200 362 176C362 154 336 154 336 176Z" fill="#F472B6" />
+  <circle cx="180" cy="164" r="14" fill="white" />
 </svg>
