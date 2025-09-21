@@ -1,43 +1,118 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import StatCard from '../components/StatCard'
 import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
 import Card from '../components/Card'
 import Button from '../components/Button'
 import DebugPanel from '../components/DebugPanel'
-import { dataService, Feeding, Diaper, Bath, Activity, Tip, Settings as DBSettings } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, Tip } from '../services/dataService'
+
+type DashboardSection = 'dashboard' | 'history' | 'settings'
+type QuickActionType = 'feeding' | 'diaper' | 'bath'
+type ReminderType = 'feeding' | 'diaper'
+
+interface DashboardData {
+  lastFeeding: Feeding | null
+  lastDiaper: Diaper | null
+  lastBath: Bath | null
+  dailyTip: Tip | null
+}
+
+interface HistoryData {
+  feedings: Feeding[]
+  diapers: Diaper[]
+  baths: Bath[]
+}
+
+interface SettingsState {
+  babyName: string
+  birthDate: string
+  feedingInterval: number
+  diaperInterval: number
+  bathInterval: number
+}
+
+interface NextEventInfo {
+  nextTime: Date
+  diffMinutes: number
+  overdue: boolean
+}
+
+const MAX_HISTORY_EVENTS = 20
+
+const formatDuration = (minutes: number) => {
+  const absMinutes = Math.abs(minutes)
+  const days = Math.floor(absMinutes / 1440)
+  const hours = Math.floor((absMinutes % 1440) / 60)
+  const mins = absMinutes % 60
+  const parts: string[] = []
+
+  if (days > 0) {
+    parts.push(`${days} д`)
+  }
+
+  if (hours > 0 || days > 0) {
+    parts.push(`${hours} ч`)
+    parts.push(`${mins} мин`)
+  } else {
+    parts.push(`${mins} мин`)
+  }
+
+  return parts.join(' ')
+}
+
+const formatTime = (date: Date) =>
+  date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+
+const calculateNextEvent = (timestamp: string | null | undefined, intervalHours: number): NextEventInfo | null => {
+  if (!timestamp || !Number.isFinite(intervalHours) || intervalHours <= 0) {
+    return null
+  }
+
+  const lastTime = new Date(timestamp)
+  if (Number.isNaN(lastTime.getTime())) {
+    return null
+  }
+
+  const nextTime = new Date(lastTime.getTime() + intervalHours * 60 * 60 * 1000)
+  const diffMinutes = Math.round((nextTime.getTime() - Date.now()) / (1000 * 60))
+
+  return {
+    nextTime,
+    diffMinutes,
+    overdue: diffMinutes <= 0
+  }
+}
+
+const requestDefaultNotificationPermission = () => {
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return 'default' as NotificationPermission
+  }
+
+  return Notification.permission
+}
 
 export default function Dashboard() {
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'history' | 'settings'>('dashboard')
-  const [data, setData] = useState<{
-    lastFeeding: Feeding | null
-    lastDiaper: Diaper | null
-    lastBath: Bath | null
-    recentActivities: Activity[]
-    todayStats: any
-    dailyTip: Tip | null
-  } | null>(null)
-  const [historyData, setHistoryData] = useState<{
-    feedings: Feeding[]
-    diapers: Diaper[]
-    baths: Bath[]
-    activities: Activity[]
-  } | null>(null)
-  const [settings, setSettings] = useState({
+  const [activeSection, setActiveSection] = useState<DashboardSection>('dashboard')
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [historyData, setHistoryData] = useState<HistoryData | null>(null)
+  const [settings, setSettings] = useState<SettingsState>({
     babyName: 'Малыш',
     birthDate: '2024-01-01',
     feedingInterval: 3,
     diaperInterval: 2,
-    bathInterval: 1,
-    activityInterval: 2
+    bathInterval: 1
   })
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
-  const [modalAction, setModalAction] = useState<'feeding' | 'diaper' | 'bath' | 'activity'>('feeding')
+  const [modalAction, setModalAction] = useState<QuickActionType>('feeding')
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(requestDefaultNotificationPermission)
+
+  const reminderTimers = useRef<Partial<Record<ReminderType, number>>>({})
+  const isNotificationSupported = typeof window !== 'undefined' && 'Notification' in window
 
   useEffect(() => {
     fetchData()
-    fetchSettingsData()
   }, [])
 
   useEffect(() => {
@@ -46,30 +121,142 @@ export default function Dashboard() {
     }
   }, [activeSection])
 
+  useEffect(() => {
+    if (!isNotificationSupported) {
+      return
+    }
+
+    setNotificationPermission(requestDefaultNotificationPermission())
+  }, [isNotificationSupported])
+
+  useEffect(() => {
+    return () => {
+      Object.values(reminderTimers.current).forEach(timerId => {
+        if (typeof timerId === 'number') {
+          window.clearTimeout(timerId)
+        }
+      })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isNotificationSupported || notificationPermission !== 'granted') {
+      Object.values(reminderTimers.current).forEach(timerId => {
+        if (typeof timerId === 'number') {
+          window.clearTimeout(timerId)
+        }
+      })
+      reminderTimers.current = {}
+      return
+    }
+
+    const scheduleReminder = (
+      key: ReminderType,
+      lastTimestamp: string | undefined,
+      intervalHours: number,
+      title: string,
+      bodyPrefix: string
+    ) => {
+      if (!lastTimestamp || !Number.isFinite(intervalHours) || intervalHours <= 0) {
+        if (reminderTimers.current[key]) {
+          window.clearTimeout(reminderTimers.current[key]!)
+          delete reminderTimers.current[key]
+        }
+        return
+      }
+
+      const lastTime = new Date(lastTimestamp)
+      if (Number.isNaN(lastTime.getTime())) {
+        return
+      }
+
+      const nextTime = new Date(lastTime.getTime() + intervalHours * 60 * 60 * 1000)
+      const delayMs = Math.max(0, nextTime.getTime() - Date.now())
+
+      if (reminderTimers.current[key]) {
+        window.clearTimeout(reminderTimers.current[key]!)
+      }
+
+      reminderTimers.current[key] = window.setTimeout(async () => {
+        try {
+          const registration = await navigator.serviceWorker.getRegistration()
+          const elapsedMinutes = Math.round((Date.now() - lastTime.getTime()) / (1000 * 60))
+          const body = `${bodyPrefix} ${formatDuration(Math.max(elapsedMinutes, 0))}`
+          const notificationOptions: NotificationOptions = {
+            body,
+            tag: `babycare-${key}-reminder`,
+            renotify: true,
+            badge: '/icons/icon-96x96.png',
+            icon: '/icons/icon-192x192.png'
+          }
+
+          if (registration) {
+            await registration.showNotification(title, notificationOptions)
+          } else if ('Notification' in window) {
+            new Notification(title, notificationOptions)
+          }
+        } catch (error) {
+          console.error('Unable to show reminder notification:', error)
+        } finally {
+          const newTimestamp = new Date().toISOString()
+          scheduleReminder(key, newTimestamp, intervalHours, title, bodyPrefix)
+        }
+      }, delayMs)
+    }
+
+    scheduleReminder(
+      'feeding',
+      data?.lastFeeding?.timestamp,
+      settings.feedingInterval,
+      'Пора покормить малыша',
+      'С момента последнего кормления прошло'
+    )
+
+    scheduleReminder(
+      'diaper',
+      data?.lastDiaper?.timestamp,
+      settings.diaperInterval,
+      'Пора сменить подгузник',
+      'С момента последней смены прошло'
+    )
+  }, [
+    data?.lastFeeding?.timestamp,
+    data?.lastDiaper?.timestamp,
+    settings.feedingInterval,
+    settings.diaperInterval,
+    notificationPermission,
+    isNotificationSupported
+  ])
+
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [lastFeeding, lastDiaper, lastBath, recentActivities, todayStats, settings] = await Promise.all([
+      const [lastFeeding, lastDiaper, lastBath, settingsFromDb] = await Promise.all([
         dataService.getLastFeeding(),
         dataService.getLastDiaper(),
         dataService.getLastBath(),
-        dataService.getActivities(3),
-        dataService.getTodayStats(),
         dataService.getSettings()
       ])
 
-      // Получаем совет, соответствующий возрасту малыша
-      const babyAgeMonths = settings?.baby_age_months || 0
+      const babyAgeMonths = settingsFromDb?.baby_age_months || 0
       const dailyTip = await dataService.getRandomTip(babyAgeMonths)
 
       setData({
         lastFeeding,
         lastDiaper,
         lastBath,
-        recentActivities,
-        todayStats,
         dailyTip
       })
+
+      if (settingsFromDb) {
+        setSettings(prev => ({
+          ...prev,
+          birthDate: settingsFromDb.baby_birth_date || settingsFromDb.birth_date || prev.birthDate,
+          feedingInterval: settingsFromDb.feed_interval ?? prev.feedingInterval,
+          diaperInterval: settingsFromDb.diaper_interval ?? prev.diaperInterval,
+          bathInterval: settingsFromDb.bath_reminder_period ?? prev.bathInterval
+        }))
+      }
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -77,89 +264,48 @@ export default function Dashboard() {
     }
   }
 
-  const getTimeAgo = (timestamp: string) => {
-    const now = new Date()
-    const time = new Date(timestamp)
-    const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60))
-    
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} мин назад`
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)} ч назад`
-    } else {
-      return `${Math.floor(diffInMinutes / 1440)} дн назад`
-    }
-  }
-
-  const handleQuickAction = (action: 'feeding' | 'diaper' | 'bath' | 'activity') => {
-    setModalAction(action)
-    setModalOpen(true)
-  }
-
-  const handleModalSuccess = (action: 'feeding' | 'diaper' | 'bath' | 'activity') => {
-    fetchData() // Refresh data after successful action
-    setModalOpen(false)
-  }
-
   const fetchHistoryData = async () => {
     try {
-      const [feedings, diapers, baths, activities] = await Promise.all([
+      const [feedings, diapers, baths] = await Promise.all([
         dataService.getFeedings(50),
         dataService.getDiapers(50),
-        dataService.getBaths(50),
-        dataService.getActivities(50)
+        dataService.getBaths(50)
       ])
 
       setHistoryData({
         feedings,
         diapers,
-        baths,
-        activities
+        baths
       })
     } catch (error) {
       console.error('Error fetching history data:', error)
     }
   }
 
-  const fetchSettingsData = async () => {
-    try {
-      const settingsData = await dataService.getSettings()
-      if (settingsData) {
-        setSettings({
-          babyName: 'Малыш', // TODO: Get from family data
-          birthDate: settingsData.baby_birth_date || settingsData.birth_date || '2024-01-01',
-          feedingInterval: settingsData.feed_interval,
-          diaperInterval: settingsData.diaper_interval,
-          bathInterval: settingsData.bath_reminder_period,
-          activityInterval: settingsData.activity_reminder_interval
-        })
-      }
-    } catch (error) {
-      console.error('Error fetching settings:', error)
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date()
+    const time = new Date(timestamp)
+    const diffInMinutes = Math.max(0, Math.floor((now.getTime() - time.getTime()) / (1000 * 60)))
+
+    if (diffInMinutes === 0) {
+      return 'только что'
     }
+
+    return `${formatDuration(diffInMinutes)} назад`
   }
 
-  const handleSettingChange = (key: string, value: any) => {
+  const handleQuickAction = (action: QuickActionType) => {
+    setModalAction(action)
+    setModalOpen(true)
+  }
+
+  const handleModalSuccess = () => {
+    fetchData()
+    setModalOpen(false)
+  }
+
+  const handleSettingChange = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))
-  }
-
-  const handleSaveSettings = async () => {
-    try {
-      const updatedSettings = await dataService.updateSettings({
-        feed_interval: settings.feedingInterval,
-        diaper_interval: settings.diaperInterval,
-        bath_reminder_period: settings.bathInterval,
-        activity_reminder_interval: settings.activityInterval,
-        baby_birth_date: settings.birthDate,
-        baby_age_months: calculateAgeInMonths(settings.birthDate)
-      })
-
-      if (updatedSettings) {
-        fetchData() // Refresh data to get updated age-based tips
-      }
-    } catch (error) {
-      console.error('Error saving settings:', error)
-    }
   }
 
   const calculateAgeInMonths = (birthDate: string) => {
@@ -168,6 +314,91 @@ export default function Dashboard() {
     const diffInMonths = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
     return Math.max(0, diffInMonths)
   }
+
+  const handleSaveSettings = async () => {
+    try {
+      const updatedSettings = await dataService.updateSettings({
+        feed_interval: settings.feedingInterval,
+        diaper_interval: settings.diaperInterval,
+        bath_reminder_period: settings.bathInterval,
+        baby_birth_date: settings.birthDate,
+        baby_age_months: calculateAgeInMonths(settings.birthDate)
+      })
+
+      if (updatedSettings) {
+        fetchData()
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error)
+    }
+  }
+
+  const requestNotificationPermission = async () => {
+    if (!isNotificationSupported) {
+      return
+    }
+
+    try {
+      const permission = await Notification.requestPermission()
+      setNotificationPermission(permission)
+    } catch (error) {
+      console.error('Error requesting notification permission:', error)
+    }
+  }
+
+  const nextFeedingInfo = useMemo(
+    () => calculateNextEvent(data?.lastFeeding?.timestamp, settings.feedingInterval),
+    [data?.lastFeeding?.timestamp, settings.feedingInterval]
+  )
+
+  const nextDiaperInfo = useMemo(
+    () => calculateNextEvent(data?.lastDiaper?.timestamp, settings.diaperInterval),
+    [data?.lastDiaper?.timestamp, settings.diaperInterval]
+  )
+
+  const recentEvents = useMemo(() => {
+    const events: Array<{
+      type: QuickActionType | 'bath'
+      label: string
+      timestamp: string
+      icon: string
+      color: string
+    }> = []
+
+    if (data?.lastFeeding) {
+      events.push({
+        type: 'feeding',
+        label: 'Кормление',
+        timestamp: data.lastFeeding.timestamp,
+        icon: '🍼',
+        color: 'bg-blue-500'
+      })
+    }
+
+    if (data?.lastDiaper) {
+      events.push({
+        type: 'diaper',
+        label: 'Смена подгузника',
+        timestamp: data.lastDiaper.timestamp,
+        icon: '🧷',
+        color: 'bg-green-500'
+      })
+    }
+
+    if (data?.lastBath) {
+      events.push({
+        type: 'bath',
+        label: 'Купание',
+        timestamp: data.lastBath.timestamp,
+        icon: '🛁',
+        color: 'bg-yellow-500'
+      })
+    }
+
+    return events
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 3)
+  }, [data?.lastBath, data?.lastDiaper, data?.lastFeeding])
 
   if (loading) {
     return (
@@ -189,7 +420,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Navigation */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
             <div className="flex flex-wrap gap-2 sm:space-x-4 sm:gap-0">
@@ -198,14 +428,14 @@ export default function Dashboard() {
                 onClick={() => setActiveSection('dashboard')}
                 className="text-sm sm:text-base"
               >
-                🏠 <span className="hidden sm:inline">Главная</span>
+                📊 <span className="hidden sm:inline">Обзор</span>
               </Button>
               <Button
                 variant={activeSection === 'history' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('history')}
                 className="text-sm sm:text-base"
               >
-                📊 <span className="hidden sm:inline">История</span>
+                📅 <span className="hidden sm:inline">История</span>
               </Button>
               <Button
                 variant={activeSection === 'settings' ? 'primary' : 'secondary'}
@@ -218,238 +448,202 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Dashboard Section */}
         {activeSection === 'dashboard' && (
           <>
-            {/* Header */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-white mb-2">Добро пожаловать! 👶</h1>
-              <p className="text-gray-300">Отслеживайте важные моменты вашего малыша</p>
+              <p className="text-gray-300">Следите за важными событиями ухода за малышом в одном месте.</p>
             </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title="Последнее кормление"
-            value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
-            icon="🍼"
-            color="blue"
-            subtitle={data?.lastFeeding ? new Date(data.lastFeeding.timestamp).toLocaleString() : ''}
-          />
-          <StatCard
-            title="Последняя смена"
-            value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'Нет данных'}
-            icon="👶"
-            color="green"
-            subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString() : ''}
-          />
-          <StatCard
-            title="Последнее купание"
-            value={data?.lastBath ? getTimeAgo(data.lastBath.timestamp) : 'Нет данных'}
-            icon="🛁"
-            color="yellow"
-            subtitle={data?.lastBath ? new Date(data.lastBath.timestamp).toLocaleString() : ''}
-          />
-          <StatCard
-            title="Активность сегодня"
-            value={data?.todayStats ? `${data.todayStats.activities}` : '0'}
-            icon="🎯"
-            color="purple"
-            subtitle="Активности за день"
-          />
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Быстрые действия</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <QuickAction
-              title="Кормление"
-              description="Записать время кормления"
-              icon="🍼"
-              onClick={() => handleQuickAction('feeding')}
-              variant="primary"
-            />
-            <QuickAction
-              title="Смена подгузника"
-              description="Отметить смену подгузника"
-              icon="👶"
-              onClick={() => handleQuickAction('diaper')}
-              variant="success"
-            />
-            <QuickAction
-              title="Купание"
-              description="Записать время купания"
-              icon="🛁"
-              onClick={() => handleQuickAction('bath')}
-              variant="warning"
-            />
-            <QuickAction
-              title="Активность"
-              description="Отметить активность"
-              icon="🎯"
-              onClick={() => handleQuickAction('activity')}
-              variant="secondary"
-            />
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-white mb-6">Недавняя активность</h2>
-          <Card>
-            <div className="space-y-4">
-              {data?.lastFeeding && (
-                <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-xl">
-                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white">
-                    🍼
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">Кормление</p>
-                    <p className="text-sm text-gray-600">{getTimeAgo(data.lastFeeding.timestamp)}</p>
-                  </div>
-                  <div className="text-sm text-gray-500">{new Date(data.lastFeeding.timestamp).toLocaleTimeString()}</div>
-                </div>
-              )}
-              
-              {data?.lastDiaper && (
-                <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-xl">
-                  <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
-                    👶
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">Смена подгузника</p>
-                    <p className="text-sm text-gray-600">{getTimeAgo(data.lastDiaper.timestamp)}</p>
-                  </div>
-                  <div className="text-sm text-gray-500">{new Date(data.lastDiaper.timestamp).toLocaleTimeString()}</div>
-                </div>
-              )}
-
-              {data?.lastBath && (
-                <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-xl">
-                  <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-white">
-                    🛁
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">Купание</p>
-                    <p className="text-sm text-gray-600">{getTimeAgo(data.lastBath.timestamp)}</p>
-                  </div>
-                  <div className="text-sm text-gray-500">{new Date(data.lastBath.timestamp).toLocaleTimeString()}</div>
-                </div>
-              )}
-
-              {data?.recentActivities.map((activity, index) => (
-                <div key={activity.id} className="flex items-center space-x-4 p-4 bg-purple-50 rounded-xl">
-                  <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white">
-                    🎯
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{activity.activity_type}</p>
-                    <p className="text-sm text-gray-600">{getTimeAgo(activity.timestamp)}</p>
-                  </div>
-                  <div className="text-sm text-gray-500">{new Date(activity.timestamp).toLocaleTimeString()}</div>
-                </div>
-              ))}
-              
-              {(!data?.lastFeeding && !data?.lastDiaper && !data?.lastBath && (!data?.recentActivities || data.recentActivities.length === 0)) && (
-                <div className="text-center py-8 text-gray-500">
-                  <div className="text-4xl mb-2">📝</div>
-                  <p>Пока нет записей</p>
-                  <p className="text-sm">Начните отслеживать активность вашего малыша!</p>
-                </div>
-              )}
-            </div>
-          </Card>
-        </div>
-
-          {/* Tips */}
-          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl">
-                💡
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-white mb-2">Совет дня</h3>
-                {data?.dailyTip ? (
+            {isNotificationSupported && notificationPermission !== 'granted' && (
+              <Card className="mb-8 border-2 border-dashed border-blue-300 bg-blue-50/80 backdrop-blur">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <p className="text-gray-700 mb-2">{data.dailyTip.content}</p>
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <span>Категория: {data.dailyTip.category}</span>
-                      <span>Возраст: {data.dailyTip.age_months} мес.</span>
-                    </div>
+                    <h2 className="text-lg font-semibold text-gray-900">Включите напоминания</h2>
+                    <p className="text-sm text-gray-600">
+                      Получайте напоминания о кормлении и смене подгузника точно в срок.
+                    </p>
                   </div>
-                ) : (
-                  <p className="text-gray-700">
-                    Регулярное кормление каждые 2-3 часа помогает установить режим дня для вашего малыша. 
-                    Не забывайте записывать время и количество молока!
-                  </p>
-                )}
+                  <Button variant="primary" onClick={requestNotificationPermission}>
+                    Активировать напоминания
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <StatCard
+                title="Последнее кормление"
+                value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
+                icon="🍼"
+                color="blue"
+                subtitle={data?.lastFeeding ? new Date(data.lastFeeding.timestamp).toLocaleString('ru-RU') : ''}
+              />
+              <StatCard
+                title="До следующего кормления"
+                value={nextFeedingInfo
+                  ? nextFeedingInfo.overdue
+                    ? `Пора покормить (${formatDuration(Math.abs(nextFeedingInfo.diffMinutes))} просрочено)`
+                    : `Через ${formatDuration(nextFeedingInfo.diffMinutes)}`
+                  : 'Добавьте запись'}
+                icon="⏰"
+                color={nextFeedingInfo?.overdue ? 'pink' : 'purple'}
+                subtitle={nextFeedingInfo
+                  ? `${nextFeedingInfo.overdue ? 'Планировалось' : 'Запланировано'}: ${formatTime(nextFeedingInfo.nextTime)}`
+                  : 'Используется интервал из настроек'}
+              />
+              <StatCard
+                title="Последняя смена подгузника"
+                value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'Нет данных'}
+                icon="🧷"
+                color="green"
+                subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString('ru-RU') : ''}
+              />
+              <StatCard
+                title="До следующей смены"
+                value={nextDiaperInfo
+                  ? nextDiaperInfo.overdue
+                    ? `Пора сменить (${formatDuration(Math.abs(nextDiaperInfo.diffMinutes))} просрочено)`
+                    : `Через ${formatDuration(nextDiaperInfo.diffMinutes)}`
+                  : 'Добавьте запись'}
+                icon="🔔"
+                color={nextDiaperInfo?.overdue ? 'pink' : 'yellow'}
+                subtitle={nextDiaperInfo
+                  ? `${nextDiaperInfo.overdue ? 'Планировалось' : 'Запланировано'}: ${formatTime(nextDiaperInfo.nextTime)}`
+                  : 'Настройте интервал в разделе "Настройки"'}
+              />
+            </div>
+
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-6">Быстрые действия</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <QuickAction
+                  title="Кормление"
+                  description="Записать время кормления"
+                  icon="🍼"
+                  onClick={() => handleQuickAction('feeding')}
+                  variant="primary"
+                />
+                <QuickAction
+                  title="Смена подгузника"
+                  description="Отметить смену подгузника"
+                  icon="🧷"
+                  onClick={() => handleQuickAction('diaper')}
+                  variant="success"
+                />
+                <QuickAction
+                  title="Купание"
+                  description="Записать время купания"
+                  icon="🛁"
+                  onClick={() => handleQuickAction('bath')}
+                  variant="warning"
+                />
               </div>
             </div>
-          </Card>
+
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-6">Последние события</h2>
+              <Card>
+                <div className="space-y-4">
+                  {recentEvents.length > 0 ? (
+                    recentEvents.map(event => (
+                      <div key={`${event.type}-${event.timestamp}`} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
+                        <div className={`w-10 h-10 ${event.color} rounded-full flex items-center justify-center text-white`}>
+                          {event.icon}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">{event.label}</p>
+                          <p className="text-sm text-gray-600">{getTimeAgo(event.timestamp)}</p>
+                        </div>
+                        <div className="text-sm text-gray-500">{formatTime(new Date(event.timestamp))}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="text-4xl mb-2">🌟</div>
+                      <p>Здесь появятся недавние записи</p>
+                      <p className="text-sm">Используйте быстрые действия, чтобы добавить событие.</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl">
+                  💡
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 mb-2">Совет дня</h3>
+                  {data?.dailyTip ? (
+                    <div>
+                      <p className="text-gray-700 mb-2">{data.dailyTip.content}</p>
+                      <div className="flex flex-wrap items-center justify-between text-sm text-gray-500 gap-2">
+                        <span>Категория: {data.dailyTip.category}</span>
+                        <span>Возраст: {data.dailyTip.age_months} мес.</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-gray-700">
+                      Регулярное кормление каждые 2-3 часа помогает установить режим и поддерживать стабильный вес малыша.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Card>
           </>
         )}
 
-        {/* History Section */}
         {activeSection === 'history' && (
           <>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">История событий 📊</h1>
-              <p className="text-gray-300">Просматривайте все записи о вашем малыше</p>
+              <h1 className="text-3xl font-bold text-white mb-2">История событий 📖</h1>
+              <p className="text-gray-300">Просматривайте все записи по кормлению, подгузникам и купаниям.</p>
             </div>
 
-            {/* Stats Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card className="text-center">
                 <div className="text-2xl font-bold text-blue-600 mb-1">{historyData?.feedings.length || 0}</div>
-                <div className="text-sm text-gray-600">Кормлений</div>
+                <div className="text-sm text-gray-600">Кормления</div>
               </Card>
               <Card className="text-center">
                 <div className="text-2xl font-bold text-green-600 mb-1">{historyData?.diapers.length || 0}</div>
-                <div className="text-sm text-gray-600">Смен подгузника</div>
+                <div className="text-sm text-gray-600">Смены подгузника</div>
               </Card>
               <Card className="text-center">
                 <div className="text-2xl font-bold text-yellow-600 mb-1">{historyData?.baths.length || 0}</div>
-                <div className="text-sm text-gray-600">Купаний</div>
-              </Card>
-              <Card className="text-center">
-                <div className="text-2xl font-bold text-purple-600 mb-1">{historyData?.activities.length || 0}</div>
-                <div className="text-sm text-gray-600">Активности</div>
+                <div className="text-sm text-gray-600">Купания</div>
               </Card>
             </div>
 
-            {/* Timeline */}
             <Card>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-white">Хронология событий</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Хронология записей</h2>
               </div>
-              
+
               <div className="space-y-4">
                 {historyData ? (
                   (() => {
-                    // Создаем массив всех событий с типом
                     const allEvents = [
-                      ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' })),
-                      ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' })),
-                      ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' })),
-                      ...(historyData.activities || []).map(item => ({ ...item, type: 'activity' }))
+                      ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' as const })),
+                      ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
+                      ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const }))
                     ]
                       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                      .slice(0, 20)
+                      .slice(0, MAX_HISTORY_EVENTS)
 
                     return allEvents.map((item, index) => {
-                      const getTypeInfo = (type: string) => {
+                      const getTypeInfo = (type: typeof item.type) => {
                         switch (type) {
                           case 'feeding':
                             return { icon: '🍼', label: 'Кормление', color: 'from-blue-500 to-blue-600' }
                           case 'diaper':
-                            return { icon: '👶', label: 'Смена подгузника', color: 'from-green-500 to-green-600' }
+                            return { icon: '🧷', label: 'Смена подгузника', color: 'from-green-500 to-green-600' }
                           case 'bath':
                             return { icon: '🛁', label: 'Купание', color: 'from-yellow-500 to-yellow-600' }
-                          case 'activity':
-                            return { icon: '🎯', label: 'Активность', color: 'from-purple-500 to-purple-600' }
                           default:
-                            return { icon: '📝', label: 'Событие', color: 'from-gray-500 to-gray-600' }
+                            return { icon: '✨', label: 'Событие', color: 'from-gray-500 to-gray-600' }
                         }
                       }
 
@@ -462,13 +656,13 @@ export default function Dashboard() {
                               {typeInfo.icon}
                             </div>
                           </div>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                               <h3 className="text-lg font-medium text-gray-900">{typeInfo.label}</h3>
                               <span className="text-sm font-medium text-gray-500">{getTimeAgo(item.timestamp)}</span>
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">{new Date(item.timestamp).toLocaleTimeString()}</p>
+                            <p className="text-sm text-gray-600 mt-1">{formatTime(new Date(item.timestamp))}</p>
                           </div>
                         </div>
                       )
@@ -476,8 +670,8 @@ export default function Dashboard() {
                   })()
                 ) : (
                   <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">📝</div>
-                    <p>Загрузка истории...</p>
+                    <div className="text-4xl mb-2">⏳</div>
+                    <p>Загружаем историю...</p>
                   </div>
                 )}
               </div>
@@ -485,15 +679,13 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* Settings Section */}
         {activeSection === 'settings' && (
           <>
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-white mb-2">Настройки ⚙️</h1>
-              <p className="text-gray-300">Персонализируйте приложение под ваши потребности</p>
+              <p className="text-gray-300">Актуализируйте информацию, чтобы получать персональные подсказки.</p>
             </div>
 
-            {/* Baby Information */}
             <Card className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Информация о малыше</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -523,9 +715,8 @@ export default function Dashboard() {
               </div>
             </Card>
 
-            {/* Interval Settings */}
             <Card className="mb-8">
-              <h2 className="text-xl font-semibold text-white mb-6">Настройки интервалов</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Интервалы напоминаний</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -537,10 +728,10 @@ export default function Dashboard() {
                       min="1"
                       max="6"
                       value={settings.feedingInterval}
-                      onChange={(e) => handleSettingChange('feedingInterval', parseInt(e.target.value))}
+                      onChange={(e) => handleSettingChange('feedingInterval', parseInt(e.target.value, 10))}
                       className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                     />
-                    <span className="text-lg font-semibold text-blue-600 min-w-[3rem] text-center">
+                    <span className="text-lg font-semibold text-blue-600 min-w-[4rem] text-center">
                       {settings.feedingInterval}ч
                     </span>
                   </div>
@@ -556,10 +747,10 @@ export default function Dashboard() {
                       min="1"
                       max="6"
                       value={settings.diaperInterval}
-                      onChange={(e) => handleSettingChange('diaperInterval', parseInt(e.target.value))}
+                      onChange={(e) => handleSettingChange('diaperInterval', parseInt(e.target.value, 10))}
                       className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                     />
-                    <span className="text-lg font-semibold text-green-600 min-w-[3rem] text-center">
+                    <span className="text-lg font-semibold text-green-600 min-w-[4rem] text-center">
                       {settings.diaperInterval}ч
                     </span>
                   </div>
@@ -575,41 +766,20 @@ export default function Dashboard() {
                       min="1"
                       max="7"
                       value={settings.bathInterval}
-                      onChange={(e) => handleSettingChange('bathInterval', parseInt(e.target.value))}
+                      onChange={(e) => handleSettingChange('bathInterval', parseInt(e.target.value, 10))}
                       className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                     />
-                    <span className="text-lg font-semibold text-yellow-600 min-w-[3rem] text-center">
+                    <span className="text-lg font-semibold text-yellow-600 min-w-[4rem] text-center">
                       {settings.bathInterval}д
-                    </span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Интервал активности (часы)
-                  </label>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="range"
-                      min="1"
-                      max="6"
-                      value={settings.activityInterval}
-                      onChange={(e) => handleSettingChange('activityInterval', parseInt(e.target.value))}
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                    />
-                    <span className="text-lg font-semibold text-purple-600 min-w-[3rem] text-center">
-                      {settings.activityInterval}ч
                     </span>
                   </div>
                 </div>
               </div>
             </Card>
 
-
-            {/* Save Button */}
             <div className="flex justify-end">
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 size="lg"
                 onClick={handleSaveSettings}
               >
@@ -619,7 +789,6 @@ export default function Dashboard() {
           </>
         )}
 
-        {/* Quick Action Modal */}
         <QuickActionModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
@@ -627,7 +796,6 @@ export default function Dashboard() {
           onSuccess={handleModalSuccess}
         />
 
-        {/* Debug Panel - только в режиме разработки */}
         {process.env.NODE_ENV === 'development' && <DebugPanel />}
       </div>
     </div>

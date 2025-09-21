@@ -136,15 +136,21 @@ class DataService {
     return data
   }
 
-  async addFeeding(): Promise<Feeding | null> {
+  async addFeeding(timestamp?: string): Promise<Feeding | null> {
+    let eventDate = timestamp ? new Date(timestamp) : new Date()
+
+    if (Number.isNaN(eventDate.getTime())) {
+      eventDate = new Date()
+    }
+
     const { data, error } = await supabase
       .from('feedings')
       .insert({
         family_id: this.familyId,
         author_id: 1, // TODO: Get from user context
-        timestamp: new Date().toISOString(),
+        timestamp: eventDate.toISOString(),
         author_role: 'Родитель',
-        author_name: 'Пользователь'
+        author_name: 'Администратор'
       })
       .select()
       .single()
@@ -153,7 +159,6 @@ class DataService {
       console.error('Error adding feeding:', error)
       return null
     }
-
 
     return data
   }
@@ -190,15 +195,21 @@ class DataService {
     return data
   }
 
-  async addDiaper(): Promise<Diaper | null> {
+  async addDiaper(timestamp?: string): Promise<Diaper | null> {
+    let eventDate = timestamp ? new Date(timestamp) : new Date()
+
+    if (Number.isNaN(eventDate.getTime())) {
+      eventDate = new Date()
+    }
+
     const { data, error } = await supabase
       .from('diapers')
       .insert({
         family_id: this.familyId,
         author_id: 1, // TODO: Get from user context
-        timestamp: new Date().toISOString(),
+        timestamp: eventDate.toISOString(),
         author_role: 'Родитель',
-        author_name: 'Пользователь'
+        author_name: 'Администратор'
       })
       .select()
       .single()
@@ -207,7 +218,6 @@ class DataService {
       console.error('Error adding diaper:', error)
       return null
     }
-
 
     return data
   }
@@ -244,15 +254,21 @@ class DataService {
     return data
   }
 
-  async addBath(): Promise<Bath | null> {
+  async addBath(timestamp?: string): Promise<Bath | null> {
+    let eventDate = timestamp ? new Date(timestamp) : new Date()
+
+    if (Number.isNaN(eventDate.getTime())) {
+      eventDate = new Date()
+    }
+
     const { data, error } = await supabase
       .from('baths')
       .insert({
         family_id: this.familyId,
         author_id: 1, // TODO: Get from user context
-        timestamp: new Date().toISOString(),
+        timestamp: eventDate.toISOString(),
         author_role: 'Родитель',
-        author_name: 'Пользователь'
+        author_name: 'Администратор'
       })
       .select()
       .single()
@@ -261,6 +277,7 @@ class DataService {
       console.error('Error adding bath:', error)
       return null
     }
+
     return data
   }
 

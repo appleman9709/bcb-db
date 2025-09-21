@@ -1,79 +1,125 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Modal from './Modal'
 import Button from './Button'
 import { dataService } from '../services/dataService'
 
+type QuickActionType = 'feeding' | 'diaper' | 'bath'
+
 interface QuickActionModalProps {
   isOpen: boolean
   onClose: () => void
-  actionType: 'feeding' | 'diaper' | 'bath' | 'activity'
-  onSuccess?: (action: 'feeding' | 'diaper' | 'bath' | 'activity') => void
+  actionType: QuickActionType
+  onSuccess?: () => void
+}
+
+const getLocalDateTimeString = (date: Date) => {
+  const tzOffset = date.getTimezoneOffset() * 60000
+  const localISOTime = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16)
+  return localISOTime
 }
 
 export default function QuickActionModal({ isOpen, onClose, actionType, onSuccess }: QuickActionModalProps) {
   const [loading, setLoading] = useState(false)
-  const [note, setNote] = useState('')
+  const [selectedDateTime, setSelectedDateTime] = useState(getLocalDateTimeString(new Date()))
+  const [error, setError] = useState<string | null>(null)
 
-  const actionConfig = {
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedDateTime(getLocalDateTimeString(new Date()))
+      setError(null)
+    }
+  }, [isOpen, actionType])
+
+  const actionConfig: Record<QuickActionType, {
+    title: string
+    icon: string
+    description: string
+    buttonText: string
+    buttonVariant: 'primary' | 'success' | 'warning'
+    accent: string
+  }> = {
     feeding: {
       title: 'Кормление',
       icon: '🍼',
-      description: 'Записать время кормления',
-      buttonText: 'Записать кормление',
-      buttonVariant: 'primary' as const
+      description: 'Запишите, когда прошло кормление, чтобы не сбиться с графика.',
+      buttonText: 'Добавить кормление',
+      buttonVariant: 'primary',
+      accent: 'from-blue-500 to-purple-500'
     },
     diaper: {
       title: 'Смена подгузника',
-      icon: '👶',
-      description: 'Отметить смену подгузника',
-      buttonText: 'Записать смену',
-      buttonVariant: 'success' as const
+      icon: '🧷',
+      description: 'Фиксируйте смену подгузника для контроля интервалов.',
+      buttonText: 'Добавить смену',
+      buttonVariant: 'success',
+      accent: 'from-green-500 to-emerald-500'
     },
     bath: {
       title: 'Купание',
       icon: '🛁',
-      description: 'Записать время купания',
-      buttonText: 'Записать купание',
-      buttonVariant: 'warning' as const
-    },
-    activity: {
-      title: 'Активность',
-      icon: '🎯',
-      description: 'Отметить активность',
-      buttonText: 'Записать активность',
-      buttonVariant: 'secondary' as const
+      description: 'Сохраняйте расписание купаний, чтобы не пропустить процедуру.',
+      buttonText: 'Добавить купание',
+      buttonVariant: 'warning',
+      accent: 'from-yellow-500 to-orange-500'
     }
   }
 
   const config = actionConfig[actionType]
 
+  const formattedPreview = useMemo(() => {
+    const parsed = new Date(selectedDateTime)
+    if (Number.isNaN(parsed.getTime())) {
+      return '—'
+    }
+    return parsed.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }, [selectedDateTime])
+
   const handleSubmit = async () => {
+    if (!selectedDateTime) {
+      setError('Выберите время события')
+      return
+    }
+
+    const eventDate = new Date(selectedDateTime)
+    if (Number.isNaN(eventDate.getTime())) {
+      setError('Некорректная дата и время')
+      return
+    }
+
     setLoading(true)
+    setError(null)
+
+    const timestamp = eventDate.toISOString()
+
     try {
       let result = null
-      
+
       switch (actionType) {
         case 'feeding':
-          result = await dataService.addFeeding()
+          result = await dataService.addFeeding(timestamp)
           break
         case 'diaper':
-          result = await dataService.addDiaper()
+          result = await dataService.addDiaper(timestamp)
           break
         case 'bath':
-          result = await dataService.addBath()
+          result = await dataService.addBath(timestamp)
           break
-        case 'activity':
-          result = await dataService.addActivity('Игра')
-          break
+        default:
+          result = null
       }
 
       if (result) {
-        onSuccess?.(actionType)
+        onSuccess?.()
         onClose()
-        setNote('')
       }
     } catch (error) {
       console.error('Error adding record:', error)
+      setError('Не удалось сохранить запись, попробуйте еще раз.')
     } finally {
       setLoading(false)
     }
@@ -82,24 +128,30 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={config.title} size="md">
       <div className="space-y-6">
-        {/* Icon and description */}
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-4 shadow-lg">
+          <div className={`w-16 h-16 bg-gradient-to-r ${config.accent} rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-4 shadow-lg`}>
             {config.icon}
           </div>
           <p className="text-gray-600">{config.description}</p>
         </div>
 
-        {/* Time display */}
-        <div className="bg-gray-50 rounded-xl p-4 text-center">
-          <p className="text-sm text-gray-500 mb-1">Время записи</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {new Date().toLocaleString('ru-RU')}
-          </p>
+        <div className="space-y-3">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="quick-action-datetime">
+            Время события
+          </label>
+          <input
+            id="quick-action-datetime"
+            type="datetime-local"
+            value={selectedDateTime}
+            onChange={(e) => setSelectedDateTime(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+          />
+          <div className="bg-gray-50 rounded-xl p-4 text-center text-sm text-gray-600">
+            Вы выбрали: <span className="font-semibold text-gray-900">{formattedPreview}</span>
+          </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
 
-
-        {/* Action buttons */}
         <div className="flex space-x-3">
           <Button
             variant="secondary"
@@ -115,7 +167,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             className="flex-1"
             disabled={loading}
           >
-            {loading ? 'Сохранение...' : config.buttonText}
+            {loading ? 'Сохраняем...' : config.buttonText}
           </Button>
         </div>
       </div>
