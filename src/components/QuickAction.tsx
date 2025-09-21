@@ -11,7 +11,7 @@ interface QuickActionProps {
 export default function QuickAction({ title, description, icon, onClick, variant = 'primary' }: QuickActionProps) {
   return (
     <div
-      className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20 hover:shadow-xl transition-all duration-300 cursor-pointer group"
+      className="rounded-2xl border border-gray-700/60 bg-gray-900/80 p-6 shadow-lg transition-transform duration-200 cursor-pointer group hover:-translate-y-1 hover:shadow-xl"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -27,8 +27,8 @@ export default function QuickAction({ title, description, icon, onClick, variant
           {icon}
         </div>
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-          <p className="text-sm text-gray-600">{description}</p>
+          <h3 className="font-semibold text-white mb-1">{title}</h3>
+          <p className="text-sm text-gray-300">{description}</p>
         </div>
         <Button variant={variant} size="sm" onClick={(event) => { event.stopPropagation(); onClick() }}>
           Добавить

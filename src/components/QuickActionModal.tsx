@@ -135,7 +135,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           <p className="text-gray-600">{config.description}</p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 min-w-0">
           <label className="block text-sm font-medium text-gray-700" htmlFor="quick-action-datetime">
             Время события
           </label>
@@ -144,7 +144,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             type="datetime-local"
             value={selectedDateTime}
             onChange={(e) => setSelectedDateTime(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ios-input text-base"
           />
           <div className="bg-gray-50 rounded-xl p-4 text-center text-sm text-gray-600">
             Вы выбрали: <span className="font-semibold text-gray-900">{formattedPreview}</span>

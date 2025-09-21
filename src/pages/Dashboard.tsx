@@ -689,7 +689,7 @@ export default function Dashboard() {
             <Card className="mb-8">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Информация о малыше</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div className="min-w-0">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Имя малыша
                   </label>
@@ -697,11 +697,11 @@ export default function Dashboard() {
                     type="text"
                     value={settings.babyName}
                     onChange={(e) => handleSettingChange('babyName', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-base"
                     placeholder="Введите имя"
                   />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Дата рождения
                   </label>
@@ -709,7 +709,7 @@ export default function Dashboard() {
                     type="date"
                     value={settings.birthDate}
                     onChange={(e) => handleSettingChange('birthDate', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ios-input text-base"
                   />
                 </div>
               </div>
