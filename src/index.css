@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,7 +10,8 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen font-sans antialiased;
+    @apply bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 min-h-screen antialiased;
+    font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
   
   html {
@@ -61,7 +64,7 @@
   }
 
   .settings-label {
-    @apply transition-colors duration-200 text-gray-700 hover:text-gray-900;
+    @apply transition-colors duration-200 text-gray-200 hover:text-white;
   }
 
   .settings-slider-container {

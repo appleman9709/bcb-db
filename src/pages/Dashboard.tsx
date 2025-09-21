@@ -4,6 +4,7 @@ import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
 import Card from '../components/Card'
 import Button from '../components/Button'
+import LoadingScreen from '../components/LoadingScreen'
 import DebugPanel from '../components/DebugPanel'
 import { dataService, Feeding, Diaper, Bath, Tip } from '../services/dataService'
 
@@ -401,20 +402,7 @@ export default function Dashboard() {
   }, [data?.lastBath, data?.lastDiaper, data?.lastFeeding])
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded-2xl"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   return (
@@ -661,7 +649,7 @@ export default function Dashboard() {
             </div>
 
             <Card className="mb-8 settings-card animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
                 <span className="text-2xl mr-3">👶</span>
                 Информация о малыше
               </h2>
@@ -693,7 +681,7 @@ export default function Dashboard() {
             </Card>
 
             <Card className="mb-8 settings-card animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
+              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
                 <span className="text-2xl mr-3">⏰</span>
                 Интервалы напоминаний
               </h2>
