@@ -40,11 +40,40 @@
   }
   
   .slider::-webkit-slider-thumb {
-    @apply appearance-none w-5 h-5 bg-blue-500 rounded-full cursor-pointer shadow-lg;
+    @apply appearance-none w-5 h-5 bg-blue-500 rounded-full cursor-pointer shadow-lg transition-all duration-200 hover:scale-110;
   }
   
   .slider::-moz-range-thumb {
-    @apply w-5 h-5 bg-blue-500 rounded-full cursor-pointer border-0 shadow-lg;
+    @apply w-5 h-5 bg-blue-500 rounded-full cursor-pointer border-0 shadow-lg transition-all duration-200 hover:scale-110;
+  }
+
+  /* Settings specific styles */
+  .settings-section {
+    @apply animate-fade-in;
+  }
+
+  .settings-card {
+    @apply transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2 border-transparent hover:border-blue-200;
+  }
+
+  .settings-input {
+    @apply transition-all duration-200 focus:scale-[1.02] focus:shadow-lg;
+  }
+
+  .settings-label {
+    @apply transition-colors duration-200 text-gray-700 hover:text-gray-900;
+  }
+
+  .settings-slider-container {
+    @apply transition-all duration-200 hover:scale-[1.02];
+  }
+
+  .settings-value-display {
+    @apply transition-all duration-200 hover:scale-110;
+  }
+
+  .settings-save-button {
+    @apply transition-all duration-300 hover:scale-105 hover:shadow-xl;
   }
   
   .glass-effect {
