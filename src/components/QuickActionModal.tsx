@@ -195,8 +195,8 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={config.title} size="md">
-      <div className="space-y-6">
-        <div className="text-center">
+      <div className="space-y-5 sm:space-y-6">
+        <div className="text-center space-y-4 sm:space-y-5">
           <div className={`w-16 h-16 bg-gradient-to-r ${config.accent} rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg`}>
             {config.icon}
           </div>
@@ -208,27 +208,27 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             Дата и время события
           </label>
 
-          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            <div className="relative rounded-3xl border border-gray-200 bg-gray-50 p-5 shadow-sm">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
+            <div className="relative rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm sm:rounded-3xl sm:p-5">
               <span className="text-xs font-semibold uppercase tracking-[0.35em] text-gray-500">Дата</span>
               <input
                 type="date"
                 value={datePart}
                 onChange={(event) => handleDateChange(event.target.value)}
-                className="mt-3 w-full bg-transparent text-lg font-semibold text-gray-900 focus:outline-none focus:ring-0"
+                className="mt-2 w-full bg-transparent text-base font-semibold text-gray-900 focus:outline-none focus:ring-0 sm:mt-3 sm:text-lg"
               />
             </div>
 
-            <div className="relative rounded-[2.5rem] border border-blue-200 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 shadow-[0_15px_45px_-20px_rgba(59,130,246,0.7)]">
+            <div className="relative rounded-[1.75rem] border border-blue-200 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 shadow-[0_12px_35px_-18px_rgba(59,130,246,0.65)] sm:rounded-[2.5rem] sm:p-6 sm:shadow-[0_15px_45px_-20px_rgba(59,130,246,0.7)]">
               <span className="text-xs font-semibold uppercase tracking-[0.4em] text-blue-600">Время</span>
               <input
                 type="time"
                 step={300}
                 value={timePart}
                 onChange={(event) => handleTimeChange(event.target.value)}
-                className="mt-4 w-full bg-transparent text-3xl font-semibold tracking-[0.3em] text-blue-700 focus:outline-none focus:ring-0"
+                className="mt-3 w-full bg-transparent text-2xl font-semibold tracking-[0.25em] text-blue-700 focus:outline-none focus:ring-0 sm:mt-4 sm:text-3xl sm:tracking-[0.3em]"
               />
-              <div className="pointer-events-none absolute inset-0 rounded-[2.5rem] border border-white/60" aria-hidden="true" />
+              <div className="pointer-events-none absolute inset-0 rounded-[1.75rem] border border-white/60 sm:rounded-[2.5rem]" aria-hidden="true" />
             </div>
           </div>
 
@@ -252,7 +252,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             })}
           </div>
 
-          <div className="rounded-2xl bg-gray-50 p-4 text-center text-sm text-gray-600">
+          <div className="rounded-2xl bg-gray-50 p-3 text-center text-sm text-gray-600 sm:p-4">
             Текущее значение: <span className="font-semibold text-gray-900">{formattedPreview}</span>
           </div>
 
