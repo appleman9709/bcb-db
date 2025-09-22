@@ -50,14 +50,14 @@ const formatDuration = (minutes: number) => {
   const parts: string[] = []
 
   if (days > 0) {
-    parts.push(`${days} Рґ`)
+    parts.push(`${days} д`)
   }
 
   if (hours > 0 || days > 0) {
-    parts.push(`${hours} С‡`)
-    parts.push(`${mins} РјРёРЅ`)
+    parts.push(`${hours} ч`)
+    parts.push(`${mins} мин`)
   } else {
-    parts.push(`${mins} РјРёРЅ`)
+    parts.push(`${mins} мин`)
   }
 
   return parts.join(' ')
@@ -99,7 +99,7 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [historyData, setHistoryData] = useState<HistoryData | null>(null)
   const [settings, setSettings] = useState<SettingsState>({
-    babyName: 'РњР°Р»С‹С€',
+    babyName: 'Малыш',
     birthDate: '2024-01-01',
     feedingInterval: 3,
     diaperInterval: 2,
@@ -114,7 +114,7 @@ export default function Dashboard() {
   const isNotificationSupported = typeof window !== 'undefined' && 'Notification' in window
 
   const { member, family, signOut } = useAuth()
-  const memberDisplayName = member?.name ?? member?.role ?? 'РЈС‡Р°СЃС‚РЅРёРє СЃРµРјСЊРё'
+  const memberDisplayName = member?.name ?? member?.role ?? 'Участник семьи'
 
   const fetchData = useCallback(async () => {
     if (!member || !family) {
@@ -184,10 +184,10 @@ export default function Dashboard() {
     const diffInMinutes = Math.max(0, Math.floor((now.getTime() - time.getTime()) / (1000 * 60)))
 
     if (diffInMinutes === 0) {
-      return 'С‚РѕР»СЊРєРѕ С‡С‚Рѕ'
+      return 'только что'
     }
 
-    return `${formatDuration(diffInMinutes)} РЅР°Р·Р°Рґ`
+    return `${formatDuration(diffInMinutes)} назад`
   }
 
   const handleQuickAction = (action: QuickActionType) => {
@@ -274,7 +274,7 @@ export default function Dashboard() {
     if (data?.lastFeeding) {
       events.push({
         type: 'feeding',
-        label: 'РљРѕСЂРјР»РµРЅРёРµ',
+        label: 'Кормление',
         timestamp: data.lastFeeding.timestamp,
         icon: 'рџЌј',
         color: 'bg-blue-500'
@@ -284,7 +284,7 @@ export default function Dashboard() {
     if (data?.lastDiaper) {
       events.push({
         type: 'diaper',
-        label: 'РЎРјРµРЅР° РїРѕРґРіСѓР·РЅРёРєР°',
+        label: 'Смена подгузника',
         timestamp: data.lastDiaper.timestamp,
         icon: 'рџ§·',
         color: 'bg-green-500'
@@ -294,7 +294,7 @@ export default function Dashboard() {
     if (data?.lastBath) {
       events.push({
         type: 'bath',
-        label: 'РљСѓРїР°РЅРёРµ',
+        label: 'Купание',
         timestamp: data.lastBath.timestamp,
         icon: 'рџ›Ѓ',
         color: 'bg-yellow-500'
@@ -441,21 +441,21 @@ export default function Dashboard() {
                 onClick={() => setActiveSection('dashboard')}
                 className="text-sm sm:text-base"
               >
-                рџ“Љ <span className="hidden sm:inline">РћР±Р·РѕСЂ</span>
+                📊 <span className="hidden sm:inline">Обзор</span>
               </Button>
               <Button
                 variant={activeSection === 'history' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('history')}
                 className="text-sm sm:text-base"
               >
-                рџ“… <span className="hidden sm:inline">РСЃС‚РѕСЂРёСЏ</span>
+                📅 <span className="hidden sm:inline">История</span>
               </Button>
               <Button
                 variant={activeSection === 'settings' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('settings')}
                 className="text-sm sm:text-base"
               >
-                вљ™пёЏ <span className="hidden sm:inline">РќР°СЃС‚СЂРѕР№РєРё</span>
+                ⚙️ <span className="hidden sm:inline">Настройки</span>
               </Button>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 rounded-2xl bg-white/5 px-4 py-3 text-white/80">
@@ -484,7 +484,7 @@ export default function Dashboard() {
                 onClick={signOut}
                 className="mt-3 sm:mt-0 sm:ml-2 whitespace-nowrap"
               >
-                Sign out
+                Выйти
               </Button>
             </div>
           </div>
@@ -493,21 +493,21 @@ export default function Dashboard() {
         {activeSection === 'dashboard' && (
           <>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">Р”РѕР±СЂРѕ РїРѕР¶Р°Р»РѕРІР°С‚СЊ! рџ‘¶</h1>
-              <p className="text-gray-300">РЎР»РµРґРёС‚Рµ Р·Р° РІР°Р¶РЅС‹РјРё СЃРѕР±С‹С‚РёСЏРјРё СѓС…РѕРґР° Р·Р° РјР°Р»С‹С€РѕРј РІ РѕРґРЅРѕРј РјРµСЃС‚Рµ.</p>
+              <h1 className="text-3xl font-bold text-white mb-2">Добро пожаловать! 👶</h1>
+              <p className="text-gray-300">Следите за важными событиями ухода за малышом в одном месте.</p>
             </div>
 
             {isNotificationSupported && notificationPermission !== 'granted' && (
               <Card className="mb-8 border-2 border-dashed border-blue-300 bg-blue-50/80 backdrop-blur">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Р’РєР»СЋС‡РёС‚Рµ РЅР°РїРѕРјРёРЅР°РЅРёСЏ</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">Включите напоминания</h2>
                     <p className="text-sm text-gray-600">
-                      РџРѕР»СѓС‡Р°Р№С‚Рµ РЅР°РїРѕРјРёРЅР°РЅРёСЏ Рѕ РєРѕСЂРјР»РµРЅРёРё Рё СЃРјРµРЅРµ РїРѕРґРіСѓР·РЅРёРєР° С‚РѕС‡РЅРѕ РІ СЃСЂРѕРє.
+                      Получайте напоминания о кормлении и смене подгузника точно в срок.
                     </p>
                   </div>
                   <Button variant="primary" onClick={requestNotificationPermission}>
-                    РђРєС‚РёРІРёСЂРѕРІР°С‚СЊ РЅР°РїРѕРјРёРЅР°РЅРёСЏ
+                    Активировать напоминания
                   </Button>
                 </div>
               </Card>
@@ -515,15 +515,15 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <StatCard
-                title="РџРѕСЃР»РµРґРЅРµРµ РєРѕСЂРјР»РµРЅРёРµ"
-                value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'РќРµС‚ РґР°РЅРЅС‹С…'}
+                title="Последнее кормление"
+                value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
                 icon="рџЌј"
                 color="blue"
                 subtitle={data?.lastFeeding ? new Date(data.lastFeeding.timestamp).toLocaleString('ru-RU') : ''}
               />
               <StatCard
-                title="РџРѕСЃР»РµРґРЅСЏСЏ СЃРјРµРЅР° РїРѕРґРіСѓР·РЅРёРєР°"
-                value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'РќРµС‚ РґР°РЅРЅС‹С…'}
+                title="Последняя смена подгузника"
+                value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'Нет данных'}
                 icon="рџ§·"
                 color="green"
                 subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString('ru-RU') : ''}
@@ -531,25 +531,25 @@ export default function Dashboard() {
             </div>
 
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Р‘С‹СЃС‚СЂС‹Рµ РґРµР№СЃС‚РІРёСЏ</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">Быстрые действия</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <QuickAction
-                  title="РљРѕСЂРјР»РµРЅРёРµ"
-                  description="Р—Р°РїРёСЃР°С‚СЊ РІСЂРµРјСЏ РєРѕСЂРјР»РµРЅРёСЏ"
+                  title="Кормление"
+                  description="Записать время кормления"
                   icon="рџЌј"
                   onClick={() => handleQuickAction('feeding')}
                   variant="primary"
                 />
                 <QuickAction
-                  title="РЎРјРµРЅР° РїРѕРґРіСѓР·РЅРёРєР°"
-                  description="РћС‚РјРµС‚РёС‚СЊ СЃРјРµРЅСѓ РїРѕРґРіСѓР·РЅРёРєР°"
+                  title="Смена подгузника"
+                  description="Отметить смену подгузника"
                   icon="рџ§·"
                   onClick={() => handleQuickAction('diaper')}
                   variant="success"
                 />
                 <QuickAction
-                  title="РљСѓРїР°РЅРёРµ"
-                  description="Р—Р°РїРёСЃР°С‚СЊ РІСЂРµРјСЏ РєСѓРїР°РЅРёСЏ"
+                  title="Купание"
+                  description="Записать время купания"
                   icon="рџ›Ѓ"
                   onClick={() => handleQuickAction('bath')}
                   variant="warning"
@@ -558,7 +558,7 @@ export default function Dashboard() {
             </div>
 
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-6">РџРѕСЃР»РµРґРЅРёРµ СЃРѕР±С‹С‚РёСЏ</h2>
+              <h2 className="text-2xl font-bold text-white mb-6">Последние события</h2>
               <Card>
                 <div className="space-y-4">
                   {recentEvents.length > 0 ? (
@@ -577,8 +577,8 @@ export default function Dashboard() {
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       <div className="text-4xl mb-2">рџЊџ</div>
-                      <p>Р—РґРµСЃСЊ РїРѕСЏРІСЏС‚СЃСЏ РЅРµРґР°РІРЅРёРµ Р·Р°РїРёСЃРё</p>
-                      <p className="text-sm">РСЃРїРѕР»СЊР·СѓР№С‚Рµ Р±С‹СЃС‚СЂС‹Рµ РґРµР№СЃС‚РІРёСЏ, С‡С‚РѕР±С‹ РґРѕР±Р°РІРёС‚СЊ СЃРѕР±С‹С‚РёРµ.</p>
+                      <p>Здесь появятся недавние записи</p>
+                      <p className="text-sm">Добавьте первые события, чтобы увидеть историю.</p>
                     </div>
                   )}
                 </div>
@@ -591,18 +591,18 @@ export default function Dashboard() {
                   рџ’Ў
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-2">РЎРѕРІРµС‚ РґРЅСЏ</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Совет дня</h3>
                   {data?.dailyTip ? (
                     <div>
                       <p className="text-gray-700 mb-2">{data.dailyTip.content}</p>
                       <div className="flex flex-wrap items-center justify-between text-sm text-gray-500 gap-2">
-                        <span>РљР°С‚РµРіРѕСЂРёСЏ: {data.dailyTip.category}</span>
-                        <span>Р’РѕР·СЂР°СЃС‚: {data.dailyTip.age_months} РјРµСЃ.</span>
+                        <span>Категория: {data.dailyTip.category}</span>
+                        <span>Возраст: {data.dailyTip.age_months} мес.</span>
                       </div>
                     </div>
                   ) : (
                     <p className="text-gray-700">
-                      Р РµРіСѓР»СЏСЂРЅРѕРµ РєРѕСЂРјР»РµРЅРёРµ РєР°Р¶РґС‹Рµ 2-3 С‡Р°СЃР° РїРѕРјРѕРіР°РµС‚ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ СЂРµР¶РёРј Рё РїРѕРґРґРµСЂР¶РёРІР°С‚СЊ СЃС‚Р°Р±РёР»СЊРЅС‹Р№ РІРµСЃ РјР°Р»С‹С€Р°.
+                      Рекомендуется кормить малыша каждые 2-3 часа, регулярно менять подгузник и купать ежедневно.
                     </p>
                   )}
                 </div>
@@ -614,28 +614,28 @@ export default function Dashboard() {
         {activeSection === 'history' && (
           <>
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">РСЃС‚РѕСЂРёСЏ СЃРѕР±С‹С‚РёР№ рџ“–</h1>
-              <p className="text-gray-300">РџСЂРѕСЃРјР°С‚СЂРёРІР°Р№С‚Рµ РІСЃРµ Р·Р°РїРёСЃРё РїРѕ РєРѕСЂРјР»РµРЅРёСЋ, РїРѕРґРіСѓР·РЅРёРєР°Рј Рё РєСѓРїР°РЅРёСЏРј.</p>
+              <h1 className="text-3xl font-bold text-white mb-2">История событий</h1>
+              <p className="text-gray-300">Просматривайте все записи по кормлению, подгузникам и купаниям.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Card className="text-center">
                 <div className="text-2xl font-bold text-blue-600 mb-1">{historyData?.feedings.length || 0}</div>
-                <div className="text-sm text-gray-600">РљРѕСЂРјР»РµРЅРёСЏ</div>
+                <div className="text-sm text-gray-600">Кормления</div>
               </Card>
               <Card className="text-center">
                 <div className="text-2xl font-bold text-green-600 mb-1">{historyData?.diapers.length || 0}</div>
-                <div className="text-sm text-gray-600">РЎРјРµРЅС‹ РїРѕРґРіСѓР·РЅРёРєР°</div>
+                <div className="text-sm text-gray-600">Смены подгузника</div>
               </Card>
               <Card className="text-center">
                 <div className="text-2xl font-bold text-yellow-600 mb-1">{historyData?.baths.length || 0}</div>
-                <div className="text-sm text-gray-600">РљСѓРїР°РЅРёСЏ</div>
+                <div className="text-sm text-gray-600">Купания</div>
               </Card>
             </div>
 
             <Card>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">РҐСЂРѕРЅРѕР»РѕРіРёСЏ Р·Р°РїРёСЃРµР№</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Хронология записей</h2>
               </div>
 
               <div className="space-y-4">
@@ -653,13 +653,13 @@ export default function Dashboard() {
                       const getTypeInfo = (type: typeof item.type) => {
                         switch (type) {
                           case 'feeding':
-                            return { icon: 'рџЌј', label: 'РљРѕСЂРјР»РµРЅРёРµ', color: 'from-blue-500 to-blue-600' }
+                            return { icon: '🍼', label: 'Кормление', color: 'from-blue-500 to-blue-600' }
                           case 'diaper':
-                            return { icon: 'рџ§·', label: 'РЎРјРµРЅР° РїРѕРґРіСѓР·РЅРёРєР°', color: 'from-green-500 to-green-600' }
+                            return { icon: '🧷', label: 'Смена подгузника', color: 'from-green-500 to-green-600' }
                           case 'bath':
-                            return { icon: 'рџ›Ѓ', label: 'РљСѓРїР°РЅРёРµ', color: 'from-yellow-500 to-yellow-600' }
+                            return { icon: '🛁', label: 'Купание', color: 'from-yellow-500 to-yellow-600' }
                           default:
-                            return { icon: 'вњЁ', label: 'РЎРѕР±С‹С‚РёРµ', color: 'from-gray-500 to-gray-600' }
+                            return { icon: '⭐', label: 'Событие', color: 'from-gray-500 to-gray-600' }
                         }
                       }
 
@@ -687,7 +687,7 @@ export default function Dashboard() {
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <div className="text-4xl mb-2">вЏі</div>
-                    <p>Р—Р°РіСЂСѓР¶Р°РµРј РёСЃС‚РѕСЂРёСЋ...</p>
+                    <p>Загружаем историю...</p>
                   </div>
                 )}
               </div>
@@ -699,29 +699,29 @@ export default function Dashboard() {
         {activeSection === 'settings' && (
           <div className="settings-section space-y-8">
             <div className="animate-slide-up space-y-3">
-              <h1 className="text-3xl font-bold text-white gradient-text">РќР°СЃС‚СЂРѕР№РєРё</h1>
-              <p className="max-w-2xl text-lg text-gray-300">РћР±РЅРѕРІРёС‚Рµ РґР°РЅРЅС‹Рµ РјР°Р»С‹С€Р° Рё РЅР°СЃС‚СЂРѕР№С‚Рµ РЅР°РїРѕРјРёРЅР°РЅРёСЏ, С‡С‚РѕР±С‹ РІСЃРµРіРґР° Р±С‹С‚СЊ РІ РєСѓСЂСЃРµ РµРіРѕ СЂРµР¶РёРјР°.</p>
+              <h1 className="text-3xl font-bold text-white gradient-text">Настройки</h1>
+              <p className="max-w-2xl text-lg text-gray-300">Обновите данные малыша и настройте напоминания, чтобы всегда быть в курсе его режима.</p>
             </div>
 
             <Card className="settings-card animate-slide-up">
               <div className="settings-heading">
                 <div className="settings-heading-icon bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-indigo-500/20 text-blue-100">рџ‘¶</div>
-                <span className="settings-heading-label">РџСЂРѕС„РёР»СЊ РјР°Р»С‹С€Р°</span>
+                <span className="settings-heading-label">Профиль малыша</span>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="settings-label">РРјСЏ РјР°Р»С‹С€Р°</label>
+                  <label className="settings-label">Имя малыша</label>
                   <input
                     type="text"
                     value={settings.babyName}
                     onChange={(event) => handleSettingChange('babyName', event.target.value)}
                     className="settings-input w-full"
-                    placeholder="Р’РІРµРґРёС‚Рµ РёРјСЏ"
+                    placeholder="Введите имя"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="settings-label">Р”Р°С‚Р° СЂРѕР¶РґРµРЅРёСЏ</label>
+                  <label className="settings-label">Дата рождения</label>
                   <input
                     type="date"
                     value={settings.birthDate}
@@ -735,12 +735,12 @@ export default function Dashboard() {
             <Card className="settings-card animate-slide-up">
               <div className="settings-heading">
                 <div className="settings-heading-icon bg-gradient-to-br from-emerald-500/30 via-teal-500/30 to-green-400/20 text-emerald-100">вЏ±пёЏ</div>
-                <span className="settings-heading-label">РќР°РїРѕРјРёРЅР°РЅРёСЏ</span>
+                <span className="settings-heading-label">Напоминания</span>
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="settings-slider-container">
-                  <label className="settings-label">РРЅС‚РµСЂРІР°Р» РєРѕСЂРјР»РµРЅРёСЏ (С‡Р°СЃС‹)</label>
+                  <label className="settings-label">Интервал кормления (часы)</label>
                   <div className="mt-3 flex items-center gap-4">
                     <input
                       type="range"
@@ -755,7 +755,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="settings-slider-container">
-                  <label className="settings-label">РРЅС‚РµСЂРІР°Р» СЃРјРµРЅС‹ РїРѕРґРіСѓР·РЅРёРєР° (С‡Р°СЃС‹)</label>
+                  <label className="settings-label">Интервал смены подгузника (часы)</label>
                   <div className="mt-3 flex items-center gap-4">
                     <input
                       type="range"
@@ -770,7 +770,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="settings-slider-container md:col-span-2">
-                  <label className="settings-label">РџРµСЂРёРѕРґ РєСѓРїР°РЅРёСЏ (РґРЅРё)</label>
+                  <label className="settings-label">Период купания (дни)</label>
                   <div className="mt-3 flex items-center gap-4">
                     <input
                       type="range"
@@ -793,7 +793,7 @@ export default function Dashboard() {
                 onClick={handleSaveSettings}
                 className="settings-save-button"
               >
-                рџ’ѕ РЎРѕС…СЂР°РЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ
+                💾 Сохранить изменения
               </Button>
             </div>
           </div>

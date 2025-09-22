@@ -1,3 +1,4 @@
+﻿
 import { FormEvent, useMemo, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import type { Family, FamilyMember } from '../services/dataService'
@@ -19,7 +20,7 @@ export default function AuthPage() {
     event.preventDefault()
 
     if (!familyName.trim()) {
-      setError('Please enter a family name')
+      setError('Введите название семьи')
       return
     }
 
@@ -56,8 +57,8 @@ export default function AuthPage() {
     const guestMember: FamilyMember = {
       family_id: family.id,
       user_id: `${family.id}-guest`,
-      role: 'Guest',
-      name: 'Guest',
+      role: 'Гость',
+      name: 'Гость',
       created_at: new Date().toISOString()
     }
 
@@ -82,9 +83,9 @@ export default function AuthPage() {
             BabyCare
           </div>
 
-          <h1 className="text-3xl font-semibold text-white">Welcome</h1>
+          <h1 className="text-3xl font-semibold text-white">Вход в систему</h1>
           <p className="text-sm text-slate-200/80">
-            Enter your family name and then choose your role.
+            Введите название семьи, и мы найдем ваши данные.
           </p>
         </div>
 
@@ -92,7 +93,7 @@ export default function AuthPage() {
           <form className="relative mt-10 space-y-5" onSubmit={handleFamilySubmit}>
             <div className="space-y-2">
               <label htmlFor="family-name" className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-200/70">
-                Family
+                Семья
               </label>
               <input
                 id="family-name"
@@ -100,7 +101,7 @@ export default function AuthPage() {
                 value={familyName}
                 onChange={(event) => setFamilyName(event.target.value)}
                 className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-slate-300/50 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-300/60"
-                placeholder="Example: The Ivanov family"
+                placeholder="Например: семья Ивановых"
                 autoFocus
               />
             </div>
@@ -114,9 +115,9 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30 transition hover:shadow-sky-500/50 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30 transition hover:shadow-?ky-500/50 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {submitting ? 'Checking...' : 'Continue'}
+              {submitting ? 'Поиск...' : 'Найти'}
             </button>
           </form>
         )}
@@ -124,7 +125,7 @@ export default function AuthPage() {
         {step === 'member' && family && (
           <div className="relative mt-8 space-y-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-200/70">Family</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-200/70">Семья</p>
               <p className="mt-1 text-lg font-semibold text-white">{family.name}</p>
             </div>
 
@@ -136,7 +137,7 @@ export default function AuthPage() {
 
             {sortedMembers.length > 0 ? (
               <div className="space-y-3">
-                <p className="text-sm text-slate-200/80">Pick your role:</p>
+                <p className="text-sm text-slate-200/80">Выберите кто вы:</p>
                 <div className="grid gap-3">
                   {sortedMembers.map(memberOption => (
                     <button
@@ -145,7 +146,7 @@ export default function AuthPage() {
                       onClick={() => handleSelectMember(memberOption)}
                       className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-left transition hover:border-sky-400/50 hover:bg-white/15"
                     >
-                      <span className="text-sm font-semibold text-white">{memberOption.role ?? 'Family member'}</span>
+                      <span className="text-sm font-semibold text-white">{memberOption.role ?? 'Участник семьи'}</span>
                       {memberOption.name && (
                         <span className="text-xs uppercase tracking-[0.25em] text-slate-200/70">{memberOption.name}</span>
                       )}
@@ -155,7 +156,7 @@ export default function AuthPage() {
               </div>
             ) : (
               <div className="rounded-2xl border border-yellow-400/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
-                No roles are configured for this family yet. You can join as a guest.
+                В этой семье пока нет участников. Войдите как гость.
               </div>
             )}
 
@@ -165,14 +166,14 @@ export default function AuthPage() {
                 onClick={goBack}
                 className="flex-1 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40"
               >
-                Back
+                ?????
               </button>
               <button
                 type="button"
                 onClick={handleGuestEntry}
                 className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-500/50"
               >
-                Continue as guest
+                Войти как гость
               </button>
             </div>
           </div>
@@ -181,4 +182,3 @@ export default function AuthPage() {
     </div>
   )
 }
-
