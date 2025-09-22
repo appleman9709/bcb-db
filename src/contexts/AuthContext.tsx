@@ -1,201 +1,134 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabaseClient'
-import type { Family } from '../services/dataService'
-import { dataService } from '../services/dataService'
+import { dataService, type Family, type FamilyMember } from '../services/dataService'
 
-type MembershipRow = {
-  family_id: number
-  role: string | null
-  name: string | null
-  families?: Family | null
-}
+type FamilyLookupResult =
+  | { error: string }
+  | { family: Family; members: FamilyMember[] }
 
 type AuthContextValue = {
-  session: Session | null
-  user: User | null
   family: Family | null
-  membership: MembershipRow | null
+  member: FamilyMember | null
   loading: boolean
-  membershipLoading: boolean
-  membershipError: string | null
-  isAuthenticated: boolean
-  signIn: (credentials: { email: string; password: string }) => Promise<{ error: string | null }>
-  signOut: () => Promise<void>
-  refreshMembership: () => Promise<void>
+  findFamilyByName: (familyName: string) => Promise<FamilyLookupResult>
+  selectMember: (family: Family, member: FamilyMember) => void
+  signOut: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 const defaultValue: AuthContextValue = {
-  session: null,
-  user: null,
   family: null,
-  membership: null,
-  loading: true,
-  membershipLoading: true,
-  membershipError: null,
-  isAuthenticated: false,
-  signIn: async () => ({ error: 'Not initialised' }),
-  signOut: async () => undefined,
-  refreshMembership: async () => undefined,
+  member: null,
+  loading: false,
+  findFamilyByName: async () => ({ error: 'Контекст авторизации не инициализирован' }),
+  selectMember: () => undefined,
+  signOut: () => undefined
+}
+
+const resetDataService = () => {
+  dataService.configure({
+    familyId: null,
+    authorId: null,
+    authorName: null,
+    authorRole: null
+  })
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null)
-  const [user, setUser] = useState<User | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
-  const [membership, setMembership] = useState<MembershipRow | null>(null)
-  const [membershipLoading, setMembershipLoading] = useState<boolean>(false)
-  const [membershipError, setMembershipError] = useState<string | null>(null)
-  const [initialising, setInitialising] = useState<boolean>(true)
+  const [member, setMember] = useState<FamilyMember | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    let isMounted = true
+    resetDataService()
+  }, [])
 
-    const initialise = async () => {
-      try {
-        const { data } = await supabase.auth.getSession()
-
-        if (!isMounted) {
-          return
-        }
-
-        setSession(data.session)
-        setUser(data.session?.user ?? null)
-      } catch (error) {
-        console.error('Unable to load session', error)
-      } finally {
-        if (isMounted) {
-          setInitialising(false)
-        }
-      }
+  const findFamilyByName = useCallback(async (familyName: string): Promise<FamilyLookupResult> => {
+    const trimmedName = familyName.trim()
+    if (!trimmedName) {
+      return { error: 'Введите название семьи' }
     }
 
-    initialise()
+    setLoading(true)
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession)
-      setUser(nextSession?.user ?? null)
-    })
+    try {
+      const { data: familyRecord, error } = await supabase
+        .from('families')
+        .select('id, name, created_at')
+        .eq('name', trimmedName)
+        .maybeSingle<Family>()
 
-    return () => {
-      isMounted = false
-      listener.subscription.unsubscribe()
+      if (error) {
+        if ((error as { code?: string }).code === 'PGRST116') {
+          return { error: 'Семья не найдена' }
+        }
+
+        console.error('Unable to load family by name', error)
+        return { error: 'Не удалось найти семью' }
+      }
+
+      if (!familyRecord) {
+        return { error: 'Семья не найдена' }
+      }
+
+      type MemberRow = Omit<FamilyMember, 'user_id'> & { user_id: string | number }
+
+      const { data: memberRows, error: membersError } = await supabase
+        .from('family_members')
+        .select('family_id, user_id, role, name, created_at')
+        .eq('family_id', familyRecord.id)
+        .order('created_at', { ascending: true })
+        .returns<MemberRow[]>()
+
+      if (membersError) {
+        console.error('Unable to load family members', membersError)
+        return { error: 'Не удалось получить список ролей' }
+      }
+
+      const members: FamilyMember[] = (memberRows ?? []).map(row => ({
+        ...row,
+        user_id: String(row.user_id)
+      }))
+
+      return { family: familyRecord, members }
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  const loadMembership = useCallback(async (currentUser: User | null) => {
-    if (!currentUser) {
-      setMembership(null)
-      setFamily(null)
-      dataService.configure({
-        familyId: null,
-        authorId: null,
-        authorName: null,
-        authorRole: null,
-      })
-      return
+  const selectMember = useCallback((nextFamily: Family, nextMember: FamilyMember) => {
+    const normalizedMember: FamilyMember = {
+      ...nextMember,
+      user_id: String(nextMember.user_id)
     }
 
-    setMembershipLoading(true)
-    setMembershipError(null)
-
-    const { data, error } = await supabase
-      .from('family_members')
-      .select(`
-        family_id,
-        role,
-        name,
-        families:families ( id, name, created_at )
-      `)
-      .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle<MembershipRow & { families: Family | null }>()
-
-    if (error) {
-      if (error.code !== 'PGRST116') {
-        console.error('Unable to load family membership', error)
-        setMembershipError(error.message)
-      }
-
-      setMembership(null)
-      setFamily(null)
-      dataService.configure({
-        familyId: null,
-        authorId: currentUser.id,
-        authorName: currentUser.email ?? null,
-        authorRole: null,
-      })
-      setMembershipLoading(false)
-      return
-    }
-
-    const resolvedFamily = data?.families ?? null
-
-    setMembership(data ?? null)
-    setFamily(resolvedFamily)
+    setFamily(nextFamily)
+    setMember(normalizedMember)
 
     dataService.configure({
-      familyId: data?.family_id ?? null,
-      authorId: currentUser.id,
-      authorName: data?.name ?? currentUser.email ?? null,
-      authorRole: data?.role ?? null,
+      familyId: nextFamily.id,
+      authorId: normalizedMember.user_id || `${nextFamily.id}:member`,
+      authorName: normalizedMember.name?.trim() || normalizedMember.role?.trim() || 'Участник семьи',
+      authorRole: normalizedMember.role?.trim() || 'Участник семьи'
     })
-
-    setMembershipLoading(false)
   }, [])
 
-  useEffect(() => {
-    loadMembership(user)
-  }, [user, loadMembership])
-
-  const signIn = useCallback(async ({ email, password }: { email: string; password: string }) => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) {
-        return { error: error.message }
-      }
-
-      return { error: null }
-    } catch (error) {
-      console.error('Sign-in failed', error)
-      return { error: 'Unexpected error while signing in' }
-    }
+  const signOut = useCallback(() => {
+    setFamily(null)
+    setMember(null)
+    resetDataService()
   }, [])
 
-  const signOut = useCallback(async () => {
-    try {
-      await supabase.auth.signOut()
-    } catch (error) {
-      console.error('Sign-out failed', error)
-    }
-  }, [])
-
-  const refreshMembership = useCallback(async () => {
-    await loadMembership(user)
-  }, [loadMembership, user])
-
-  const value = useMemo<AuthContextValue>(() => {
-    const isAuthenticated = Boolean(session?.user)
-    const loading = initialising || (isAuthenticated && membershipLoading)
-
-    return {
-      session,
-      user,
-      family,
-      membership,
-      loading,
-      membershipLoading,
-      membershipError,
-      isAuthenticated,
-      signIn,
-      signOut,
-      refreshMembership,
-    }
-  }, [session, user, family, membership, initialising, membershipLoading, membershipError, signIn, signOut, refreshMembership])
+  const value = useMemo<AuthContextValue>(() => ({
+    family,
+    member,
+    loading,
+    findFamilyByName,
+    selectMember,
+    signOut
+  }), [family, member, loading, findFamilyByName, selectMember, signOut])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
