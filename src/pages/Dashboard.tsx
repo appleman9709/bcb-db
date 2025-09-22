@@ -276,7 +276,7 @@ export default function Dashboard() {
         type: 'feeding',
         label: 'Кормление',
         timestamp: data.lastFeeding.timestamp,
-        icon: 'рџЌј',
+        icon: '🍼',
         color: 'bg-blue-500'
       })
     }
@@ -286,7 +286,7 @@ export default function Dashboard() {
         type: 'diaper',
         label: 'Смена подгузника',
         timestamp: data.lastDiaper.timestamp,
-        icon: 'рџ§·',
+        icon: '🧷',
         color: 'bg-green-500'
       })
     }
@@ -296,7 +296,7 @@ export default function Dashboard() {
         type: 'bath',
         label: 'Купание',
         timestamp: data.lastBath.timestamp,
-        icon: 'рџ›Ѓ',
+        icon: '🛁',
         color: 'bg-yellow-500'
       })
     }
@@ -517,14 +517,14 @@ export default function Dashboard() {
               <StatCard
                 title="Последнее кормление"
                 value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
-                icon="рџЌј"
+                icon="🍼"
                 color="blue"
                 subtitle={data?.lastFeeding ? new Date(data.lastFeeding.timestamp).toLocaleString('ru-RU') : ''}
               />
               <StatCard
                 title="Последняя смена подгузника"
                 value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'Нет данных'}
-                icon="рџ§·"
+                icon="🧷"
                 color="green"
                 subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString('ru-RU') : ''}
               />
@@ -536,21 +536,21 @@ export default function Dashboard() {
                 <QuickAction
                   title="Кормление"
                   description="Записать время кормления"
-                  icon="рџЌј"
+                  icon="🍼"
                   onClick={() => handleQuickAction('feeding')}
                   variant="primary"
                 />
                 <QuickAction
                   title="Смена подгузника"
                   description="Отметить смену подгузника"
-                  icon="рџ§·"
+                  icon="🧷"
                   onClick={() => handleQuickAction('diaper')}
                   variant="success"
                 />
                 <QuickAction
                   title="Купание"
                   description="Записать время купания"
-                  icon="рџ›Ѓ"
+                  icon="🛁"
                   onClick={() => handleQuickAction('bath')}
                   variant="warning"
                 />
@@ -576,7 +576,7 @@ export default function Dashboard() {
                     ))
                   ) : (
                     <div className="text-center py-8 text-gray-500">
-                      <div className="text-4xl mb-2">рџЊџ</div>
+                      <div className="text-4xl mb-2">🤷</div>
                       <p>Здесь появятся недавние записи</p>
                       <p className="text-sm">Добавьте первые события, чтобы увидеть историю.</p>
                     </div>
@@ -588,7 +588,7 @@ export default function Dashboard() {
             <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
               <div className="flex items-start space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl">
-                  рџ’Ў
+                  💡
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 mb-2">Совет дня</h3>
@@ -686,7 +686,7 @@ export default function Dashboard() {
                   })()
                 ) : (
                   <div className="text-center py-8 text-gray-500">
-                    <div className="text-4xl mb-2">вЏі</div>
+                    <div className="text-4xl mb-2">⏳</div>
                     <p>Загружаем историю...</p>
                   </div>
                 )}
@@ -705,7 +705,7 @@ export default function Dashboard() {
 
             <Card className="settings-card animate-slide-up">
               <div className="settings-heading">
-                <div className="settings-heading-icon bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-indigo-500/20 text-blue-100">рџ‘¶</div>
+                <div className="settings-heading-icon bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-indigo-500/20 text-blue-100">👶</div>
                 <span className="settings-heading-label">Профиль малыша</span>
               </div>
 
@@ -734,7 +734,7 @@ export default function Dashboard() {
 
             <Card className="settings-card animate-slide-up">
               <div className="settings-heading">
-                <div className="settings-heading-icon bg-gradient-to-br from-emerald-500/30 via-teal-500/30 to-green-400/20 text-emerald-100">вЏ±пёЏ</div>
+                <div className="settings-heading-icon bg-gradient-to-br from-emerald-500/30 via-teal-500/30 to-green-400/20 text-emerald-100">⏰</div>
                 <span className="settings-heading-label">Напоминания</span>
               </div>
 
@@ -750,7 +750,7 @@ export default function Dashboard() {
                       onChange={(event) => handleSettingChange('feedingInterval', parseInt(event.target.value, 10))}
                       className="slider flex-1 appearance-none rounded-full bg-white/20"
                     />
-                    <span className="settings-value-display text-blue-600">{settings.feedingInterval}С‡</span>
+                    <span className="settings-value-display text-blue-600">{settings.feedingInterval}ч</span>
                   </div>
                 </div>
 
@@ -765,7 +765,7 @@ export default function Dashboard() {
                       onChange={(event) => handleSettingChange('diaperInterval', parseInt(event.target.value, 10))}
                       className="slider flex-1 appearance-none rounded-full bg-white/20"
                     />
-                    <span className="settings-value-display text-emerald-600">{settings.diaperInterval}С‡</span>
+                    <span className="settings-value-display text-emerald-600">{settings.diaperInterval}ч</span>
                   </div>
                 </div>
 
@@ -780,7 +780,7 @@ export default function Dashboard() {
                       onChange={(event) => handleSettingChange('bathInterval', parseInt(event.target.value, 10))}
                       className="slider flex-1 appearance-none rounded-full bg-white/20"
                     />
-                    <span className="settings-value-display text-amber-600">{settings.bathInterval}Рґ</span>
+                    <span className="settings-value-display text-amber-600">{settings.bathInterval}д</span>
                   </div>
                 </div>
               </div>
