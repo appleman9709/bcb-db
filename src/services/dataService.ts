@@ -6,10 +6,18 @@ export interface Family {
   created_at: string
 }
 
+export interface FamilyMember {
+  family_id: number
+  user_id: string
+  role: string | null
+  name: string | null
+  created_at: string
+}
+
 export interface Feeding {
   id: number
   family_id: number
-  author_id: number
+  author_id: string
   timestamp: string
   author_role: string
   author_name: string
@@ -19,7 +27,7 @@ export interface Feeding {
 export interface Diaper {
   id: number
   family_id: number
-  author_id: number
+  author_id: string
   timestamp: string
   author_role: string
   author_name: string
@@ -29,7 +37,7 @@ export interface Diaper {
 export interface Bath {
   id: number
   family_id: number
-  author_id: number
+  author_id: string
   timestamp: string
   author_role: string
   author_name: string
@@ -39,22 +47,13 @@ export interface Bath {
 export interface Activity {
   id: number
   family_id: number
-  author_id: number
+  author_id: string
   timestamp: string
   activity_type: string
   author_role: string
   author_name: string
   created_at: string
 }
-
-export interface Tip {
-  id: number
-  age_months: number
-  content: string
-  category: string
-  created_at: string
-}
-
 
 export interface Settings {
   family_id: number
@@ -85,58 +84,119 @@ export interface Tip {
   created_at: string
 }
 
+type AuthorContext = {
+  authorId: string
+  authorName: string
+  authorRole: string
+}
 
 class DataService {
-  private familyId: number = 1 // TODO: Get from user context
+  private familyId: number | null = null
+  private authorId: string | null = null
+  private authorName: string | null = null
+  private authorRole: string | null = null
+
+  configure(options: {
+    familyId: number | null
+    authorId: string | null
+    authorName?: string | null
+    authorRole?: string | null
+  }) {
+    this.familyId = options.familyId ?? null
+    this.authorId = options.authorId ?? null
+    this.authorName = options.authorName ?? null
+    this.authorRole = options.authorRole ?? null
+  }
+
+  private requireFamilyId(): number {
+    if (this.familyId === null) {
+      throw new Error('Family context is not configured')
+    }
+
+    return this.familyId
+  }
+
+  private requireAuthor(): AuthorContext {
+    if (!this.authorId) {
+      throw new Error('Author context is not configured')
+    }
+
+    return {
+      authorId: this.authorId,
+      authorName: this.authorName?.trim() || 'Family member',
+      authorRole: this.authorRole?.trim() || 'Family member'
+    }
+  }
 
   // Family operations
   async getFamily(): Promise<Family | null> {
-    const { data, error } = await supabase
-      .from('families')
-      .select('*')
-      .eq('id', this.familyId)
-      .single()
+    try {
+      const familyId = this.requireFamilyId()
 
-    if (error) {
-      console.error('Error fetching family:', error)
+      const { data, error } = await supabase
+        .from('families')
+        .select('*')
+        .eq('id', familyId)
+        .single()
+
+      if (error) {
+        console.error('Error fetching family', error)
+        return null
+      }
+
+      return data
+    } catch (error) {
+      console.error('Family context is not configured', error)
       return null
     }
-    return data
   }
 
   // Feeding operations
   async getFeedings(limit: number = 10): Promise<Feeding[]> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('feedings')
       .select('*')
-      .eq('family_id', this.familyId)
+      .eq('family_id', familyId)
       .order('timestamp', { ascending: false })
       .limit(limit)
 
     if (error) {
-      console.error('Error fetching feedings:', error)
+      console.error('Error fetching feedings', error)
       return []
     }
+
     return data || []
   }
 
   async getLastFeeding(): Promise<Feeding | null> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('feedings')
       .select('*')
-      .eq('family_id', this.familyId)
+      .eq('family_id', familyId)
       .order('timestamp', { ascending: false })
       .limit(1)
       .single()
 
     if (error) {
-      console.error('Error fetching last feeding:', error)
+      if (error.code === 'PGRST116') {
+        return null
+      }
+
+      console.error('Error fetching last feeding', error)
       return null
     }
+
     return data
   }
 
   async addFeeding(timestamp?: string): Promise<Feeding | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName, authorRole } = this.requireAuthor()
+
     let eventDate = timestamp ? new Date(timestamp) : new Date()
 
     if (Number.isNaN(eventDate.getTime())) {
@@ -146,17 +206,17 @@ class DataService {
     const { data, error } = await supabase
       .from('feedings')
       .insert({
-        family_id: this.familyId,
-        author_id: 1, // TODO: Get from user context
+        family_id: familyId,
+        author_id: authorId,
         timestamp: eventDate.toISOString(),
-        author_role: 'Родитель',
-        author_name: 'Администратор'
+        author_role: authorRole,
+        author_name: authorName
       })
       .select()
       .single()
 
     if (error) {
-      console.error('Error adding feeding:', error)
+      console.error('Error adding feeding', error)
       return null
     }
 
@@ -165,37 +225,50 @@ class DataService {
 
   // Diaper operations
   async getDiapers(limit: number = 10): Promise<Diaper[]> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('diapers')
       .select('*')
-      .eq('family_id', this.familyId)
+      .eq('family_id', familyId)
       .order('timestamp', { ascending: false })
       .limit(limit)
 
     if (error) {
-      console.error('Error fetching diapers:', error)
+      console.error('Error fetching diapers', error)
       return []
     }
+
     return data || []
   }
 
   async getLastDiaper(): Promise<Diaper | null> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('diapers')
       .select('*')
-      .eq('family_id', this.familyId)
+      .eq('family_id', familyId)
       .order('timestamp', { ascending: false })
       .limit(1)
       .single()
 
     if (error) {
-      console.error('Error fetching last diaper:', error)
+      if (error.code === 'PGRST116') {
+        return null
+      }
+
+      console.error('Error fetching last diaper', error)
       return null
     }
+
     return data
   }
 
   async addDiaper(timestamp?: string): Promise<Diaper | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName, authorRole } = this.requireAuthor()
+
     let eventDate = timestamp ? new Date(timestamp) : new Date()
 
     if (Number.isNaN(eventDate.getTime())) {
@@ -205,17 +278,17 @@ class DataService {
     const { data, error } = await supabase
       .from('diapers')
       .insert({
-        family_id: this.familyId,
-        author_id: 1, // TODO: Get from user context
+        family_id: familyId,
+        author_id: authorId,
         timestamp: eventDate.toISOString(),
-        author_role: 'Родитель',
-        author_name: 'Администратор'
+        author_role: authorRole,
+        author_name: authorName
       })
       .select()
       .single()
 
     if (error) {
-      console.error('Error adding diaper:', error)
+      console.error('Error adding diaper', error)
       return null
     }
 
@@ -224,37 +297,50 @@ class DataService {
 
   // Bath operations
   async getBaths(limit: number = 10): Promise<Bath[]> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('baths')
       .select('*')
-      .eq('family_id', this.familyId)
+      .eq('family_id', familyId)
       .order('timestamp', { ascending: false })
       .limit(limit)
 
     if (error) {
-      console.error('Error fetching baths:', error)
+      console.error('Error fetching baths', error)
       return []
     }
+
     return data || []
   }
 
   async getLastBath(): Promise<Bath | null> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('baths')
       .select('*')
-      .eq('family_id', this.familyId)
+      .eq('family_id', familyId)
       .order('timestamp', { ascending: false })
       .limit(1)
       .single()
 
     if (error) {
-      console.error('Error fetching last bath:', error)
+      if (error.code === 'PGRST116') {
+        return null
+      }
+
+      console.error('Error fetching last bath', error)
       return null
     }
+
     return data
   }
 
   async addBath(timestamp?: string): Promise<Bath | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName, authorRole } = this.requireAuthor()
+
     let eventDate = timestamp ? new Date(timestamp) : new Date()
 
     if (Number.isNaN(eventDate.getTime())) {
@@ -264,17 +350,17 @@ class DataService {
     const { data, error } = await supabase
       .from('baths')
       .insert({
-        family_id: this.familyId,
-        author_id: 1, // TODO: Get from user context
+        family_id: familyId,
+        author_id: authorId,
         timestamp: eventDate.toISOString(),
-        author_role: 'Родитель',
-        author_name: 'Администратор'
+        author_role: authorRole,
+        author_name: authorName
       })
       .select()
       .single()
 
     if (error) {
-      console.error('Error adding bath:', error)
+      console.error('Error adding bath', error)
       return null
     }
 
@@ -283,38 +369,45 @@ class DataService {
 
   // Activity operations
   async getActivities(limit: number = 10): Promise<Activity[]> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('activities')
       .select('*')
-      .eq('family_id', this.familyId)
+      .eq('family_id', familyId)
       .order('timestamp', { ascending: false })
       .limit(limit)
 
     if (error) {
-      console.error('Error fetching activities:', error)
+      console.error('Error fetching activities', error)
       return []
     }
+
     return data || []
   }
 
-  async addActivity(activityType: string = 'Игра'): Promise<Activity | null> {
+  async addActivity(activityType: string = 'activity'): Promise<Activity | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName, authorRole } = this.requireAuthor()
+
     const { data, error } = await supabase
       .from('activities')
       .insert({
-        family_id: this.familyId,
-        author_id: 1, // TODO: Get from user context
+        family_id: familyId,
+        author_id: authorId,
         timestamp: new Date().toISOString(),
         activity_type: activityType,
-        author_role: 'Родитель',
-        author_name: 'Пользователь'
+        author_role: authorRole,
+        author_name: authorName
       })
       .select()
       .single()
 
     if (error) {
-      console.error('Error adding activity:', error)
+      console.error('Error adding activity', error)
       return null
     }
+
     return data
   }
 
@@ -332,55 +425,69 @@ class DataService {
     const { data, error } = await query
 
     if (error) {
-      console.error('Error fetching tips:', error)
+      console.error('Error fetching tips', error)
       return []
     }
+
     return data || []
   }
 
   async getRandomTip(ageMonths?: number): Promise<Tip | null> {
     const tips = await this.getTips(ageMonths)
-    if (tips.length === 0) return null
-    
+    if (tips.length === 0) {
+      return null
+    }
+
     const randomIndex = Math.floor(Math.random() * tips.length)
     return tips[randomIndex]
   }
 
   // Settings operations
   async getSettings(): Promise<Settings | null> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('settings')
       .select('*')
-      .eq('family_id', this.familyId)
+      .eq('family_id', familyId)
       .single()
 
     if (error) {
-      console.error('Error fetching settings:', error)
+      if (error.code === 'PGRST116') {
+        return null
+      }
+
+      console.error('Error fetching settings', error)
       return null
     }
+
     return data
   }
 
   async updateSettings(settings: Partial<Settings>): Promise<Settings | null> {
+    const familyId = this.requireFamilyId()
+
     const { data, error } = await supabase
       .from('settings')
       .upsert({
-        family_id: this.familyId,
+        family_id: familyId,
         ...settings
       })
       .select()
       .single()
 
     if (error) {
-      console.error('Error updating settings:', error)
+      console.error('Error updating settings', error)
       return null
     }
+
     return data
   }
 
-
   // Statistics
   async getTodayStats() {
+    this.requireFamilyId()
+
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const tomorrow = new Date(today)
@@ -393,18 +500,25 @@ class DataService {
       this.getActivities(50)
     ])
 
-    const todayFeedings = feedings.filter(f => 
-      new Date(f.timestamp) >= today && new Date(f.timestamp) < tomorrow
-    )
-    const todayDiapers = diapers.filter(d => 
-      new Date(d.timestamp) >= today && new Date(d.timestamp) < tomorrow
-    )
-    const todayBaths = baths.filter(b => 
-      new Date(b.timestamp) >= today && new Date(b.timestamp) < tomorrow
-    )
-    const todayActivities = activities.filter(a => 
-      new Date(a.timestamp) >= today && new Date(a.timestamp) < tomorrow
-    )
+    const todayFeedings = feedings.filter(item => {
+      const date = new Date(item.timestamp)
+      return date >= today && date < tomorrow
+    })
+
+    const todayDiapers = diapers.filter(item => {
+      const date = new Date(item.timestamp)
+      return date >= today && date < tomorrow
+    })
+
+    const todayBaths = baths.filter(item => {
+      const date = new Date(item.timestamp)
+      return date >= today && date < tomorrow
+    })
+
+    const todayActivities = activities.filter(item => {
+      const date = new Date(item.timestamp)
+      return date >= today && date < tomorrow
+    })
 
     return {
       feedings: todayFeedings.length,

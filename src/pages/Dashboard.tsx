@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import StatCard from '../components/StatCard'
 import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
@@ -6,6 +6,7 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import LoadingScreen from '../components/LoadingScreen'
 import DebugPanel from '../components/DebugPanel'
+import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, Tip } from '../services/dataService'
 
 type DashboardSection = 'dashboard' | 'history' | 'settings'
@@ -112,15 +113,22 @@ export default function Dashboard() {
   const reminderTimers = useRef<Partial<Record<ReminderType, number>>>({})
   const isNotificationSupported = typeof window !== 'undefined' && 'Notification' in window
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  const { membership, family, user, signOut } = useAuth()
+  const memberDisplayName = membership?.name ?? user?.email ?? 'Family member'
 
   useEffect(() => {
-    if (activeSection === 'history') {
+    if (!membership) {
+      return
+    }
+
+    fetchData()
+  }, [membership, fetchData])
+
+  useEffect(() => {
+    if (activeSection === 'history' && membership) {
       fetchHistoryData()
     }
-  }, [activeSection])
+  }, [activeSection, membership, fetchHistoryData])
 
   useEffect(() => {
     if (!isNotificationSupported) {
@@ -228,7 +236,11 @@ export default function Dashboard() {
     isNotificationSupported
   ])
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    if (!membership) {
+      return
+    }
+
     try {
       setLoading(true)
       const [lastFeeding, lastDiaper, lastBath, settingsFromDb] = await Promise.all([
@@ -262,9 +274,13 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [membership])
 
-  const fetchHistoryData = async () => {
+  const fetchHistoryData = useCallback(async () => {
+    if (!membership) {
+      return
+    }
+
     try {
       const [feedings, diapers, baths] = await Promise.all([
         dataService.getFeedings(50),
@@ -280,7 +296,7 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching history data:', error)
     }
-  }
+  }, [membership])
 
   const getTimeAgo = (timestamp: string) => {
     const now = new Date()
@@ -316,6 +332,10 @@ export default function Dashboard() {
   }
 
   const handleSaveSettings = async () => {
+    if (!membership) {
+      return
+    }
+
     try {
       const updatedSettings = await dataService.updateSettings({
         feed_interval: settings.feedingInterval,
@@ -430,6 +450,25 @@ export default function Dashboard() {
                 className="text-sm sm:text-base"
               >
                 ⚙️ <span className="hidden sm:inline">Настройки</span>
+              </Button>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 rounded-2xl bg-white/5 px-4 py-3 text-white/80">
+              <div className="text-left">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/60">Family</p>
+                <p className="text-sm font-semibold text-white">{family?.name ?? 'Family'}</p>
+              </div>
+              <div className="hidden sm:block h-6 w-px bg-white/10" />
+              <div className="mt-3 sm:mt-0 text-left">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/60">You</p>
+                <p className="text-sm font-medium text-white truncate max-w-[10rem]">{memberDisplayName}</p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={signOut}
+                className="mt-3 sm:mt-0 sm:ml-2 whitespace-nowrap"
+              >
+                Sign out
               </Button>
             </div>
           </div>
