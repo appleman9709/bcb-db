@@ -435,35 +435,35 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
-            <div className="flex flex-wrap gap-2 sm:space-x-4 sm:gap-0">
+            <div className="flex flex-wrap gap-3 sm:space-x-4 sm:gap-0">
               <Button
                 variant={activeSection === 'dashboard' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('dashboard')}
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base min-h-[44px] px-4 py-3"
               >
-                📊 <span className="hidden sm:inline">Обзор</span>
+                <span className="mobile-emoji sm:text-base">📊</span> <span className="hidden sm:inline ml-2">Обзор</span>
               </Button>
               <Button
                 variant={activeSection === 'history' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('history')}
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base min-h-[44px] px-4 py-3"
               >
-                📅 <span className="hidden sm:inline">История</span>
+                <span className="mobile-emoji sm:text-base">📅</span> <span className="hidden sm:inline ml-2">История</span>
               </Button>
               <Button
                 variant={activeSection === 'settings' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('settings')}
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base min-h-[44px] px-4 py-3"
               >
-                ⚙️ <span className="hidden sm:inline">Настройки</span>
+                <span className="mobile-emoji sm:text-base">⚙️</span> <span className="hidden sm:inline ml-2">Настройки</span>
               </Button>
               <Button
                 variant="secondary"
                 size="sm"
                 onClick={handleRefresh}
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base min-h-[44px] px-4 py-3"
               >
-                🔄 <span className="hidden sm:inline">Обновить</span>
+                <span className="mobile-emoji sm:text-base">🔄</span> <span className="hidden sm:inline ml-2">Обновить</span>
               </Button>
             </div>
           </div>
@@ -515,7 +515,7 @@ export default function Dashboard() {
                 <QuickAction
                   title="Кормление"
                   description="Записать время кормления"
-                  icon="🍼"
+                  icon="💩"
                   onClick={() => handleQuickAction('feeding')}
                   variant="primary"
                 />
@@ -645,7 +645,7 @@ export default function Dashboard() {
                       const typeInfo = getTypeInfo(item.type)
 
                       return (
-                        <div key={`${item.type}-${item.id}-${index}`} className="flex items-center space-x-4 p-4 rounded-xl border-2 transition-all duration-200 hover:shadow-md">
+                        <div key={`${item.type}-${item.id}-${index}`} className="flex items-center space-x-4 p-4 rounded-xl border-2 border-gray-700 bg-gray-800/50 transition-all duration-200 hover:shadow-md hover:bg-gray-800/70">
                           <div className="flex-shrink-0">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg bg-gradient-to-r ${typeInfo.color}`}>
                               {typeInfo.icon}
@@ -654,17 +654,17 @@ export default function Dashboard() {
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <h3 className="text-lg font-medium text-gray-900">{typeInfo.label}</h3>
-                              <span className="text-sm font-medium text-gray-500">{getTimeAgo(item.timestamp)}</span>
+                              <h3 className="text-lg font-medium text-gray-100">{typeInfo.label}</h3>
+                              <span className="text-sm font-medium text-gray-400">{getTimeAgo(item.timestamp)}</span>
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">{formatTime(new Date(item.timestamp))}</p>
+                            <p className="text-sm text-gray-300 mt-1">{formatTime(new Date(item.timestamp))}</p>
                           </div>
                         </div>
                       )
                     })
                   })()
                 ) : (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-400">
                     <div className="text-4xl mb-2">⏳</div>
                     <p>Загружаем историю...</p>
                   </div>

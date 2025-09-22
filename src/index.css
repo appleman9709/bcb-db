@@ -57,6 +57,22 @@
     }
   }
 
+  /* Mobile emoji and icon improvements */
+  .mobile-emoji {
+    font-size: 1.25rem;
+    line-height: 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  }
+
+  @media (max-width: 640px) {
+    .mobile-emoji {
+      font-size: 1.5rem;
+    }
+  }
+
   .slider {
     background: linear-gradient(to right, #3b82f6 0%, #3b82f6 var(--value), #e5e7eb var(--value), #e5e7eb 100%);
   }

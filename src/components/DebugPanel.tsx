@@ -9,12 +9,12 @@ const DebugPanel: React.FC = () => {
     try {
       const settings = await dataService.getSettings()
       if (settings) {
-        setDebugInfo(`????????? ???????: ???????? ????????? ${settings.feed_interval}?, ??????????? ? ${settings.diaper_interval}?`)
+        setDebugInfo(`Настройки получены: интервал кормления ${settings.feed_interval}ч, подгузники ${settings.diaper_interval}ч`)
       } else {
-        setDebugInfo('????????? ????? ?? ???????')
+        setDebugInfo('Настройки не найдены')
       }
     } catch (error) {
-      setDebugInfo(`??????: ${error}`)
+      setDebugInfo(`Ошибка: ${error}`)
     }
   }
 
@@ -27,32 +27,32 @@ const DebugPanel: React.FC = () => {
       ])
 
       const info: string[] = []
-      if (lastFeeding) info.push(`?????????: ${new Date(lastFeeding.timestamp).toLocaleString()}`)
-      if (lastDiaper) info.push(`?????????: ${new Date(lastDiaper.timestamp).toLocaleString()}`)
-      if (lastBath) info.push(`???????: ${new Date(lastBath.timestamp).toLocaleString()}`)
+      if (lastFeeding) info.push(`Кормление: ${new Date(lastFeeding.timestamp).toLocaleString()}`)
+      if (lastDiaper) info.push(`Подгузник: ${new Date(lastDiaper.timestamp).toLocaleString()}`)
+      if (lastBath) info.push(`Купание: ${new Date(lastBath.timestamp).toLocaleString()}`)
 
-      setDebugInfo(info.length > 0 ? info.join(' | ') : '??? ????????? ???????')
+      setDebugInfo(info.length > 0 ? info.join(' | ') : 'Нет последних записей')
     } catch (error) {
-      setDebugInfo(`??????: ${error}`)
+      setDebugInfo(`Ошибка: ${error}`)
     }
   }
 
   return (
     <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm w-80 sm:w-auto hidden sm:block">
-      <h3 className="font-bold mb-2">?? Debug Panel</h3>
+      <h3 className="font-bold mb-2">🔧 Debug Panel</h3>
 
       <div className="space-y-2 mb-3">
         <button
           onClick={checkData}
           className="w-full px-2 py-1 bg-blue-500 rounded text-xs hover:bg-blue-600"
         >
-          ????????? ?????????
+          Проверить настройки
         </button>
         <button
           onClick={checkLastActivities}
           className="w-full px-2 py-1 bg-green-500 rounded text-xs hover:bg-green-600"
         >
-          ????????? ???????
+          Проверить записи
         </button>
       </div>
 

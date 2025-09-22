@@ -14,11 +14,11 @@ interface QuickActionModalProps {
 }
 
 const QUICK_OFFSETS = [
-  { label: '????? ??????', minutes: 0 },
-  { label: '-15 ???', minutes: -15 },
-  { label: '-30 ???', minutes: -30 },
-  { label: '-1 ???', minutes: -60 },
-  { label: '+15 ???', minutes: 15 }
+  { label: 'Сейчас', minutes: 0 },
+  { label: '-15 мин', minutes: -15 },
+  { label: '-30 мин', minutes: -30 },
+  { label: '-1 час', minutes: -60 },
+  { label: '+15 мин', minutes: 15 }
 ]
 
 const actionConfig: Record<QuickActionType, {
@@ -30,26 +30,26 @@ const actionConfig: Record<QuickActionType, {
   accent: string
 }> = {
   feeding: {
-    title: '?????????',
-    icon: '??',
-    description: '???????? ?????????, ????? ?????? ?????????? ????????? ? ?????????? ? ???????.',
-    buttonText: '???????? ?????????',
+    title: 'Кормление',
+    icon: '🍼',
+    description: 'Записать кормление, чтобы отслеживать режим питания и планировать следующее кормление.',
+    buttonText: 'Записать кормление',
     buttonVariant: 'primary',
     accent: 'from-blue-500 to-purple-500'
   },
   diaper: {
-    title: '????? ??????????',
-    icon: '??',
-    description: '????????? ????? ???????????, ????? ??????? ?? ????????? ??????.',
-    buttonText: '???????? ?????',
+    title: 'Смена подгузника',
+    icon: '🧷',
+    description: 'Отметить смену подгузника, чтобы следить за гигиеной малыша.',
+    buttonText: 'Записать смену',
     buttonVariant: 'success',
     accent: 'from-green-500 to-emerald-500'
   },
   bath: {
-    title: '???????',
-    icon: '??',
-    description: '???????? ???????, ????? ?? ?????????? ????????? ??????-????? ??????.',
-    buttonText: '???????? ???????',
+    title: 'Купание',
+    icon: '🛁',
+    description: 'Записать купание, чтобы поддерживать чистоту и здоровье малыша.',
+    buttonText: 'Записать купание',
     buttonVariant: 'warning',
     accent: 'from-yellow-500 to-orange-500'
   }
@@ -140,12 +140,12 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
   const formattedPreview = useMemo(() => {
     if (!selectedDateTime) {
-      return '???????? ???? ? ?????'
+      return 'Выберите дату и время'
     }
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
-      return '???????????? ????'
+      return 'Неверная дата'
     }
 
     return eventDate.toLocaleString('ru-RU', {
@@ -158,13 +158,13 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
   const handleSubmit = async () => {
     if (!selectedDateTime) {
-      setError('??????? ???? ? ????? ???????')
+      setError('Выберите дату и время обязательно')
       return
     }
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
-      setError('?? ??????? ????????? ????????? ????')
+      setError('Не удалось распознать выбранную дату')
       return
     }
 
@@ -192,7 +192,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       onClose()
     } catch (submitError) {
       console.error('Error adding record:', submitError)
-      setError('?? ??????? ????????? ???????, ?????????? ??? ??? ???? ?????')
+      setError('Не удалось сохранить запись, попробуйте еще раз позже')
     } finally {
       setLoading(false)
     }
@@ -210,7 +210,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
         <div className="space-y-3 sm:space-y-4">
           <span className="block text-xs font-semibold uppercase tracking-[0.28em] text-gray-500">
-            ???? ? ????? ???????
+Дата и время события
           </span>
 
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
@@ -258,7 +258,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           </div>
 
           <div className="rounded-2xl bg-gray-50 px-3 py-2 text-xs text-gray-600 sm:px-4 sm:py-3 sm:text-sm">
-            ????????? ?????: <span className="font-semibold text-gray-900">{formattedPreview}</span>
+            Предварительный просмотр: <span className="font-semibold text-gray-900">{formattedPreview}</span>
           </div>
 
           {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
@@ -271,7 +271,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             className="flex-1"
             disabled={loading}
           >
-            ??????
+Отмена
           </Button>
           <Button
             variant={config.buttonVariant}
@@ -279,7 +279,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             className="flex-1"
             disabled={loading}
           >
-            {loading ? '?????????...' : config.buttonText}
+            {loading ? 'Сохранение...' : config.buttonText}
           </Button>
         </div>
       </div>
