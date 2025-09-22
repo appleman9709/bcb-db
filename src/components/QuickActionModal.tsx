@@ -215,7 +215,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
             <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">????</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">Дата</span>
               <input
                 type="date"
                 value={datePart}
@@ -225,7 +225,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             </div>
 
             <div className="relative rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-3 shadow-[0_10px_30px_-18px_rgba(59,130,246,0.65)] sm:rounded-[2rem] sm:px-6 sm:py-5 sm:shadow-[0_15px_45px_-20px_rgba(59,130,246,0.7)]">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-blue-600">?????</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-blue-600">Время</span>
               <input
                 type="time"
                 step={300}

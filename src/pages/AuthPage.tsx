@@ -100,7 +100,7 @@ export default function AuthPage() {
                 type="text"
                 value={familyName}
                 onChange={(event) => setFamilyName(event.target.value)}
-                className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white placeholder-slate-300/50 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-300/60"
+                className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-slate-300/50 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-300/60"
                 placeholder="Например: семья Ивановых"
                 autoFocus
               />
@@ -115,7 +115,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30 transition hover:shadow-?ky-500/50 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30 transition hover:shadow-sky-500/50 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {submitting ? 'Поиск...' : 'Найти'}
             </button>
@@ -166,7 +166,7 @@ export default function AuthPage() {
                 onClick={goBack}
                 className="flex-1 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40"
               >
-                ?????
+                Назад
               </button>
               <button
                 type="button"

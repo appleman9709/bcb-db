@@ -53,7 +53,12 @@
     
     .settings-input {
       min-height: 48px;
-      font-size: 16px;
+      font-size: 16px; /* Prevents zoom on mobile devices */
+    }
+    
+    /* Ensure all text inputs have 16px font size on mobile */
+    input[type="text"], input[type="email"], input[type="tel"] {
+      font-size: 16px !important;
     }
   }
 

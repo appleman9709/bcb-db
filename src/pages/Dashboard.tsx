@@ -515,14 +515,14 @@ export default function Dashboard() {
                 <QuickAction
                   title="Кормление"
                   description="Записать время кормления"
-                  icon="💩"
+                  icon="🍼"
                   onClick={() => handleQuickAction('feeding')}
                   variant="primary"
                 />
                 <QuickAction
                   title="Смена подгузника"
                   description="Отметить смену подгузника"
-                  icon="🧷"
+                  icon="💩"
                   onClick={() => handleQuickAction('diaper')}
                   variant="success"
                 />
