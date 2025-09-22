@@ -1,32 +1,88 @@
 ﻿<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="128" y1="64" x2="400" y2="448" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FFF4FC" />
-      <stop offset="1" stop-color="#C9E4FF" />
+    <!-- Фон с мягким градиентом -->
+    <linearGradient id="background" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FEF7F0" />
+      <stop offset="1" stop-color="#F5E6D3" />
     </linearGradient>
-    <radialGradient id="panel" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 256) rotate(90) scale(184)">
-      <stop stop-color="#FFFFFF" stop-opacity="0.95" />
-      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.75" />
+    
+    <!-- Градиент для тела младенца -->
+    <radialGradient id="babyBody" cx="0.5" cy="0.4" r="0.6" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#FFE6D6" />
+      <stop offset="1" stop-color="#F4C2A1" />
     </radialGradient>
-    <radialGradient id="bodyGradient" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 240) rotate(90) scale(156)">
-      <stop stop-color="#60A5FA" />
-      <stop offset="1" stop-color="#8B5CF6" />
-    </radialGradient>
-    <radialGradient id="slingGradient" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(256 256) rotate(90) scale(120)">
-      <stop stop-color="#81C7D4" />
-      <stop offset="1" stop-color="#3B82F6" />
+    
+    <!-- Градиент для комбинезона -->
+    <linearGradient id="onesie" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#FFFFFF" />
+      <stop offset="0.1" stop-color="#E8F4FD" />
+      <stop offset="0.2" stop-color="#FFFFFF" />
+      <stop offset="0.3" stop-color="#E8F4FD" />
+      <stop offset="0.4" stop-color="#FFFFFF" />
+      <stop offset="0.5" stop-color="#E8F4FD" />
+      <stop offset="0.6" stop-color="#FFFFFF" />
+      <stop offset="0.7" stop-color="#E8F4FD" />
+      <stop offset="0.8" stop-color="#FFFFFF" />
+      <stop offset="0.9" stop-color="#E8F4FD" />
+      <stop offset="1" stop-color="#FFFFFF" />
+    </linearGradient>
+    
+    <!-- Тень для глубины -->
+    <radialGradient id="shadow" cx="0.5" cy="0.8" r="0.3" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#000000" stop-opacity="0.1" />
+      <stop offset="1" stop-color="#000000" stop-opacity="0" />
     </radialGradient>
   </defs>
-  <rect width="512" height="512" fill="url(#bg)" />
-  <circle cx="256" cy="256" r="184" fill="url(#panel)" />
-  <path d="M256 214C360 232 354 360 256 388C158 360 152 232 256 214Z" fill="url(#bodyGradient)" />
-  <path d="M256 236C320 264 314 330 256 348C198 330 192 264 256 236Z" fill="url(#slingGradient)" />
-  <circle cx="256" cy="218" r="50" fill="#FFE6D6" />
-  <ellipse cx="254" cy="202" rx="28" ry="18" fill="white" fill-opacity="0.35" />
-  <circle cx="243" cy="217" r="9" fill="#242F44" />
-  <circle cx="269" cy="217" r="9" fill="#242F44" />
-  <path d="M236 242C246 258 266 258 276 242" stroke="#2F3E5A" stroke-width="7" stroke-linecap="round" />
-  <path d="M242 188C256 184 268 194 272 204" stroke="#2F3E5A" stroke-width="6" stroke-linecap="round" />
-  <path d="M336 176C336 154 310 154 310 176C310 200 336 210 336 232C336 210 362 200 362 176C362 154 336 154 336 176Z" fill="#F472B6" />
-  <circle cx="180" cy="164" r="14" fill="white" />
+  
+  <!-- Фон -->
+  <rect width="512" height="512" fill="url(#background)" rx="64" />
+  
+  <!-- Тень под младенцем -->
+  <ellipse cx="256" cy="420" rx="120" ry="30" fill="url(#shadow)" />
+  
+  <!-- Тело младенца (овальная форма) -->
+  <ellipse cx="256" cy="280" rx="100" ry="140" fill="url(#babyBody)" />
+  
+  <!-- Голова младенца -->
+  <circle cx="256" cy="180" r="80" fill="url(#babyBody)" />
+  
+  <!-- Комбинезон с полосками -->
+  <rect x="156" y="200" width="200" height="160" fill="url(#onesie)" rx="20" />
+  
+  <!-- Кнопка на комбинезоне -->
+  <circle cx="256" cy="240" r="8" fill="#D4A574" />
+  <circle cx="256" cy="240" r="4" fill="#8B5A2B" />
+  
+  <!-- Лицо младенца -->
+  <!-- Глаза -->
+  <circle cx="230" cy="160" r="12" fill="#2D3748" />
+  <circle cx="282" cy="160" r="12" fill="#2D3748" />
+  <circle cx="230" cy="160" r="6" fill="#FFFFFF" />
+  <circle cx="282" cy="160" r="6" fill="#FFFFFF" />
+  
+  <!-- Нос -->
+  <ellipse cx="256" cy="180" rx="4" ry="6" fill="#F4C2A1" />
+  
+  <!-- Рот -->
+  <path d="M240 200 Q256 220 272 200" stroke="#2D3748" stroke-width="3" fill="none" stroke-linecap="round" />
+  
+  <!-- Волосы (светлые, редкие) -->
+  <path d="M200 120 Q220 100 240 120" stroke="#F4C2A1" stroke-width="8" fill="none" stroke-linecap="round" />
+  <path d="M272 120 Q292 100 312 120" stroke="#F4C2A1" stroke-width="8" fill="none" stroke-linecap="round" />
+  <path d="M220 110 Q240 90 260 110" stroke="#F4C2A1" stroke-width="6" fill="none" stroke-linecap="round" />
+  <path d="M252 110 Q272 90 292 110" stroke="#F4C2A1" stroke-width="6" fill="none" stroke-linecap="round" />
+  
+  <!-- Руки -->
+  <ellipse cx="180" cy="300" rx="25" ry="60" fill="url(#babyBody)" />
+  <ellipse cx="332" cy="300" rx="25" ry="60" fill="url(#babyBody)" />
+  
+  <!-- Ноги -->
+  <ellipse cx="220" cy="380" rx="30" ry="50" fill="url(#babyBody)" />
+  <ellipse cx="292" cy="380" rx="30" ry="50" fill="url(#babyBody)" />
+  
+  <!-- Детали комбинезона -->
+  <rect x="156" y="200" width="200" height="20" fill="#E8F4FD" rx="10" />
+  <rect x="156" y="240" width="200" height="20" fill="#E8F4FD" rx="10" />
+  <rect x="156" y="280" width="200" height="20" fill="#E8F4FD" rx="10" />
+  <rect x="156" y="320" width="200" height="20" fill="#E8F4FD" rx="10" />
 </svg>
