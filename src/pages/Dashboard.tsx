@@ -286,7 +286,7 @@ export default function Dashboard() {
         type: 'diaper',
         label: 'Смена подгузника',
         timestamp: data.lastDiaper.timestamp,
-        icon: '🧷',
+        icon: '💩',
         color: 'bg-green-500'
       })
     }
@@ -503,7 +503,7 @@ export default function Dashboard() {
               <StatCard
                 title="Последняя смена подгузника"
                 value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'Нет данных'}
-                icon="🧷"
+                icon="💩"
                 color="green"
                 subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString('ru-RU') : ''}
               />
@@ -634,7 +634,7 @@ export default function Dashboard() {
                           case 'feeding':
                             return { icon: '🍼', label: 'Кормление', color: 'from-blue-500 to-blue-600' }
                           case 'diaper':
-                            return { icon: '🧷', label: 'Смена подгузника', color: 'from-green-500 to-green-600' }
+                            return { icon: '💩', label: 'Смена подгузника', color: 'from-green-500 to-green-600' }
                           case 'bath':
                             return { icon: '🛁', label: 'Купание', color: 'from-yellow-500 to-yellow-600' }
                           default:

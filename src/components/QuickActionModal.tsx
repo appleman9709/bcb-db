@@ -39,7 +39,7 @@ const actionConfig: Record<QuickActionType, {
   },
   diaper: {
     title: 'Смена подгузника',
-    icon: '🧷',
+    icon: '💩',
     description: 'Отметить смену подгузника, чтобы следить за гигиеной малыша.',
     buttonText: 'Записать смену',
     buttonVariant: 'success',
@@ -209,10 +209,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
         </div>
 
         <div className="space-y-3 sm:space-y-4">
-          <span className="block text-xs font-semibold uppercase tracking-[0.28em] text-gray-500">
-Дата и время события
-          </span>
-
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
             <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
               <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">Дата</span>
