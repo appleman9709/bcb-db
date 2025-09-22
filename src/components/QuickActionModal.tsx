@@ -194,41 +194,41 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={config.title} size="md">
-      <div className="space-y-5 sm:space-y-6">
-        <div className="text-center space-y-4 sm:space-y-5">
-          <div className={`w-16 h-16 bg-gradient-to-r ${config.accent} rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg`}>
+    <Modal isOpen={isOpen} onClose={onClose} title={config.title} size="sm">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-center gap-3 rounded-2xl bg-gray-50 px-4 py-3 sm:px-5 sm:py-4">
+          <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r ${config.accent} text-xl shadow-md`}>
             {config.icon}
           </div>
-          <p className="text-gray-600">{config.description}</p>
+          <p className="text-sm text-gray-600 sm:text-base text-left">{config.description}</p>
         </div>
 
-        <div className="space-y-4">
-          <label className="block text-sm font-medium text-gray-700">
+        <div className="space-y-3 sm:space-y-4">
+          <span className="block text-xs font-semibold uppercase tracking-[0.28em] text-gray-500">
             Дата и время события
-          </label>
+          </span>
 
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
-            <div className="relative rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm sm:rounded-3xl sm:p-5">
-              <span className="text-xs font-semibold uppercase tracking-[0.35em] text-gray-500">Дата</span>
+            <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">Дата</span>
               <input
                 type="date"
                 value={datePart}
                 onChange={(event) => handleDateChange(event.target.value)}
-                className="mt-2 w-full bg-transparent text-base font-semibold text-gray-900 focus:outline-none focus:ring-0 sm:mt-3 sm:text-lg"
+                className="mt-1 w-full bg-transparent text-base font-semibold text-gray-900 focus:outline-none focus:ring-0 sm:mt-2 sm:text-lg"
               />
             </div>
 
-            <div className="relative rounded-[1.75rem] border border-blue-200 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 shadow-[0_12px_35px_-18px_rgba(59,130,246,0.65)] sm:rounded-[2.5rem] sm:p-6 sm:shadow-[0_15px_45px_-20px_rgba(59,130,246,0.7)]">
-              <span className="text-xs font-semibold uppercase tracking-[0.4em] text-blue-600">Время</span>
+            <div className="relative rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-3 shadow-[0_10px_30px_-18px_rgba(59,130,246,0.65)] sm:rounded-[2rem] sm:px-6 sm:py-5 sm:shadow-[0_15px_45px_-20px_rgba(59,130,246,0.7)]">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-blue-600">Время</span>
               <input
                 type="time"
                 step={300}
                 value={timePart}
                 onChange={(event) => handleTimeChange(event.target.value)}
-                className="mt-3 w-full bg-transparent text-2xl font-semibold tracking-[0.25em] text-blue-700 focus:outline-none focus:ring-0 sm:mt-4 sm:text-3xl sm:tracking-[0.3em]"
+                className="mt-2 w-full bg-transparent text-xl font-semibold tracking-[0.22em] text-blue-700 focus:outline-none focus:ring-0 sm:mt-3 sm:text-2xl sm:tracking-[0.3em]"
               />
-              <div className="pointer-events-none absolute inset-0 rounded-[1.75rem] border border-white/60 sm:rounded-[2.5rem]" aria-hidden="true" />
+              <div className="pointer-events-none absolute inset-0 rounded-2xl border border-white/60 sm:rounded-[2rem]" aria-hidden="true" />
             </div>
           </div>
 
@@ -240,9 +240,9 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                   key={option.label}
                   type="button"
                   onClick={() => applyQuickOffset(option.minutes)}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                     active
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/40'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/35'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -252,14 +252,14 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             })}
           </div>
 
-          <div className="rounded-2xl bg-gray-50 p-3 text-center text-sm text-gray-600 sm:p-4">
+          <div className="rounded-2xl bg-gray-50 px-3 py-2 text-xs text-gray-600 sm:px-4 sm:py-3 sm:text-sm">
             Текущее значение: <span className="font-semibold text-gray-900">{formattedPreview}</span>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
         </div>
 
-        <div className="flex space-x-3">
+        <div className="flex gap-2 sm:gap-3">
           <Button
             variant="secondary"
             onClick={onClose}
@@ -281,3 +281,4 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     </Modal>
   )
 }
+

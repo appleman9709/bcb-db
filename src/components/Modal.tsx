@@ -70,7 +70,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-6">
+          <div className="flex-1 overflow-hidden p-5 sm:p-6 sm:overflow-y-auto">
             {children}
           </div>
         </div>

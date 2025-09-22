@@ -654,8 +654,8 @@ export default function Dashboard() {
                 <span className="settings-heading-label">Профиль малыша</span>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="min-w-0 space-y-2">
+              <div className="space-y-6">
+                <div className="space-y-2">
                   <label className="settings-label">Имя малыша</label>
                   <input
                     type="text"
@@ -665,13 +665,13 @@ export default function Dashboard() {
                     placeholder="Введите имя"
                   />
                 </div>
-                <div className="min-w-0 space-y-2">
+                <div className="space-y-2">
                   <label className="settings-label">Дата рождения</label>
                   <input
                     type="date"
                     value={settings.birthDate}
                     onChange={(event) => handleSettingChange('birthDate', event.target.value)}
-                    className="settings-input w-full"
+                    className="settings-input w-full ios-input"
                   />
                 </div>
               </div>
