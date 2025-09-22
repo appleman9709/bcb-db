@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import StatCard from '../components/StatCard'
 import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
@@ -186,7 +186,6 @@ export default function Dashboard() {
           const notificationOptions: NotificationOptions = {
             body,
             tag: `babycare-${key}-reminder`,
-            renotify: true,
             badge: '/icons/icon-96x96.png',
             icon: '/icons/icon-192x192.png'
           }
@@ -406,7 +405,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 sm:p-6">
+    <div className="min-h-screen bg-gray-900 p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
@@ -641,105 +640,92 @@ export default function Dashboard() {
           </>
         )}
 
+        
         {activeSection === 'settings' && (
-          <div className="settings-section">
-            <div className="mb-8 animate-slide-up">
-              <h1 className="text-3xl font-bold text-white mb-2 gradient-text">Настройки ⚙️</h1>
-              <p className="text-gray-300 text-lg">Актуализируйте информацию, чтобы получать персональные подсказки.</p>
+          <div className="settings-section space-y-8">
+            <div className="animate-slide-up space-y-3">
+              <h1 className="text-3xl font-bold text-white gradient-text">Настройки</h1>
+              <p className="max-w-2xl text-lg text-gray-300">Обновите данные малыша и настройте напоминания, чтобы всегда быть в курсе его режима.</p>
             </div>
 
-            <Card className="mb-8 settings-card animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <span className="text-2xl mr-3">👶</span>
-                Информация о малыше
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="min-w-0">
-                  <label className="block text-sm font-medium settings-label mb-2">
-                    Имя малыша
-                  </label>
+            <Card className="settings-card animate-slide-up">
+              <div className="settings-heading">
+                <div className="settings-heading-icon bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-indigo-500/20 text-blue-100">👶</div>
+                <span className="settings-heading-label">Профиль малыша</span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="min-w-0 space-y-2">
+                  <label className="settings-label">Имя малыша</label>
                   <input
                     type="text"
                     value={settings.babyName}
-                    onChange={(e) => handleSettingChange('babyName', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base settings-input"
+                    onChange={(event) => handleSettingChange('babyName', event.target.value)}
+                    className="settings-input w-full"
                     placeholder="Введите имя"
                   />
                 </div>
-                <div className="min-w-0">
-                  <label className="block text-sm font-medium settings-label mb-2">
-                    Дата рождения
-                  </label>
+                <div className="min-w-0 space-y-2">
+                  <label className="settings-label">Дата рождения</label>
                   <input
                     type="date"
                     value={settings.birthDate}
-                    onChange={(e) => handleSettingChange('birthDate', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ios-input text-base settings-input"
+                    onChange={(event) => handleSettingChange('birthDate', event.target.value)}
+                    className="settings-input w-full"
                   />
                 </div>
               </div>
             </Card>
 
-            <Card className="mb-8 settings-card animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
-                <span className="text-2xl mr-3">⏰</span>
-                Интервалы напоминаний
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="settings-card animate-slide-up">
+              <div className="settings-heading">
+                <div className="settings-heading-icon bg-gradient-to-br from-emerald-500/30 via-teal-500/30 to-green-400/20 text-emerald-100">⏱️</div>
+                <span className="settings-heading-label">Напоминания</span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="settings-slider-container">
-                  <label className="block text-sm font-medium settings-label mb-2">
-                    Интервал кормления (часы)
-                  </label>
-                  <div className="flex items-center space-x-4">
+                  <label className="settings-label">Интервал кормления (часы)</label>
+                  <div className="mt-3 flex items-center gap-4">
                     <input
                       type="range"
                       min="1"
                       max="6"
                       value={settings.feedingInterval}
-                      onChange={(e) => handleSettingChange('feedingInterval', parseInt(e.target.value, 10))}
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      onChange={(event) => handleSettingChange('feedingInterval', parseInt(event.target.value, 10))}
+                      className="slider flex-1 appearance-none rounded-full bg-white/20"
                     />
-                    <span className="text-lg font-semibold text-blue-600 min-w-[4rem] text-center settings-value-display bg-blue-50 px-3 py-1 rounded-full">
-                      {settings.feedingInterval}ч
-                    </span>
+                    <span className="settings-value-display text-blue-600">{settings.feedingInterval}ч</span>
                   </div>
                 </div>
 
                 <div className="settings-slider-container">
-                  <label className="block text-sm font-medium settings-label mb-2">
-                    Интервал смены подгузника (часы)
-                  </label>
-                  <div className="flex items-center space-x-4">
+                  <label className="settings-label">Интервал смены подгузника (часы)</label>
+                  <div className="mt-3 flex items-center gap-4">
                     <input
                       type="range"
                       min="1"
                       max="6"
                       value={settings.diaperInterval}
-                      onChange={(e) => handleSettingChange('diaperInterval', parseInt(e.target.value, 10))}
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      onChange={(event) => handleSettingChange('diaperInterval', parseInt(event.target.value, 10))}
+                      className="slider flex-1 appearance-none rounded-full bg-white/20"
                     />
-                    <span className="text-lg font-semibold text-green-600 min-w-[4rem] text-center settings-value-display bg-green-50 px-3 py-1 rounded-full">
-                      {settings.diaperInterval}ч
-                    </span>
+                    <span className="settings-value-display text-emerald-600">{settings.diaperInterval}ч</span>
                   </div>
                 </div>
 
                 <div className="settings-slider-container md:col-span-2">
-                  <label className="block text-sm font-medium settings-label mb-2">
-                    Интервал купания (дни)
-                  </label>
-                  <div className="flex items-center space-x-4">
+                  <label className="settings-label">Период купания (дни)</label>
+                  <div className="mt-3 flex items-center gap-4">
                     <input
                       type="range"
                       min="1"
                       max="7"
                       value={settings.bathInterval}
-                      onChange={(e) => handleSettingChange('bathInterval', parseInt(e.target.value, 10))}
-                      className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      onChange={(event) => handleSettingChange('bathInterval', parseInt(event.target.value, 10))}
+                      className="slider flex-1 appearance-none rounded-full bg-white/20"
                     />
-                    <span className="text-lg font-semibold text-yellow-600 min-w-[4rem] text-center settings-value-display bg-yellow-50 px-3 py-1 rounded-full">
-                      {settings.bathInterval}д
-                    </span>
+                    <span className="settings-value-display text-amber-600">{settings.bathInterval}д</span>
                   </div>
                 </div>
               </div>
@@ -752,7 +738,7 @@ export default function Dashboard() {
                 onClick={handleSaveSettings}
                 className="settings-save-button"
               >
-                💾 Сохранить настройки
+                💾 Сохранить изменения
               </Button>
             </div>
           </div>
