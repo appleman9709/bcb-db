@@ -2,15 +2,10 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Dashboard from './pages/Dashboard'
 import AuthPage from './pages/AuthPage'
-import LoadingScreen from './components/LoadingScreen'
 
 function AppContent() {
-  const { loading, family, member } = useAuth()
+  const { family, member } = useAuth()
   const isAuthenticated = Boolean(family && member)
-
-  if (loading) {
-    return <LoadingScreen />
-  }
 
   if (!isAuthenticated) {
     return <AuthPage />

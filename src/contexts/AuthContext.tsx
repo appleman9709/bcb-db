@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { dataService, type Family, type FamilyMember } from '../services/dataService'
@@ -10,7 +10,6 @@ type FamilyLookupResult =
 type AuthContextValue = {
   family: Family | null
   member: FamilyMember | null
-  loading: boolean
   findFamilyByName: (familyName: string) => Promise<FamilyLookupResult>
   selectMember: (family: Family, member: FamilyMember) => void
   signOut: () => void
@@ -21,7 +20,6 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 const defaultValue: AuthContextValue = {
   family: null,
   member: null,
-  loading: false,
   findFamilyByName: async () => ({ error: 'Контекст авторизации не инициализирован' }),
   selectMember: () => undefined,
   signOut: () => undefined
@@ -39,7 +37,6 @@ const resetDataService = () => {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [family, setFamily] = useState<Family | null>(null)
   const [member, setMember] = useState<FamilyMember | null>(null)
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     resetDataService()
@@ -51,13 +48,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: 'Введите название семьи' }
     }
 
-    setLoading(true)
-
     try {
       const { data: familyRecord, error } = await supabase
         .from('families')
         .select('id, name, created_at')
-        .eq('name', trimmedName)
+        .ilike('name', trimmedName)
         .maybeSingle<Family>()
 
       if (error) {
@@ -93,8 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }))
 
       return { family: familyRecord, members }
-    } finally {
-      setLoading(false)
+    } catch (error) {
+      console.error('Unexpected error while looking up family', error)
+      return { error: 'Не удалось найти семью' }
     }
   }, [])
 
@@ -124,11 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(() => ({
     family,
     member,
-    loading,
     findFamilyByName,
     selectMember,
     signOut
-  }), [family, member, loading, findFamilyByName, selectMember, signOut])
+  }), [family, member, findFamilyByName, selectMember, signOut])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
