@@ -169,26 +169,22 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     const timestamp = eventDate.toISOString()
 
     try {
-      let result = null
-
       switch (actionType) {
         case 'feeding':
-          result = await dataService.addFeeding(timestamp)
+          await dataService.addFeeding(timestamp)
           break
         case 'diaper':
-          result = await dataService.addDiaper(timestamp)
+          await dataService.addDiaper(timestamp)
           break
         case 'bath':
-          result = await dataService.addBath(timestamp)
+          await dataService.addBath(timestamp)
           break
         default:
-          result = null
+          break
       }
 
-      if (result) {
-        onSuccess?.()
-        onClose()
-      }
+      onSuccess?.()
+      onClose()
     } catch (submitError) {
       console.error('Error adding record:', submitError)
       setError('Что-то пошло не так при сохранении, попробуйте ещё раз.')
