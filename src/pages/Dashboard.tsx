@@ -457,34 +457,13 @@ export default function Dashboard() {
               >
                 ⚙️ <span className="hidden sm:inline">Настройки</span>
               </Button>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 rounded-2xl bg-white/5 px-4 py-3 text-white/80">
-              <div className="text-left">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/60">Family</p>
-                <p className="text-sm font-semibold text-white">{family?.name ?? 'Family'}</p>
-              </div>
-              <div className="hidden sm:block h-6 w-px bg-white/10" />
-              <div className="mt-3 sm:mt-0 text-left">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/60">You</p>
-                <p className="text-sm font-medium text-white truncate max-w-[10rem]">{memberDisplayName}</p>
-              </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleRefresh}
-                  className="mt-3 sm:mt-0 sm:ml-2 whitespace-nowrap"
-                >
-                  Обновить
-                </Button>
-
-
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={signOut}
-                className="mt-3 sm:mt-0 sm:ml-2 whitespace-nowrap"
+                onClick={handleRefresh}
+                className="text-sm sm:text-base"
               >
-                Выйти
+                🔄 <span className="hidden sm:inline">Обновить</span>
               </Button>
             </div>
           </div>
@@ -807,6 +786,29 @@ export default function Dashboard() {
         />
 
         {process.env.NODE_ENV === 'development' && <DebugPanel />}
+
+        {/* Family/User Info Block - Moved to bottom */}
+        <div className="mt-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 rounded-2xl bg-white/5 px-4 py-3 text-white/80">
+            <div className="text-left">
+              <p className="text-xs uppercase tracking-[0.2em] text-white/60">Family</p>
+              <p className="text-sm font-semibold text-white">{family?.name ?? 'Family'}</p>
+            </div>
+            <div className="hidden sm:block h-6 w-px bg-white/10" />
+            <div className="mt-3 sm:mt-0 text-left">
+              <p className="text-xs uppercase tracking-[0.2em] text-white/60">You</p>
+              <p className="text-sm font-medium text-white truncate max-w-[10rem]">{memberDisplayName}</p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={signOut}
+              className="mt-3 sm:mt-0 sm:ml-2 whitespace-nowrap"
+            >
+              Выйти
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )

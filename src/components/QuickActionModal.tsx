@@ -1,3 +1,4 @@
+
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Modal from './Modal'
 import Button from './Button'
@@ -13,11 +14,11 @@ interface QuickActionModalProps {
 }
 
 const QUICK_OFFSETS = [
-  { label: 'Сейчас', minutes: 0 },
-  { label: '-15 мин', minutes: -15 },
-  { label: '-30 мин', minutes: -30 },
-  { label: '-1 час', minutes: -60 },
-  { label: '+15 мин', minutes: 15 }
+  { label: '????? ??????', minutes: 0 },
+  { label: '-15 ???', minutes: -15 },
+  { label: '-30 ???', minutes: -30 },
+  { label: '-1 ???', minutes: -60 },
+  { label: '+15 ???', minutes: 15 }
 ]
 
 const actionConfig: Record<QuickActionType, {
@@ -29,26 +30,26 @@ const actionConfig: Record<QuickActionType, {
   accent: string
 }> = {
   feeding: {
-    title: 'Кормление',
-    icon: '🍼',
-    description: 'Зафиксируйте кормление, чтобы контролировать интервалы и напоминания.',
-    buttonText: 'Сохранить кормление',
+    title: '?????????',
+    icon: '??',
+    description: '???????? ?????????, ????? ?????? ?????????? ????????? ? ?????????? ? ???????.',
+    buttonText: '???????? ?????????',
     buttonVariant: 'primary',
     accent: 'from-blue-500 to-purple-500'
   },
   diaper: {
-    title: 'Смена подгузника',
-    icon: '🧷',
-    description: 'Добавьте отметку о смене подгузника и оставайтесь на шаг впереди.',
-    buttonText: 'Сохранить смену',
+    title: '????? ??????????',
+    icon: '??',
+    description: '????????? ????? ???????????, ????? ??????? ?? ????????? ??????.',
+    buttonText: '???????? ?????',
     buttonVariant: 'success',
     accent: 'from-green-500 to-emerald-500'
   },
   bath: {
-    title: 'Купание',
-    icon: '🛁',
-    description: 'Запланируйте или отметьте купание, чтобы не нарушать режим дня.',
-    buttonText: 'Сохранить купание',
+    title: '???????',
+    icon: '??',
+    description: '???????? ???????, ????? ?? ?????????? ????????? ??????-????? ??????.',
+    buttonText: '???????? ???????',
     buttonVariant: 'warning',
     accent: 'from-yellow-500 to-orange-500'
   }
@@ -126,26 +127,30 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
   }
 
   const isQuickOptionActive = (minutes: number) => {
-    const target = new Date()
-    target.setMinutes(target.getMinutes() + minutes)
-    return buildLocalState(target).value === selectedDateTime
+    if (!selectedDateTime) {
+      return minutes === 0
+    }
+
+    const now = buildLocalState(new Date())
+    const diff = Math.abs(new Date(selectedDateTime).getTime() - new Date(now.value).getTime())
+    return diff === Math.abs(minutes * 60000)
   }
 
   const config = actionConfig[actionType]
 
   const formattedPreview = useMemo(() => {
     if (!selectedDateTime) {
-      return '—'
+      return '???????? ???? ? ?????'
     }
 
-    const parsed = new Date(selectedDateTime)
-    if (Number.isNaN(parsed.getTime())) {
-      return '—'
+    const eventDate = new Date(selectedDateTime)
+    if (Number.isNaN(eventDate.getTime())) {
+      return '???????????? ????'
     }
 
-    return parsed.toLocaleString('ru-RU', {
-      day: '2-digit',
-      month: 'short',
+    return eventDate.toLocaleString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
       hour: '2-digit',
       minute: '2-digit'
     })
@@ -153,13 +158,13 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
   const handleSubmit = async () => {
     if (!selectedDateTime) {
-      setError('Выберите дату и время события')
+      setError('??????? ???? ? ????? ???????')
       return
     }
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
-      setError('Не удалось распознать дату')
+      setError('?? ??????? ????????? ????????? ????')
       return
     }
 
@@ -187,7 +192,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       onClose()
     } catch (submitError) {
       console.error('Error adding record:', submitError)
-      setError('Что-то пошло не так при сохранении, попробуйте ещё раз.')
+      setError('?? ??????? ????????? ???????, ?????????? ??? ??? ???? ?????')
     } finally {
       setLoading(false)
     }
@@ -205,12 +210,12 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
         <div className="space-y-3 sm:space-y-4">
           <span className="block text-xs font-semibold uppercase tracking-[0.28em] text-gray-500">
-            Дата и время события
+            ???? ? ????? ???????
           </span>
 
           <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
             <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">Дата</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">????</span>
               <input
                 type="date"
                 value={datePart}
@@ -220,7 +225,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             </div>
 
             <div className="relative rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-3 shadow-[0_10px_30px_-18px_rgba(59,130,246,0.65)] sm:rounded-[2rem] sm:px-6 sm:py-5 sm:shadow-[0_15px_45px_-20px_rgba(59,130,246,0.7)]">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-blue-600">Время</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-blue-600">?????</span>
               <input
                 type="time"
                 step={300}
@@ -253,7 +258,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           </div>
 
           <div className="rounded-2xl bg-gray-50 px-3 py-2 text-xs text-gray-600 sm:px-4 sm:py-3 sm:text-sm">
-            Текущее значение: <span className="font-semibold text-gray-900">{formattedPreview}</span>
+            ????????? ?????: <span className="font-semibold text-gray-900">{formattedPreview}</span>
           </div>
 
           {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
@@ -266,7 +271,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             className="flex-1"
             disabled={loading}
           >
-            Отменить
+            ??????
           </Button>
           <Button
             variant={config.buttonVariant}
@@ -274,11 +279,10 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             className="flex-1"
             disabled={loading}
           >
-            {loading ? 'Сохраняем...' : config.buttonText}
+            {loading ? '?????????...' : config.buttonText}
           </Button>
         </div>
       </div>
     </Modal>
   )
 }
-

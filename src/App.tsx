@@ -1,11 +1,17 @@
+
 import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Dashboard from './pages/Dashboard'
 import AuthPage from './pages/AuthPage'
+import LoadingScreen from './components/LoadingScreen'
 
 function AppContent() {
-  const { family, member } = useAuth()
+  const { family, member, initialized } = useAuth()
   const isAuthenticated = Boolean(family && member)
+
+  if (!initialized) {
+    return <LoadingScreen />
+  }
 
   if (!isAuthenticated) {
     return <AuthPage />
@@ -23,4 +29,3 @@ export default function App() {
     </ThemeProvider>
   )
 }
-

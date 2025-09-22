@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import { dataService } from '../services/dataService'
 
@@ -8,12 +9,12 @@ const DebugPanel: React.FC = () => {
     try {
       const settings = await dataService.getSettings()
       if (settings) {
-        setDebugInfo(`Настройки найдены: кормление каждые ${settings.feed_interval}ч, подгузник каждые ${settings.diaper_interval}ч`)
+        setDebugInfo(`????????? ???????: ???????? ????????? ${settings.feed_interval}?, ??????????? ? ${settings.diaper_interval}?`)
       } else {
-        setDebugInfo('Настройки не найдены')
+        setDebugInfo('????????? ????? ?? ???????')
       }
     } catch (error) {
-      setDebugInfo(`Ошибка: ${error}`)
+      setDebugInfo(`??????: ${error}`)
     }
   }
 
@@ -24,34 +25,34 @@ const DebugPanel: React.FC = () => {
         dataService.getLastDiaper(),
         dataService.getLastBath()
       ])
-      
-      const info = []
-      if (lastFeeding) info.push(`Кормление: ${new Date(lastFeeding.timestamp).toLocaleString()}`)
-      if (lastDiaper) info.push(`Подгузник: ${new Date(lastDiaper.timestamp).toLocaleString()}`)
-      if (lastBath) info.push(`Купание: ${new Date(lastBath.timestamp).toLocaleString()}`)
-      
-      setDebugInfo(info.length > 0 ? info.join(' | ') : 'Нет данных')
+
+      const info: string[] = []
+      if (lastFeeding) info.push(`?????????: ${new Date(lastFeeding.timestamp).toLocaleString()}`)
+      if (lastDiaper) info.push(`?????????: ${new Date(lastDiaper.timestamp).toLocaleString()}`)
+      if (lastBath) info.push(`???????: ${new Date(lastBath.timestamp).toLocaleString()}`)
+
+      setDebugInfo(info.length > 0 ? info.join(' | ') : '??? ????????? ???????')
     } catch (error) {
-      setDebugInfo(`Ошибка: ${error}`)
+      setDebugInfo(`??????: ${error}`)
     }
   }
 
   return (
     <div className="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm w-80 sm:w-auto hidden sm:block">
-      <h3 className="font-bold mb-2">🐛 Debug Panel</h3>
-      
+      <h3 className="font-bold mb-2">?? Debug Panel</h3>
+
       <div className="space-y-2 mb-3">
         <button
           onClick={checkData}
           className="w-full px-2 py-1 bg-blue-500 rounded text-xs hover:bg-blue-600"
         >
-          Check Settings
+          ????????? ?????????
         </button>
         <button
           onClick={checkLastActivities}
           className="w-full px-2 py-1 bg-green-500 rounded text-xs hover:bg-green-600"
         >
-          Check Activities
+          ????????? ???????
         </button>
       </div>
 
