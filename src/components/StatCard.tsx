@@ -56,6 +56,19 @@ export default function StatCard({ title, value, icon, color = 'blue', subtitle,
     }
   }
 
+  // Функция для определения оптимального цвета текста на основе яркости фона
+  const getTextColorClass = (progress: number) => {
+    if (progress === undefined) return 'text-white'
+    
+    // Для светлых градиентов (желто-оранжевый диапазон) используем темный текст
+    if (progress > 0.3 && progress < 0.7) {
+      return 'text-gray-900'
+    }
+    
+    // Для остальных случаев используем белый текст с тенью
+    return 'text-white'
+  }
+
   const iconClassName = [
     'w-12 h-12',
     'rounded-xl',
@@ -67,16 +80,16 @@ export default function StatCard({ title, value, icon, color = 'blue', subtitle,
   return (
     <Card 
       onClick={onClick} 
-      className={`space-y-2 sm:space-y-3 p-3 sm:p-4 ${gradientProgress !== undefined ? 'shadow-lg transform hover:scale-[1.02]' : ''}`}
+      className={`space-y-1 sm:space-y-2 p-2 sm:p-3 md:p-4 iphone14-stat-card ${gradientProgress !== undefined ? 'shadow-lg transform hover:scale-[1.02]' : ''}`}
       style={gradientProgress !== undefined ? getGradientStyle(gradientProgress) : undefined}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-2 sm:gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm font-medium text-gray-400 mb-1">{title}</p>
-          <p className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-1 truncate">{value}</p>
-          {subtitle && <p className="text-xs text-gray-500 truncate">{subtitle}</p>}
+          <p className={`text-xs font-medium mb-0.5 sm:mb-1 ${gradientProgress !== undefined ? 'text-white/80 drop-shadow-sm' : 'text-gray-400'}`}>{title}</p>
+          <p className={`text-sm sm:text-lg md:text-xl lg:text-2xl font-bold mb-0.5 sm:mb-1 truncate ${getTextColorClass(gradientProgress)} ${gradientProgress !== undefined ? 'drop-shadow-lg' : ''}`}>{value}</p>
+          {subtitle && <p className={`text-xs truncate ${gradientProgress !== undefined ? 'text-white/70 drop-shadow-sm' : 'text-gray-500'}`}>{subtitle}</p>}
         </div>
-        <div className={`w-10 h-10 sm:w-12 sm:h-12 ${iconClassName.split(' ').slice(1).join(' ')}`}>
+        <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ${iconClassName.split(' ').slice(1).join(' ')}`}>
           {icon}
         </div>
       </div>

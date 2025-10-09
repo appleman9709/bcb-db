@@ -191,12 +191,12 @@ export default function Dashboard() {
     const diffInMinutes = Math.max(0, Math.floor((now.getTime() - time.getTime()) / (1000 * 60)))
     const diffInHours = diffInMinutes / 60
     
-    // Более плавная кривая перехода:
-    // 0-30% интервала: зеленый (0-0.2)
-    // 30-70% интервала: желто-оранжевый (0.2-0.8) 
-    // 70-100% интервала: красный (0.8-1.0)
-    const greenThreshold = intervalHours * 0.3
-    const yellowThreshold = intervalHours * 0.7
+    // Новая логика градиентов:
+    // 0-95% интервала: зеленый (0-0.2)
+    // 95-100% интервала: желто-оранжевый (0.2-0.8)
+    // >100% интервала: красный (0.8-1.0)
+    const greenThreshold = intervalHours * 0.95
+    const yellowThreshold = intervalHours
     
     let progress
     if (diffInHours <= greenThreshold) {
@@ -207,8 +207,8 @@ export default function Dashboard() {
       const localProgress = (diffInHours - greenThreshold) / (yellowThreshold - greenThreshold)
       progress = 0.2 + localProgress * 0.6
     } else {
-      // Красный диапазон - от 0.8 до 1.0
-      const localProgress = Math.min(1, (diffInHours - yellowThreshold) / (intervalHours - yellowThreshold))
+      // Красный диапазон - от 0.8 до 1.0 (превышение интервала)
+      const localProgress = Math.min(1, (diffInHours - yellowThreshold) / (intervalHours * 0.5)) // Ускоряем переход к красному
       progress = 0.8 + localProgress * 0.2
     }
     
@@ -519,7 +519,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-2 sm:p-4 lg:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-1 sm:p-2 md:p-4 lg:p-6 iphone14-dashboard">
       <div
         className="pointer-events-none fixed inset-x-0 top-2 z-50 flex justify-center transition-all duration-200"
         style={{
@@ -550,33 +550,33 @@ export default function Dashboard() {
           </span>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-10">
-        <Card variant="glass" className="p-3 sm:p-4">
-          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+      <div className="max-w-7xl mx-auto space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
+        <Card variant="glass" className="p-2 sm:p-3 md:p-4 iphone14-header">
+          <div className="flex flex-col gap-1 sm:gap-2 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex w-full">
               <Button
                 variant={activeSection === 'dashboard' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('dashboard')}
-                className="flex-1 min-h-[40px] sm:min-h-[44px] px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-l-xl rounded-r-none border-r border-white/20"
+                className="flex-1 min-h-[36px] sm:min-h-[40px] md:min-h-[44px] px-1 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-l-xl rounded-r-none border-r border-white/20 iphone14-nav-button"
               >
                 <span className="mobile-emoji text-sm sm:text-base">📊</span> <span className="hidden sm:inline ml-1">Главная</span>
               </Button>
               <Button
                 variant={activeSection === 'history' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('history')}
-                className="flex-1 min-h-[40px] sm:min-h-[44px] px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-none border-r border-white/20"
+                className="flex-1 min-h-[36px] sm:min-h-[40px] md:min-h-[44px] px-1 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-none border-r border-white/20 iphone14-nav-button"
               >
                 <span className="mobile-emoji text-sm sm:text-base">🕒</span> <span className="hidden sm:inline ml-1">История</span>
               </Button>
               <Button
                 variant={activeSection === 'settings' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('settings')}
-                className="flex-1 min-h-[40px] sm:min-h-[44px] px-1 sm:px-2 py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-r-xl rounded-l-none"
+                className="flex-1 min-h-[36px] sm:min-h-[40px] md:min-h-[44px] px-1 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-r-xl rounded-l-none iphone14-nav-button"
               >
                 <span className="mobile-emoji text-sm sm:text-base">⚙️</span> <span className="hidden sm:inline ml-1">Настройки</span>
               </Button>
             </div>
-            <div className="flex flex-col gap-1 sm:items-end mt-2 lg:mt-0">
+            <div className="flex flex-col gap-0.5 sm:gap-1 sm:items-end mt-1 sm:mt-2 lg:mt-0">
               <div className="text-xs text-white/70 text-center sm:text-right">
                 {latestActivityTimestamp ? (
                   <>Обновлено {formatTime(latestActivityTimestamp)}</>
@@ -589,20 +589,20 @@ export default function Dashboard() {
         </Card>
 
         {activeSection === 'dashboard' && (
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
-            <Card className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950/60 to-slate-900 text-white shadow-[0_28px_120px_-60px_rgba(79,70,229,0.65)] p-4 sm:p-6">
+          <div className="space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
+            <Card className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950/60 to-slate-900 text-white shadow-[0_28px_120px_-60px_rgba(79,70,229,0.65)] p-3 sm:p-4 md:p-6 iphone14-greeting">
               <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-16 sm:-top-32 left-1/2 h-36 w-36 sm:h-72 sm:w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.55),rgba(129,140,248,0))] blur-3xl opacity-90" />
                 <div className="absolute -bottom-12 sm:-bottom-24 -right-6 sm:-right-12 h-40 w-40 sm:h-80 sm:w-80 rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.45),rgba(236,72,153,0))] blur-3xl opacity-75" />
                 <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_55%)] mix-blend-screen opacity-80" />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.15),rgba(255,255,255,0))]" />
               </div>
-              <div className="relative z-10 space-y-3 sm:space-y-4">
-                <div className="space-y-2 sm:space-y-3">
+              <div className="relative z-10 space-y-2 sm:space-y-3">
+                <div className="space-y-1 sm:space-y-2">
                   <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
                     Режим малыша
                   </span>
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight">
+                  <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold leading-tight">
                     Привет, {greetingName}! 👋
                   </h1>
                 </div>
@@ -610,9 +610,9 @@ export default function Dashboard() {
             </Card>
 
             {isNotificationSupported && notificationPermission !== 'granted' && (
-              <Card className="grid items-start gap-3 border border-indigo-500/30 bg-slate-900/70 backdrop-blur sm:grid-cols-[1fr_auto] p-4">
+              <Card className="grid items-start gap-2 sm:gap-3 border border-indigo-500/30 bg-slate-900/70 backdrop-blur sm:grid-cols-[1fr_auto] p-3 sm:p-4 iphone14-card">
                 <div className="space-y-1">
-                  <h2 className="text-base sm:text-lg font-semibold text-white">Включите напоминания</h2>
+                  <h2 className="text-sm sm:text-base md:text-lg font-semibold text-white">Включите напоминания</h2>
                   <p className="text-xs sm:text-sm text-gray-300">
                     Получайте уведомления о кормлении и смене подгузника точно в срок.
                   </p>
@@ -623,14 +623,14 @@ export default function Dashboard() {
               </Card>
             )}
 
-            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-2">
               <StatCard
                 title="Последнее кормление"
                 value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
                 icon="🍼"
                 color="blue"
                 subtitle={data?.lastFeeding ? new Date(data.lastFeeding.timestamp).toLocaleString('ru-RU') : ''}
-                gradientProgress={data?.lastFeeding ? getGradientColor(data.lastFeeding.timestamp, settings.feedingInterval) : 0.5}
+                gradientProgress={data?.lastFeeding ? getGradientColor(data.lastFeeding.timestamp, settings.feedingInterval) : 0.1}
               />
               <StatCard
                 title="Последняя смена подгузника"
@@ -638,17 +638,17 @@ export default function Dashboard() {
                 icon="💩"
                 color="green"
                 subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString('ru-RU') : ''}
-                gradientProgress={data?.lastDiaper ? getGradientColor(data.lastDiaper.timestamp, settings.diaperInterval) : 0.8}
+                gradientProgress={data?.lastDiaper ? getGradientColor(data.lastDiaper.timestamp, settings.diaperInterval) : 0.9}
               />
             </div>
 
 
-            <Card variant="glass" className="space-y-3 p-4">
-              <div className="space-y-1">
-                <h2 className="text-base font-semibold text-white">Быстрые действия</h2>
+            <Card variant="glass" className="space-y-2 sm:space-y-3 p-3 sm:p-4 iphone14-card">
+              <div className="space-y-0.5 sm:space-y-1">
+                <h2 className="text-sm sm:text-base font-semibold text-white">Быстрые действия</h2>
                 <p className="text-xs text-white/70">Отмечайте важные события</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 sm:gap-2">
                 <QuickAction
                   title="Кормление"
                   description="Записать время"
@@ -673,24 +673,24 @@ export default function Dashboard() {
               </div>
             </Card>
 
-            <Card className="relative overflow-hidden border border-indigo-500/30 bg-slate-900/70 backdrop-blur p-4">
+            <Card className="relative overflow-hidden border border-indigo-500/30 bg-slate-900/70 backdrop-blur p-3 sm:p-4 iphone14-tip">
               <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500" />
-              <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl shadow-lg">
+              <div className="relative z-10 flex flex-col gap-2 sm:gap-3 md:flex-row md:items-start md:gap-4">
+                <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl shadow-lg iphone14-tip-icon">
                   💡
                 </div>
-                <div className="flex-1 space-y-2">
-                  <h3 className="text-base sm:text-lg font-semibold text-white">Совет дня</h3>
+                <div className="flex-1 space-y-1 sm:space-y-2">
+                  <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white">Совет дня</h3>
                   {data?.dailyTip ? (
-                    <div className="space-y-2">
-                      <p className="text-sm sm:text-base text-gray-300">{data.dailyTip.content}</p>
-                      <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
+                    <div className="space-y-1 sm:space-y-2">
+                      <p className="text-xs sm:text-sm md:text-base text-gray-300">{data.dailyTip.content}</p>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-gray-400">
                         <span>Категория: {data.dailyTip.category}</span>
                         <span>Возраст: {data.dailyTip.age_months} мес.</span>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm sm:text-base text-gray-300">
+                    <p className="text-xs sm:text-sm md:text-base text-gray-300">
                       Рекомендуется кормить малыша каждые 2-3 часа, регулярно менять подгузник и купать ежедневно.
                     </p>
                   )}
@@ -757,7 +757,7 @@ export default function Dashboard() {
                       return (
                         <div key={`${item.type}-${item.id}-${index}`} className="flex items-center space-x-4 p-4 rounded-xl border-2 border-gray-700 bg-gray-800/50 transition-all duration-200 hover:shadow-md hover:bg-gray-800/70">
                           <div className="flex-shrink-0">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg bg-gradient-to-r ${typeInfo.color}`}>
+                            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl shadow-lg bg-gradient-to-r ${typeInfo.color}`}>
                               {typeInfo.icon}
                             </div>
                           </div>
