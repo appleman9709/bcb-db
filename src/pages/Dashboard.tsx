@@ -519,7 +519,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="pwa-container bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-1 sm:p-2 md:p-4 lg:p-6 iphone14-dashboard">
+    <div className="pwa-container bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-1 sm:p-2 md:p-4 lg:p-6 iphone14-dashboard overflow-x-hidden max-w-full">
       <div
         className="pointer-events-none fixed inset-x-0 top-2 z-50 flex justify-center transition-all duration-200"
         style={{
@@ -550,28 +550,28 @@ export default function Dashboard() {
           </span>
         </div>
       </div>
-      <div className="h-full max-w-7xl mx-auto flex flex-col">
+      <div className="h-full max-w-full mx-auto flex flex-col overflow-hidden">
         <Card variant="glass" className="p-2 sm:p-3 md:p-4 iphone14-header">
-          <div className="flex flex-col gap-1 sm:gap-2 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex w-full">
+          <div className="flex flex-col gap-2 sm:gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex w-full min-w-0">
               <Button
                 variant={activeSection === 'dashboard' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('dashboard')}
-                className="flex-1 min-h-[36px] sm:min-h-[40px] md:min-h-[44px] px-1 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-l-xl rounded-r-none border-r border-white/20 iphone14-nav-button"
+                className="flex-1 min-h-[44px] sm:min-h-[48px] md:min-h-[52px] px-1 sm:px-2 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold shadow-sm rounded-l-xl rounded-r-none border-r border-white/20 iphone14-nav-button min-w-0"
               >
                 <span className="mobile-emoji text-sm sm:text-base">📊</span> <span className="hidden sm:inline ml-1">Главная</span>
               </Button>
               <Button
                 variant={activeSection === 'history' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('history')}
-                className="flex-1 min-h-[36px] sm:min-h-[40px] md:min-h-[44px] px-1 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm !rounded-none border-r border-white/20 iphone14-nav-button"
+                className="flex-1 min-h-[44px] sm:min-h-[48px] md:min-h-[52px] px-1 sm:px-2 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold shadow-sm !rounded-none border-r border-white/20 iphone14-nav-button min-w-0"
               >
                 <span className="mobile-emoji text-sm sm:text-base">🕒</span> <span className="hidden sm:inline ml-1">История</span>
               </Button>
               <Button
                 variant={activeSection === 'settings' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('settings')}
-                className="flex-1 min-h-[36px] sm:min-h-[40px] md:min-h-[44px] px-1 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-r-xl rounded-l-none iphone14-nav-button"
+                className="flex-1 min-h-[44px] sm:min-h-[48px] md:min-h-[52px] px-1 sm:px-2 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold shadow-sm rounded-r-xl rounded-l-none iphone14-nav-button min-w-0"
               >
                 <span className="mobile-emoji text-sm sm:text-base">⚙️</span> <span className="hidden sm:inline ml-1">Настройки</span>
               </Button>
@@ -590,7 +590,7 @@ export default function Dashboard() {
 
         {activeSection === 'dashboard' && (
           <div className="pwa-content space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
-            <Card className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950/60 to-slate-900 text-white shadow-[0_28px_120px_-60px_rgba(79,70,229,0.65)] p-3 sm:p-4 md:p-6 iphone14-greeting">
+            <Card className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950/60 to-slate-900 text-white shadow-[0_28px_120px_-60px_rgba(79,70,229,0.65)] p-2 sm:p-3 md:p-4 iphone14-greeting">
               <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-16 sm:-top-32 left-1/2 h-36 w-36 sm:h-72 sm:w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.55),rgba(129,140,248,0))] blur-3xl opacity-90" />
                 <div className="absolute -bottom-12 sm:-bottom-24 -right-6 sm:-right-12 h-40 w-40 sm:h-80 sm:w-80 rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.45),rgba(236,72,153,0))] blur-3xl opacity-75" />
@@ -648,35 +648,41 @@ export default function Dashboard() {
                 <h2 className="text-sm sm:text-base font-semibold text-white">Быстрые действия</h2>
                 <p className="text-xs text-white/70">Отмечайте важные события</p>
               </div>
-              <div className="flex gap-1.5 sm:gap-2">
-                <QuickAction
-                  title="Кормление"
-                  description="Записать время"
-                  icon="🍼"
-                  onClick={() => handleQuickAction('feeding')}
-                  variant="primary"
-                />
-                <QuickAction
-                  title="Подгузник"
-                  description="Сменить"
-                  icon="💩"
-                  onClick={() => handleQuickAction('diaper')}
-                  variant="success"
-                />
-                <QuickAction
-                  title="Купание"
-                  description="Записать время"
-                  icon="🛁"
-                  onClick={() => handleQuickAction('bath')}
-                  variant="warning"
-                />
+              <div className="flex gap-1 sm:gap-1.5 w-full items-stretch min-w-0">
+                <div className="flex-1 min-w-0">
+                  <QuickAction
+                    title="Кормление"
+                    description="Записать время"
+                    icon="🍼"
+                    onClick={() => handleQuickAction('feeding')}
+                    variant="primary"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <QuickAction
+                    title="Подгузник"
+                    description="Сменить"
+                    icon="💩"
+                    onClick={() => handleQuickAction('diaper')}
+                    variant="success"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <QuickAction
+                    title="Купание"
+                    description="Записать время"
+                    icon="🛁"
+                    onClick={() => handleQuickAction('bath')}
+                    variant="warning"
+                  />
+                </div>
               </div>
             </Card>
 
             <Card className="relative overflow-hidden border border-indigo-500/30 bg-slate-900/70 backdrop-blur p-3 sm:p-4 iphone14-tip">
               <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500" />
               <div className="relative z-10 flex flex-col gap-2 sm:gap-3 md:flex-row md:items-start md:gap-4">
-                <div className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl shadow-lg iphone14-tip-icon">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl shadow-lg iphone14-tip-icon">
                   💡
                 </div>
                 <div className="flex-1 space-y-1 sm:space-y-2">
@@ -702,32 +708,32 @@ export default function Dashboard() {
 
         {activeSection === 'history' && (
           <div className="pwa-content">
-            <div className="mb-4">
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">История событий</h1>
-              <p className="text-gray-300 text-sm sm:text-base">Просматривайте все записи по кормлению, подгузникам и купаниям.</p>
+            <div className="mb-6">
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">История событий</h1>
+              <p className="text-gray-300 text-base sm:text-lg">Просматривайте все записи по кормлению, подгузникам и купаниям.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <Card className="text-center">
-                <div className="text-2xl font-bold text-blue-600 mb-1">{totalCounts?.feedings || 0}</div>
-                <div className="text-sm text-gray-600">Кормления</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              <Card className="text-center p-4">
+                <div className="text-3xl font-bold text-blue-600 mb-2">{totalCounts?.feedings || 0}</div>
+                <div className="text-base text-gray-600">Кормления</div>
               </Card>
-              <Card className="text-center">
-                <div className="text-2xl font-bold text-green-600 mb-1">{totalCounts?.diapers || 0}</div>
-                <div className="text-sm text-gray-600">Смены подгузника</div>
+              <Card className="text-center p-4">
+                <div className="text-3xl font-bold text-green-600 mb-2">{totalCounts?.diapers || 0}</div>
+                <div className="text-base text-gray-600">Смены подгузника</div>
               </Card>
-              <Card className="text-center">
-                <div className="text-2xl font-bold text-yellow-600 mb-1">{totalCounts?.baths || 0}</div>
-                <div className="text-sm text-gray-600">Купания</div>
+              <Card className="text-center p-4">
+                <div className="text-3xl font-bold text-yellow-600 mb-2">{totalCounts?.baths || 0}</div>
+                <div className="text-base text-gray-600">Купания</div>
               </Card>
             </div>
 
-            <Card>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Хронология записей</h2>
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-2xl font-semibold text-gray-900">Хронология записей</h2>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {historyData ? (
                   (() => {
                     const allEvents = [
@@ -755,19 +761,19 @@ export default function Dashboard() {
                       const typeInfo = getTypeInfo(item.type)
 
                       return (
-                        <div key={`${item.type}-${item.id}-${index}`} className="flex items-center space-x-4 p-4 rounded-xl border-2 border-gray-700 bg-gray-800/50 transition-all duration-200 hover:shadow-md hover:bg-gray-800/70">
+                        <div key={`${item.type}-${item.id}-${index}`} className="flex items-center space-x-5 p-5 rounded-xl border-2 border-gray-700 bg-gray-800/50 transition-all duration-200 hover:shadow-md hover:bg-gray-800/70">
                           <div className="flex-shrink-0">
-                            <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-white text-xl sm:text-2xl shadow-lg bg-gradient-to-r ${typeInfo.color}`}>
+                            <div className={`w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl shadow-lg bg-gradient-to-r ${typeInfo.color}`}>
                               {typeInfo.icon}
                             </div>
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <h3 className="text-lg font-medium text-gray-100">{typeInfo.label}</h3>
-                              <span className="text-sm font-medium text-gray-400">{getTimeAgo(item.timestamp)}</span>
+                              <h3 className="text-xl font-medium text-gray-100">{typeInfo.label}</h3>
+                              <span className="text-base font-medium text-gray-400">{getTimeAgo(item.timestamp)}</span>
                             </div>
-                            <p className="text-sm text-gray-300 mt-1">{formatTime(new Date(item.timestamp))}</p>
+                            <p className="text-base text-gray-300 mt-2">{formatTime(new Date(item.timestamp))}</p>
                           </div>
                         </div>
                       )
@@ -786,10 +792,10 @@ export default function Dashboard() {
 
         
         {activeSection === 'settings' && (
-          <div className="pwa-content settings-section space-y-4 sm:space-y-6 md:space-y-8">
-            <div className="animate-slide-up space-y-3">
-              <h1 className="text-3xl font-bold text-white gradient-text">Настройки</h1>
-              <p className="max-w-2xl text-lg text-gray-300">Обновите данные малыша и настройте напоминания, чтобы всегда быть в курсе его режима.</p>
+          <div className="pwa-content settings-section space-y-6 sm:space-y-8 md:space-y-10">
+            <div className="animate-slide-up space-y-4">
+              <h1 className="text-4xl font-bold text-white gradient-text">Настройки</h1>
+              <p className="max-w-2xl text-xl text-gray-300">Обновите данные малыша и настройте напоминания, чтобы всегда быть в курсе его режима.</p>
             </div>
 
             <Card className="settings-card animate-slide-up">
@@ -798,14 +804,14 @@ export default function Dashboard() {
                 <span className="settings-heading-label">Профиль малыша</span>
               </div>
 
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="settings-label">Дата рождения</label>
+              <div className="space-y-8">
+                <div className="space-y-3">
+                  <label className="settings-label text-base">Дата рождения</label>
                   <input
                     type="date"
                     value={settings.birthDate}
                     onChange={(event) => handleSettingChange('birthDate', event.target.value)}
-                    className="settings-input w-full ios-input"
+                    className="settings-input w-full ios-input text-base py-4"
                   />
                 </div>
               </div>
@@ -817,49 +823,49 @@ export default function Dashboard() {
                 <span className="settings-heading-label">Напоминания</span>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                 <div className="settings-slider-container">
-                  <label className="settings-label">Интервал кормления (часы)</label>
-                  <div className="mt-3 flex items-center gap-4">
+                  <label className="settings-label text-base">Интервал кормления (часы)</label>
+                  <div className="mt-4 flex items-center gap-5">
                     <input
                       type="range"
                       min="1"
                       max="6"
                       value={settings.feedingInterval}
                       onChange={(event) => handleSettingChange('feedingInterval', parseInt(event.target.value, 10))}
-                      className="slider flex-1 appearance-none rounded-full bg-white/20"
+                      className="slider flex-1 appearance-none rounded-full bg-white/20 h-3"
                     />
-                    <span className="settings-value-display text-blue-600">{settings.feedingInterval}ч</span>
+                    <span className="settings-value-display text-blue-600 text-lg px-5 py-2">{settings.feedingInterval}ч</span>
                   </div>
                 </div>
 
                 <div className="settings-slider-container">
-                  <label className="settings-label">Интервал смены подгузника (часы)</label>
-                  <div className="mt-3 flex items-center gap-4">
+                  <label className="settings-label text-base">Интервал смены подгузника (часы)</label>
+                  <div className="mt-4 flex items-center gap-5">
                     <input
                       type="range"
                       min="1"
                       max="6"
                       value={settings.diaperInterval}
                       onChange={(event) => handleSettingChange('diaperInterval', parseInt(event.target.value, 10))}
-                      className="slider flex-1 appearance-none rounded-full bg-white/20"
+                      className="slider flex-1 appearance-none rounded-full bg-white/20 h-3"
                     />
-                    <span className="settings-value-display text-emerald-600">{settings.diaperInterval}ч</span>
+                    <span className="settings-value-display text-emerald-600 text-lg px-5 py-2">{settings.diaperInterval}ч</span>
                   </div>
                 </div>
 
                 <div className="settings-slider-container md:col-span-2">
-                  <label className="settings-label">Период купания (дни)</label>
-                  <div className="mt-3 flex items-center gap-4">
+                  <label className="settings-label text-base">Период купания (дни)</label>
+                  <div className="mt-4 flex items-center gap-5">
                     <input
                       type="range"
                       min="1"
                       max="7"
                       value={settings.bathInterval}
                       onChange={(event) => handleSettingChange('bathInterval', parseInt(event.target.value, 10))}
-                      className="slider flex-1 appearance-none rounded-full bg-white/20"
+                      className="slider flex-1 appearance-none rounded-full bg-white/20 h-3"
                     />
-                    <span className="settings-value-display text-amber-600">{settings.bathInterval}д</span>
+                    <span className="settings-value-display text-amber-600 text-lg px-5 py-2">{settings.bathInterval}д</span>
                   </div>
                 </div>
               </div>
@@ -871,21 +877,21 @@ export default function Dashboard() {
                 <span className="settings-heading-label">Информация о семье</span>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3 rounded-xl sm:rounded-2xl bg-white/5 px-3 py-2 sm:px-4 sm:py-3 text-white/80">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 rounded-xl sm:rounded-2xl bg-white/5 px-4 py-3 sm:px-5 sm:py-4 text-white/80">
                 <div className="text-left">
-                  <p className="text-xs uppercase tracking-[0.15em] text-white/60">Family</p>
-                  <p className="text-xs sm:text-sm font-semibold text-white">{family?.name ?? 'Family'}</p>
+                  <p className="text-sm uppercase tracking-[0.15em] text-white/60">Family</p>
+                  <p className="text-sm sm:text-base font-semibold text-white">{family?.name ?? 'Family'}</p>
                 </div>
-                <div className="hidden sm:block h-4 sm:h-6 w-px bg-white/10" />
-                <div className="mt-2 sm:mt-0 text-left">
-                  <p className="text-xs uppercase tracking-[0.15em] text-white/60">You</p>
-                  <p className="text-xs sm:text-sm font-medium text-white truncate max-w-[8rem] sm:max-w-[10rem]">{memberDisplayName}</p>
+                <div className="hidden sm:block h-6 sm:h-8 w-px bg-white/10" />
+                <div className="mt-3 sm:mt-0 text-left">
+                  <p className="text-sm uppercase tracking-[0.15em] text-white/60">You</p>
+                  <p className="text-sm sm:text-base font-medium text-white truncate max-w-[10rem] sm:max-w-[12rem]">{memberDisplayName}</p>
                 </div>
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={signOut}
-                  className="mt-2 sm:mt-0 sm:ml-2 whitespace-nowrap text-xs px-2 py-1"
+                  className="mt-3 sm:mt-0 sm:ml-3 whitespace-nowrap text-sm px-3 py-2"
                 >
                   Выйти
                 </Button>
@@ -897,7 +903,7 @@ export default function Dashboard() {
                 variant="primary"
                 size="lg"
                 onClick={handleSaveSettings}
-                className="settings-save-button"
+                className="settings-save-button text-lg px-10 py-4"
               >
                 💾 Сохранить изменения
               </Button>
