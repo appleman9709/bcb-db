@@ -519,7 +519,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-1 sm:p-2 md:p-4 lg:p-6 iphone14-dashboard">
+    <div className="pwa-container bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-1 sm:p-2 md:p-4 lg:p-6 iphone14-dashboard">
       <div
         className="pointer-events-none fixed inset-x-0 top-2 z-50 flex justify-center transition-all duration-200"
         style={{
@@ -550,7 +550,7 @@ export default function Dashboard() {
           </span>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
+      <div className="h-full max-w-7xl mx-auto flex flex-col">
         <Card variant="glass" className="p-2 sm:p-3 md:p-4 iphone14-header">
           <div className="flex flex-col gap-1 sm:gap-2 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex w-full">
@@ -564,7 +564,7 @@ export default function Dashboard() {
               <Button
                 variant={activeSection === 'history' ? 'primary' : 'secondary'}
                 onClick={() => setActiveSection('history')}
-                className="flex-1 min-h-[36px] sm:min-h-[40px] md:min-h-[44px] px-1 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm rounded-none border-r border-white/20 iphone14-nav-button"
+                className="flex-1 min-h-[36px] sm:min-h-[40px] md:min-h-[44px] px-1 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold shadow-sm !rounded-none border-r border-white/20 iphone14-nav-button"
               >
                 <span className="mobile-emoji text-sm sm:text-base">🕒</span> <span className="hidden sm:inline ml-1">История</span>
               </Button>
@@ -589,7 +589,7 @@ export default function Dashboard() {
         </Card>
 
         {activeSection === 'dashboard' && (
-          <div className="space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
+          <div className="pwa-content space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
             <Card className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950/60 to-slate-900 text-white shadow-[0_28px_120px_-60px_rgba(79,70,229,0.65)] p-3 sm:p-4 md:p-6 iphone14-greeting">
               <div className="pointer-events-none absolute inset-0">
                 <div className="absolute -top-16 sm:-top-32 left-1/2 h-36 w-36 sm:h-72 sm:w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.55),rgba(129,140,248,0))] blur-3xl opacity-90" />
@@ -701,10 +701,10 @@ export default function Dashboard() {
         )}
 
         {activeSection === 'history' && (
-          <>
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">История событий</h1>
-              <p className="text-gray-300">Просматривайте все записи по кормлению, подгузникам и купаниям.</p>
+          <div className="pwa-content">
+            <div className="mb-4">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">История событий</h1>
+              <p className="text-gray-300 text-sm sm:text-base">Просматривайте все записи по кормлению, подгузникам и купаниям.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -781,12 +781,12 @@ export default function Dashboard() {
                 )}
               </div>
             </Card>
-          </>
+          </div>
         )}
 
         
         {activeSection === 'settings' && (
-          <div className="settings-section space-y-8">
+          <div className="pwa-content settings-section space-y-4 sm:space-y-6 md:space-y-8">
             <div className="animate-slide-up space-y-3">
               <h1 className="text-3xl font-bold text-white gradient-text">Настройки</h1>
               <p className="max-w-2xl text-lg text-gray-300">Обновите данные малыша и настройте напоминания, чтобы всегда быть в курсе его режима.</p>
