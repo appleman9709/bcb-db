@@ -602,7 +602,7 @@ export default function Dashboard() {
                   <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
                     Режим малыша
                   </span>
-                  <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold leading-tight">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight">
                     Привет, {greetingName}! 👋
                   </h1>
                 </div>
@@ -645,8 +645,8 @@ export default function Dashboard() {
 
             <Card variant="glass" className="space-y-2 sm:space-y-3 p-3 sm:p-4 iphone14-card">
               <div className="space-y-0.5 sm:space-y-1">
-                <h2 className="text-sm sm:text-base font-semibold text-white">Быстрые действия</h2>
-                <p className="text-xs text-white/70">Отмечайте важные события</p>
+                <h2 className="text-base sm:text-lg md:text-xl font-semibold text-white">Быстрые действия</h2>
+                <p className="text-sm sm:text-base text-white/70">Отмечайте важные события</p>
               </div>
               <div className="flex gap-1 sm:gap-1.5 w-full items-stretch min-w-0">
                 <div className="flex-1 min-w-0">
@@ -686,17 +686,17 @@ export default function Dashboard() {
                   💡
                 </div>
                 <div className="flex-1 space-y-1 sm:space-y-2">
-                  <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white">Совет дня</h3>
+                  <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white">Совет дня</h3>
                   {data?.dailyTip ? (
                     <div className="space-y-1 sm:space-y-2">
-                      <p className="text-xs sm:text-sm md:text-base text-gray-300">{data.dailyTip.content}</p>
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs text-gray-400">
+                      <p className="text-sm sm:text-base md:text-lg text-gray-300">{data.dailyTip.content}</p>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-sm text-gray-400">
                         <span>Категория: {data.dailyTip.category}</span>
                         <span>Возраст: {data.dailyTip.age_months} мес.</span>
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs sm:text-sm md:text-base text-gray-300">
+                    <p className="text-sm sm:text-base md:text-lg text-gray-300">
                       Рекомендуется кормить малыша каждые 2-3 часа, регулярно менять подгузник и купать ежедневно.
                     </p>
                   )}

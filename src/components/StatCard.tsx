@@ -85,9 +85,9 @@ export default function StatCard({ title, value, icon, color = 'blue', subtitle,
     >
       <div className="flex items-center justify-between gap-2 sm:gap-3">
         <div className="flex-1 min-w-0">
-          <p className={`text-xs font-medium mb-0.5 sm:mb-1 ${gradientProgress !== undefined ? 'text-white/80 drop-shadow-sm' : 'text-gray-400'}`}>{title}</p>
-          <p className={`text-base sm:text-xl md:text-2xl lg:text-3xl font-bold mb-0.5 sm:mb-1 truncate ${getTextColorClass(gradientProgress)} ${gradientProgress !== undefined ? 'drop-shadow-lg' : ''}`}>{value}</p>
-          {subtitle && <p className={`text-xs truncate ${gradientProgress !== undefined ? 'text-white/70 drop-shadow-sm' : 'text-gray-500'}`}>{subtitle}</p>}
+          <p className={`text-sm sm:text-base font-medium mb-0.5 sm:mb-1 ${gradientProgress !== undefined ? 'text-white/80 drop-shadow-sm' : 'text-gray-400'}`}>{title}</p>
+          <p className={`text-lg sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-0.5 sm:mb-1 truncate ${getTextColorClass(gradientProgress)} ${gradientProgress !== undefined ? 'drop-shadow-lg' : ''}`}>{value}</p>
+          {subtitle && <p className={`text-sm sm:text-base truncate ${gradientProgress !== undefined ? 'text-white/70 drop-shadow-sm' : 'text-gray-500'}`}>{subtitle}</p>}
         </div>
         <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 ${iconClassName.split(' ').slice(1).join(' ')}`}>
           {icon}

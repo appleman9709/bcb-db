@@ -38,8 +38,8 @@ export default function QuickAction({ title, description, icon, onClick, variant
           {icon}
         </div>
         <div className="space-y-0.5 sm:space-y-0.5 text-center">
-          <h3 className="text-xs font-semibold text-white leading-tight">{title}</h3>
-          <p className="text-xs text-white/70 leading-tight">{description}</p>
+          <h3 className="text-sm sm:text-base font-semibold text-white leading-tight">{title}</h3>
+          <p className="text-xs sm:text-sm text-white/70 leading-tight">{description}</p>
         </div>
       </div>
     </button>
