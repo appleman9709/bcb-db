@@ -201,11 +201,12 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={config.title} size="sm">
       <div className="space-y-4 sm:space-y-6">
-        <div className="flex items-center gap-3 rounded-2xl bg-gray-50 px-4 py-3 sm:px-5 sm:py-4">
-          <div className="flex h-16 w-16 items-center justify-center">
-            <img src={config.icon} alt={config.title} className="w-14 h-14 object-contain" />
-          </div>
-          <p className="text-sm text-gray-600 sm:text-base text-left">{config.description}</p>
+        <div className="flex items-center justify-center">
+          <img 
+            src={actionType === 'diaper' ? '/icons/poo.png' : (actionType === 'bath' ? '/icons/alarm.png' : '/icons/eat.png')} 
+            alt={config.title} 
+            className="w-32 h-32 object-contain" 
+          />
         </div>
 
         <div className="space-y-3 sm:space-y-4">

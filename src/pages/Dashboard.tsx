@@ -96,6 +96,7 @@ export default function Dashboard() {
   const [modalAction, setModalAction] = useState<QuickActionType>('feeding')
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(requestDefaultNotificationPermission)
   const [pullDistance, setPullDistance] = useState(0)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [activeTab, setActiveTab] = useState<'home' | 'history'>('home')
 
   const pullStartYRef = useRef<number | null>(null)
@@ -234,11 +235,19 @@ export default function Dashboard() {
     setModalOpen(false)
   }
 
-  const handleRefresh = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.location.reload()
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      await Promise.all([
+        fetchData(),
+        activeSection === 'history' ? fetchHistoryData() : Promise.resolve()
+      ])
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+    } finally {
+      setIsRefreshing(false)
     }
-  }, [])
+  }, [fetchData, fetchHistoryData, activeSection])
 
   const handleSettingChange = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -307,6 +316,32 @@ export default function Dashboard() {
 
   const greetingName = memberDisplayName?.split(' ')[0] || memberDisplayName || 'родитель'
 
+  // Функция для определения состояния малыша на основе времени последних действий
+  const getBabyImageState = () => {
+    if (!data) return 'normal'
+
+    const now = Date.now()
+    
+    // Проверяем кормление
+    const feedingOverdue = data.lastFeeding && 
+      (now - new Date(data.lastFeeding.timestamp).getTime()) > (settings.feedingInterval * 60 * 60 * 1000)
+    
+    // Проверяем подгузник
+    const diaperOverdue = data.lastDiaper && 
+      (now - new Date(data.lastDiaper.timestamp).getTime()) > (settings.diaperInterval * 60 * 60 * 1000)
+    
+    // Проверяем купание
+    const bathOverdue = data.lastBath && 
+      (now - new Date(data.lastBath.timestamp).getTime()) > (settings.bathInterval * 24 * 60 * 60 * 1000)
+
+    // Приоритет: кормление > подгузник > купание
+    if (feedingOverdue) return 'hungry'
+    if (diaperOverdue) return 'diaper'
+    if (bathOverdue) return 'bath'
+    
+    return 'normal'
+  }
+
   useEffect(() => {
     if (!member || !family) {
       return
@@ -360,7 +395,15 @@ export default function Dashboard() {
         return
       }
 
-      if (getScrollTop() > 0) {
+      // Проверяем, что пользователь в самом верху страницы (с небольшим допуском)
+      const scrollTop = getScrollTop()
+      if (scrollTop > 5) {
+        resetPullState()
+        return
+      }
+
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках и истории
+      if (activeSection === 'settings' || activeTab === 'history') {
         resetPullState()
         return
       }
@@ -374,6 +417,12 @@ export default function Dashboard() {
         return
       }
 
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках и истории
+      if (activeSection === 'settings' || activeTab === 'history') {
+        resetPullState()
+        return
+      }
+
       const currentY = event.touches[0]?.clientY ?? pullStartYRef.current
       const delta = currentY - pullStartYRef.current
 
@@ -383,12 +432,29 @@ export default function Dashboard() {
       }
 
       event.preventDefault()
-      const limitedDelta = Math.min(delta, MAX_PULL_DISTANCE)
+      
+      // Применяем резиновый эффект для более естественного ощущения
+      const rubberBandDelta = delta < PULL_REFRESH_THRESHOLD 
+        ? delta 
+        : PULL_REFRESH_THRESHOLD + (delta - PULL_REFRESH_THRESHOLD) * 0.3
+      
+      const limitedDelta = Math.min(rubberBandDelta, MAX_PULL_DISTANCE)
       updatePullDistance(limitedDelta)
+      
+      // Тактильная обратная связь при достижении порога
+      if (delta >= PULL_REFRESH_THRESHOLD && pullDistanceRef.current < PULL_REFRESH_THRESHOLD) {
+        if ('vibrate' in navigator) {
+          navigator.vibrate(30)
+        }
+      }
     }
 
     const handleTouchEnd = () => {
       if (pullDistanceRef.current >= PULL_REFRESH_THRESHOLD) {
+        // Тактильная обратная связь при достижении порога
+        if ('vibrate' in navigator) {
+          navigator.vibrate(50)
+        }
         resetPullState()
         handleRefresh()
         return
@@ -412,7 +478,7 @@ export default function Dashboard() {
       window.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('touchcancel', handleTouchCancel)
     }
-  }, [handleRefresh, updatePullDistance])
+  }, [handleRefresh, updatePullDistance, activeSection, activeTab])
 
   useEffect(() => {
     if (!isNotificationSupported) {
@@ -525,8 +591,15 @@ export default function Dashboard() {
   }
 
   const handleMenuClick = () => {
-    setActiveSection('settings')
-    setActiveTab('home') // Убедимся, что мы на главной вкладке
+    if (activeSection === 'settings') {
+      // Если мы в настройках, возвращаемся на главную страницу
+      setActiveSection('dashboard')
+      setActiveTab('home')
+    } else {
+      // Если мы на главной странице, переходим в настройки
+      setActiveSection('settings')
+      setActiveTab('home') // Убедимся, что мы на главной вкладке
+    }
   }
 
   const handleTabChange = (tab: 'home' | 'history') => {
@@ -541,6 +614,42 @@ export default function Dashboard() {
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden pwa-container">
       <BackgroundElements />
+      
+      {/* Pull-to-refresh индикатор */}
+      <div 
+        className="absolute top-0 left-0 right-0 z-20 flex items-center justify-center transition-all duration-300 ease-out"
+        style={{ 
+          transform: `translateY(${Math.min(pullDistance, MAX_PULL_DISTANCE) - 60}px)`,
+          opacity: pullDistance > 20 ? Math.min(1, (pullDistance - 20) / 40) : 0
+        }}
+      >
+        <div className="bg-white rounded-full p-3 shadow-lg border border-gray-200">
+          {isRefreshing ? (
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-200 ${
+              pullDistance >= PULL_REFRESH_THRESHOLD ? 'rotate-180' : ''
+            }`}>
+              <svg 
+                className="w-5 h-5 text-blue-500" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+                />
+              </svg>
+            </div>
+          )}
+        </div>
+        <div className="ml-2 text-sm text-gray-600 font-medium">
+          {isRefreshing ? 'Обновляем...' : pullDistance >= PULL_REFRESH_THRESHOLD ? 'Отпустите для обновления' : 'Потяните для обновления'}
+        </div>
+      </div>
       
       <div className="relative z-10 flex flex-col h-full">
         <Header onMenuClick={handleMenuClick} />
@@ -562,13 +671,13 @@ export default function Dashboard() {
               {/* Профиль малыша */}
               <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg">
+                  <div className="w-8 h-8 flex items-center justify-center text-sm">
                     👶
       </div>
                   <h2 className="text-base font-semibold text-gray-900">Профиль малыша</h2>
             </div>
                 <div className="space-y-2">
-                  <div>
+                  <div className="date-input-container">
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       📅 Дата рождения
                     </label>
@@ -576,7 +685,13 @@ export default function Dashboard() {
                       type="date"
                       value={settings.birthDate}
                       onChange={(event) => handleSettingChange('birthDate', event.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-full overflow-hidden"
+                      style={{
+                        fontSize: '16px',
+                        minHeight: '48px',
+                        WebkitAppearance: 'none',
+                        MozAppearance: 'textfield'
+                      }}
                     />
                     <p className="text-xs text-gray-500 mt-0.5">
                       Возраст: {calculateAgeInMonths(settings.birthDate)} месяцев
@@ -588,71 +703,192 @@ export default function Dashboard() {
               {/* Напоминания */}
               <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg">
+                  <div className="w-8 h-8 flex items-center justify-center text-sm">
                     ⏰
               </div>
                   <h2 className="text-base font-semibold text-gray-900">Напоминания</h2>
                 </div>
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      🍼 Интервал кормления: {settings.feedingInterval} часов
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="6"
-                      value={settings.feedingInterval}
-                      onChange={(event) => handleSettingChange('feedingInterval', parseInt(event.target.value, 10))}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-0.5">
-                      <span>1ч</span>
-                      <span>6ч</span>
-              </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Рекомендуется кормить каждые 2-3 часа для новорожденных
-                  </p>
-                </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      💩 Интервал смены подгузника: {settings.diaperInterval} часов
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="6"
-                      value={settings.diaperInterval}
-                      onChange={(event) => handleSettingChange('diaperInterval', parseInt(event.target.value, 10))}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-0.5">
-                      <span>1ч</span>
-                      <span>6ч</span>
+                  <div className="modern-slider-card">
+                    <div className="slider-header">
+                      <div className="slider-icon">🍼</div>
+                      <div className="slider-info">
+                        <h3 className="slider-title">Интервал кормления</h3>
+                        <p className="slider-description">Рекомендуется кормить каждые 2-3 часа для новорожденных</p>
+                      </div>
+                      <div className="slider-value-badge">
+                        <span className="value-number">{settings.feedingInterval}</span>
+                        <span className="value-unit">ч</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Меняйте подгузник каждые 2-4 часа или по необходимости
-                    </p>
+                    
+                    <div className="slider-wrapper">
+                      <div className="slider-track-container">
+                        <div className="slider-track">
+                          <div 
+                            className="slider-progress feeding-progress"
+                            style={{ width: `${((settings.feedingInterval - 1) / 5) * 100}%` }}
+                          ></div>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="6"
+                          value={settings.feedingInterval}
+                          onChange={(event) => handleSettingChange('feedingInterval', parseInt(event.target.value, 10))}
+                          className="modern-slider feeding-slider"
+                        />
+                      </div>
+                      
+                      <div className="slider-labels">
+                        <div className="slider-label">
+                          <span className="label-value">1</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">2</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">3</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">4</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">5</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">6</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      🛁 Период купания: {settings.bathInterval} дней
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="7"
-                      value={settings.bathInterval}
-                      onChange={(event) => handleSettingChange('bathInterval', parseInt(event.target.value, 10))}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-0.5">
-                      <span>1д</span>
-                      <span>7д</span>
+                  <div className="modern-slider-card">
+                    <div className="slider-header">
+                      <div className="slider-icon">💩</div>
+                      <div className="slider-info">
+                        <h3 className="slider-title">Интервал смены подгузника</h3>
+                        <p className="slider-description">Меняйте подгузник каждые 2-4 часа или по необходимости</p>
+                      </div>
+                      <div className="slider-value-badge">
+                        <span className="value-number">{settings.diaperInterval}</span>
+                        <span className="value-unit">ч</span>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Купайте малыша 2-3 раза в неделю или ежедневно
-                    </p>
+                    
+                    <div className="slider-wrapper">
+                      <div className="slider-track-container">
+                        <div className="slider-track">
+                          <div 
+                            className="slider-progress diaper-progress"
+                            style={{ width: `${((settings.diaperInterval - 1) / 5) * 100}%` }}
+                          ></div>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="6"
+                          value={settings.diaperInterval}
+                          onChange={(event) => handleSettingChange('diaperInterval', parseInt(event.target.value, 10))}
+                          className="modern-slider diaper-slider"
+                        />
+                      </div>
+                      
+                      <div className="slider-labels">
+                        <div className="slider-label">
+                          <span className="label-value">1</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">2</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">3</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">4</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">5</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">6</span>
+                          <span className="label-text">ч</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="modern-slider-card">
+                    <div className="slider-header">
+                      <div className="slider-icon">🛁</div>
+                      <div className="slider-info">
+                        <h3 className="slider-title">Период купания</h3>
+                        <p className="slider-description">Купайте малыша 2-3 раза в неделю или ежедневно</p>
+                      </div>
+                      <div className="slider-value-badge">
+                        <span className="value-number">{settings.bathInterval}</span>
+                        <span className="value-unit">д</span>
+                      </div>
+                    </div>
+                    
+                    <div className="slider-wrapper">
+                      <div className="slider-track-container">
+                        <div className="slider-track">
+                          <div 
+                            className="slider-progress bath-progress"
+                            style={{ width: `${((settings.bathInterval - 1) / 6) * 100}%` }}
+                          ></div>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="7"
+                          value={settings.bathInterval}
+                          onChange={(event) => handleSettingChange('bathInterval', parseInt(event.target.value, 10))}
+                          className="modern-slider bath-slider"
+                        />
+                      </div>
+                      
+                      <div className="slider-labels">
+                        <div className="slider-label">
+                          <span className="label-value">1</span>
+                          <span className="label-text">д</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">2</span>
+                          <span className="label-text">д</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">3</span>
+                          <span className="label-text">д</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">4</span>
+                          <span className="label-text">д</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">5</span>
+                          <span className="label-text">д</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">6</span>
+                          <span className="label-text">д</span>
+                        </div>
+                        <div className="slider-label">
+                          <span className="label-value">7</span>
+                          <span className="label-text">д</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
             </div>
@@ -661,7 +897,7 @@ export default function Dashboard() {
               {isNotificationSupported && (
                 <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg">
+                    <div className="w-8 h-8 flex items-center justify-center text-sm">
                       🔔
                     </div>
                     <h2 className="text-base font-semibold text-gray-900">Уведомления</h2>
@@ -695,7 +931,7 @@ export default function Dashboard() {
               {/* Информация о семье */}
               <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg">
+                  <div className="w-8 h-8 flex items-center justify-center text-sm">
                     👥
               </div>
                   <h2 className="text-base font-semibold text-gray-900">Информация о семье</h2>
@@ -731,13 +967,15 @@ export default function Dashboard() {
               >
                 💾 Сохранить все изменения
               </button>
+              
+              {/* Отступ после кнопки сохранения */}
+              <div className="h-4"></div>
             </div>
           ) : activeTab === 'home' && (
             <div className="space-y-3">
               {/* Иллюстрация младенца */}
               <div className="text-center">
-                <BabyIllustration className="mb-2" />
-                <h2 className="text-lg font-bold text-gray-900 mb-1">Кормление малыша</h2>
+                <BabyIllustration className="mb-3" state={getBabyImageState()} />
                 <p className="text-xs text-gray-600 mb-3">Следите за режимом питания вашего ребенка</p>
               </div>
 
@@ -952,7 +1190,7 @@ export default function Dashboard() {
                         switch (type) {
                           case 'feeding':
                               return { 
-                                icon: <img src="/icons/feeding.png" alt="Кормление" className="w-2 h-2 object-contain" />, 
+                                icon: <img src="/icons/feeding.png" alt="Кормление" className="w-6 h-6 object-contain" />, 
                                 label: 'Кормление', 
                                 color: 'bg-blue-100 text-blue-600',
                                 bgColor: 'bg-blue-50',
@@ -960,7 +1198,7 @@ export default function Dashboard() {
                               }
                           case 'diaper':
                               return { 
-                                icon: <img src="/icons/poor.png" alt="Смена подгузника" className="w-2 h-2 object-contain" />, 
+                                icon: <img src="/icons/poor.png" alt="Смена подгузника" className="w-6 h-6 object-contain" />, 
                                 label: 'Смена подгузника', 
                                 color: 'bg-green-100 text-green-600',
                                 bgColor: 'bg-green-50',
@@ -968,7 +1206,7 @@ export default function Dashboard() {
                               }
                           case 'bath':
                               return { 
-                                icon: <img src="/icons/bath.png" alt="Купание" className="w-2 h-2 object-contain" />, 
+                                icon: <img src="/icons/bath.png" alt="Купание" className="w-6 h-6 object-contain" />, 
                                 label: 'Купание', 
                                 color: 'bg-yellow-100 text-yellow-600',
                                 bgColor: 'bg-yellow-50',
@@ -991,7 +1229,7 @@ export default function Dashboard() {
 
                       return (
                           <div key={`${item.type}-${item.id}-${index}`} className={`flex items-center space-x-0.125 p-0.125 rounded-lg ${typeInfo.bgColor} border border-gray-100 iphone14-card`}>
-                            <div className="w-3 h-3 flex items-center justify-center">
+                            <div className="w-8 h-8 flex items-center justify-center">
                               {typeInfo.icon}
                             </div>
                           <div className="flex-1 min-w-0">

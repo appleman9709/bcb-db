@@ -63,6 +63,27 @@
     input[type="text"], input[type="email"], input[type="tel"] {
       font-size: 16px !important;
     }
+    
+    /* Date input specific styles for mobile */
+    input[type="date"] {
+      font-size: 16px !important; /* Prevents zoom on iOS */
+      min-height: 48px;
+      padding: 12px 16px;
+      padding-right: 3rem;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    /* Date input container */
+    .date-input-container {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+    }
   }
 
   /* Mobile emoji and icon improvements */
@@ -149,6 +170,29 @@
       overflow-x: hidden;
     }
     
+    /* iPhone 14 specific date input fixes */
+    .iphone14-card input[type="date"] {
+      font-size: 16px !important;
+      min-height: 48px;
+      padding: 12px 16px;
+      padding-right: 3rem;
+      width: 100%;
+      max-width: calc(100% - 2rem); /* Account for card padding */
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+    }
+    
+    .iphone14-card .date-input-container {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    
     .iphone14-card {
       padding: 0.5rem; /* Компактные отступы */
       margin-bottom: 0.25rem; /* Минимальные отступы между карточками */
@@ -233,6 +277,1116 @@
   
   .slider::-moz-range-thumb {
     @apply w-6 h-6 bg-blue-500 rounded-full cursor-pointer border-0 shadow-lg transition-all duration-200 hover:scale-110;
+  }
+
+  /* Красивые стили для range input - удобные для touch-интерфейса */
+  input[type="range"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: transparent !important;
+    cursor: pointer;
+    height: 56px !important; /* Увеличена высота для лучшего touch-интерфейса */
+    padding: 20px 0 !important;
+    margin: 12px 0 !important;
+    touch-action: manipulation;
+    position: relative;
+    width: 100% !important;
+  }
+
+  /* Стили для трека (дорожки) слайдера - базовый серый трек */
+  input[type="range"]::-webkit-slider-track {
+    background: #d1d5db !important; /* Более темный серый для лучшей видимости */
+    height: 24px !important; /* Увеличена высота с 16px до 24px */
+    border-radius: 12px !important; /* Увеличен радиус с 10px до 12px */
+    border: 3px solid #374151 !important; /* Более темная граница для контраста */
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important; /* Усилены тени */
+    opacity: 1 !important; /* Принудительная видимость */
+  }
+
+  input[type="range"]::-moz-range-track {
+    background: #d1d5db !important; /* Более темный серый для лучшей видимости */
+    height: 24px !important; /* Увеличена высота с 16px до 24px */
+    border-radius: 12px !important; /* Увеличен радиус с 10px до 12px */
+    border: 3px solid #374151 !important; /* Более темная граница для контраста */
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important; /* Усилены тени */
+    opacity: 1 !important; /* Принудительная видимость */
+  }
+
+  /* Стили для ползунка (thumb) */
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    height: 36px !important; /* Увеличен размер с 28px до 36px */
+    width: 36px !important; /* Увеличен размер с 28px до 36px */
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 5px solid white !important; /* Увеличена толщина белой границы с 4px до 5px */
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* Усилены тени и добавлена внешняя тень */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-top: -10px !important; /* Центрируем ползунок относительно трека (увеличено с -8px до -10px) */
+    position: relative !important;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    height: 36px !important; /* Увеличен размер с 28px до 36px */
+    width: 36px !important; /* Увеличен размер с 28px до 36px */
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 5px solid white !important; /* Увеличена толщина белой границы с 4px до 5px */
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* Усилены тени и добавлена внешняя тень */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  /* Активное состояние ползунка */
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2); /* Увеличен масштаб с 1.15 до 1.2 */
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.3); /* Усилены тени */
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  }
+
+  input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.2); /* Увеличен масштаб с 1.15 до 1.2 */
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.3); /* Усилены тени */
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  }
+
+  /* Фокус на ползунке */
+  input[type="range"]:focus::-webkit-slider-thumb {
+    outline: 4px solid rgba(59, 130, 246, 0.4); /* Увеличена толщина outline с 3px до 4px */
+    outline-offset: 3px; /* Увеличен offset с 2px до 3px */
+    transform: scale(1.15); /* Увеличен масштаб с 1.1 до 1.15 */
+  }
+
+  input[type="range"]:focus::-moz-range-thumb {
+    outline: 4px solid rgba(59, 130, 246, 0.4); /* Увеличена толщина outline с 3px до 4px */
+    outline-offset: 3px; /* Увеличен offset с 2px до 3px */
+    transform: scale(1.15); /* Увеличен масштаб с 1.1 до 1.15 */
+  }
+
+  /* Специальные стили для разных типов напоминаний */
+  
+  /* Кормление - синий градиент */
+  .feeding-slider::-webkit-slider-track {
+    background: #bfdbfe !important; /* Более светлый фон для лучшего контраста */
+    border: 4px solid #2563eb !important; /* Увеличена толщина границы с 3px до 4px и более темный цвет */
+    box-shadow: inset 0 3px 6px rgba(37, 99, 235, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15) !important; /* Усилены тени */
+  }
+  
+  .feeding-slider::-moz-range-track {
+    background: #bfdbfe !important; /* Более светлый фон для лучшего контраста */
+    border: 4px solid #2563eb !important; /* Увеличена толщина границы с 3px до 4px и более темный цвет */
+    box-shadow: inset 0 3px 6px rgba(37, 99, 235, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15) !important; /* Усилены тени */
+  }
+  
+  .feeding-slider::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; /* Более контрастный градиент */
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(37, 99, 235, 0.3) !important; /* Усилены тени */
+  }
+  
+  .feeding-slider::-moz-range-thumb {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; /* Более контрастный градиент */
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(37, 99, 235, 0.3) !important; /* Усилены тени */
+  }
+
+  /* Подгузник - зеленый градиент */
+  .diaper-slider::-webkit-slider-track {
+    background: #bbf7d0 !important; /* Более светлый фон для лучшего контраста */
+    border: 4px solid #059669 !important; /* Увеличена толщина границы с 3px до 4px и более темный цвет */
+    box-shadow: inset 0 3px 6px rgba(5, 150, 105, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15) !important; /* Усилены тени */
+  }
+  
+  .diaper-slider::-moz-range-track {
+    background: #bbf7d0 !important; /* Более светлый фон для лучшего контраста */
+    border: 4px solid #059669 !important; /* Увеличена толщина границы с 3px до 4px и более темный цвет */
+    box-shadow: inset 0 3px 6px rgba(5, 150, 105, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15) !important; /* Усилены тени */
+  }
+  
+  .diaper-slider::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; /* Более контрастный градиент */
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(5, 150, 105, 0.3) !important; /* Усилены тени */
+  }
+  
+  .diaper-slider::-moz-range-thumb {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; /* Более контрастный градиент */
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(5, 150, 105, 0.3) !important; /* Усилены тени */
+  }
+
+  /* Купание - оранжевый градиент */
+  .bath-slider::-webkit-slider-track {
+    background: #fed7aa !important; /* Более светлый фон для лучшего контраста */
+    border: 4px solid #ea580c !important; /* Увеличена толщина границы с 3px до 4px и более темный цвет */
+    box-shadow: inset 0 3px 6px rgba(234, 88, 12, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15) !important; /* Усилены тени */
+  }
+  
+  .bath-slider::-moz-range-track {
+    background: #fed7aa !important; /* Более светлый фон для лучшего контраста */
+    border: 4px solid #ea580c !important; /* Увеличена толщина границы с 3px до 4px и более темный цвет */
+    box-shadow: inset 0 3px 6px rgba(234, 88, 12, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15) !important; /* Усилены тени */
+  }
+  
+  .bath-slider::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; /* Более контрастный градиент */
+    box-shadow: 0 6px 16px rgba(234, 88, 12, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(234, 88, 12, 0.3) !important; /* Усилены тени */
+  }
+  
+  .bath-slider::-moz-range-thumb {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; /* Более контрастный градиент */
+    box-shadow: 0 6px 16px rgba(234, 88, 12, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(234, 88, 12, 0.3) !important; /* Усилены тени */
+  }
+
+  /* Контейнеры слайдеров с видимыми треками */
+  .feeding-slider {
+    background: transparent !important;
+  }
+  
+  .diaper-slider {
+    background: transparent !important;
+  }
+  
+  .bath-slider {
+    background: transparent !important;
+  }
+
+  /* Дополнительные принудительные стили для всех слайдеров */
+  .slider-container input[type="range"] {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: transparent !important;
+    height: 56px !important;
+    padding: 20px 0 !important;
+    margin: 12px 0 !important;
+    width: 100% !important;
+  }
+
+  .slider-container input[type="range"]::-webkit-slider-track {
+    background: #d1d5db !important; /* Более темный серый для лучшей видимости */
+    height: 24px !important;
+    border-radius: 12px !important;
+    border: 3px solid #374151 !important; /* Более темная граница для контраста */
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important; /* Усилены тени */
+    opacity: 1 !important; /* Принудительная видимость */
+  }
+
+  .slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    height: 36px !important;
+    width: 36px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 5px solid white !important;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    margin-top: -10px !important;
+  }
+
+  .slider-container input[type="range"]::-moz-range-track {
+    background: #d1d5db !important; /* Более темный серый для лучшей видимости */
+    height: 24px !important;
+    border-radius: 12px !important;
+    border: 3px solid #374151 !important; /* Более темная граница для контраста */
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important; /* Усилены тени */
+    opacity: 1 !important; /* Принудительная видимость */
+  }
+
+  .slider-container input[type="range"]::-moz-range-thumb {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    height: 36px !important;
+    width: 36px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 5px solid white !important;
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+
+  /* Максимально специфичные стили для принудительного отображения трека */
+  .slider-container .feeding-slider::-webkit-slider-track,
+  .slider-container .diaper-slider::-webkit-slider-track,
+  .slider-container .bath-slider::-webkit-slider-track {
+    background: #d1d5db !important;
+    height: 24px !important;
+    border-radius: 12px !important;
+    border: 3px solid #374151 !important;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important;
+    opacity: 1 !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .slider-container .feeding-slider::-moz-range-track,
+  .slider-container .diaper-slider::-moz-range-track,
+  .slider-container .bath-slider::-moz-range-track {
+    background: #d1d5db !important;
+    height: 24px !important;
+    border-radius: 12px !important;
+    border: 3px solid #374151 !important;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important;
+    opacity: 1 !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  /* Современные стили для новых слайдеров */
+  
+  /* Карточка слайдера */
+  .modern-slider-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .modern-slider-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      rgba(59, 130, 246, 0.8) 0%, 
+      rgba(16, 185, 129, 0.8) 50%, 
+      rgba(249, 115, 22, 0.8) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .modern-slider-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.15),
+      0 4px 12px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+  
+  .modern-slider-card:hover::before {
+    opacity: 1;
+  }
+  
+  /* Заголовок слайдера */
+  .slider-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .slider-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border-radius: 16px;
+    font-size: 24px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  }
+  
+  .slider-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .slider-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 4px 0;
+    line-height: 1.3;
+  }
+  
+  .slider-description {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.4;
+  }
+  
+  .slider-value-badge {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  }
+  
+  .value-number {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1d4ed8;
+    line-height: 1;
+  }
+  
+  .value-unit {
+    font-size: 12px;
+    font-weight: 500;
+    color: #3b82f6;
+    line-height: 1;
+  }
+  
+  /* Обертка слайдера */
+  .slider-wrapper {
+    position: relative;
+  }
+  
+  .slider-track-container {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  
+  .slider-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 100%);
+    border-radius: 4px;
+    transform: translateY(-50%);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .slider-progress {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .slider-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+      rgba(255, 255, 255, 0.3) 0%, 
+      rgba(255, 255, 255, 0.1) 50%, 
+      rgba(255, 255, 255, 0.3) 100%);
+    animation: shimmer 2s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  .feeding-progress {
+    background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
+  }
+  
+  .diaper-progress {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  }
+  
+  .bath-progress {
+    background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
+  }
+  
+  /* Современный слайдер */
+  .modern-slider {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: transparent !important;
+    height: 48px !important;
+    padding: 20px 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    cursor: pointer;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .modern-slider::-webkit-slider-track {
+    background: transparent !important;
+    height: 8px !important;
+    border-radius: 4px !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .modern-slider::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    height: 32px !important;
+    width: 32px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 4px solid white !important;
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.15),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    margin-top: -12px !important;
+    position: relative;
+  }
+  
+  .modern-slider::-moz-range-track {
+    background: transparent !important;
+    height: 8px !important;
+    border-radius: 4px !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  .modern-slider::-moz-range-thumb {
+    height: 32px !important;
+    width: 32px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    border: 4px solid white !important;
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.15),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  /* Специальные стили для разных типов слайдеров */
+  .feeding-slider::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    box-shadow: 
+      0 4px 12px rgba(59, 130, 246, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+  
+  .feeding-slider::-moz-range-thumb {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    box-shadow: 
+      0 4px 12px rgba(59, 130, 246, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+  }
+  
+  .diaper-slider::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    box-shadow: 
+      0 4px 12px rgba(16, 185, 129, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+  }
+  
+  .diaper-slider::-moz-range-thumb {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    box-shadow: 
+      0 4px 12px rgba(16, 185, 129, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+  }
+  
+  .bath-slider::-webkit-slider-thumb {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+    box-shadow: 
+      0 4px 12px rgba(249, 115, 22, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+  }
+  
+  .bath-slider::-moz-range-thumb {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+    box-shadow: 
+      0 4px 12px rgba(249, 115, 22, 0.3),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+  }
+  
+  /* Активные состояния */
+  .modern-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15) !important;
+    box-shadow: 
+      0 6px 16px rgba(59, 130, 246, 0.4),
+      0 3px 6px rgba(0, 0, 0, 0.15),
+      0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .modern-slider::-moz-range-thumb:hover {
+    transform: scale(1.15) !important;
+    box-shadow: 
+      0 6px 16px rgba(59, 130, 246, 0.4),
+      0 3px 6px rgba(0, 0, 0, 0.15),
+      0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+  }
+  
+  .modern-slider:active::-webkit-slider-thumb {
+    transform: scale(1.1) !important;
+  }
+  
+  .modern-slider:active::-moz-range-thumb {
+    transform: scale(1.1) !important;
+  }
+  
+  /* Метки слайдера */
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+  
+  .slider-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 4px;
+    border-radius: 8px;
+  }
+  
+  .slider-label:hover {
+    background: rgba(59, 130, 246, 0.05);
+    transform: translateY(-1px);
+  }
+  
+  .label-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+    line-height: 1;
+  }
+  
+  .label-text {
+    font-size: 10px;
+    font-weight: 500;
+    color: #6b7280;
+    line-height: 1;
+  }
+  
+  /* Анимации */
+  .modern-slider-card {
+    animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Адаптивность для мобильных устройств */
+  @media (max-width: 640px) {
+    .modern-slider-card {
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 16px;
+    }
+    
+    .slider-header {
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .slider-icon {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+      border-radius: 12px;
+    }
+    
+    .slider-title {
+      font-size: 14px;
+    }
+    
+    .slider-description {
+      font-size: 11px;
+    }
+    
+    .value-number {
+      font-size: 18px;
+    }
+    
+    .value-unit {
+      font-size: 11px;
+    }
+    
+    .modern-slider::-webkit-slider-thumb {
+      height: 28px !important;
+      width: 28px !important;
+      border: 3px solid white !important;
+    }
+    
+    .modern-slider::-moz-range-thumb {
+      height: 28px !important;
+      width: 28px !important;
+      border: 3px solid white !important;
+    }
+    
+    .slider-labels {
+      margin-top: 6px;
+    }
+    
+    .label-value {
+      font-size: 11px;
+    }
+    
+    .label-text {
+      font-size: 9px;
+    }
+    
+    /* Улучшенная touch-оптимизация */
+    .modern-slider {
+      height: 56px !important;
+      padding: 24px 0 !important;
+    }
+    
+    .slider-track {
+      height: 10px;
+    }
+    
+    .slider-label {
+      padding: 6px;
+      min-width: 32px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Увеличенная область касания для меток */
+    .slider-label::after {
+      content: '';
+      position: absolute;
+      top: -8px;
+      left: -8px;
+      right: -8px;
+      bottom: -8px;
+      border-radius: 12px;
+    }
+  }
+  
+  /* Дополнительная оптимизация для очень маленьких экранов */
+  @media (max-width: 480px) {
+    .modern-slider-card {
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    
+    .slider-header {
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .slider-icon {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
+    }
+    
+    .slider-title {
+      font-size: 13px;
+    }
+    
+    .slider-description {
+      font-size: 10px;
+    }
+    
+    .value-number {
+      font-size: 16px;
+    }
+    
+    .value-unit {
+      font-size: 10px;
+    }
+    
+    .modern-slider::-webkit-slider-thumb {
+      height: 32px !important;
+      width: 32px !important;
+      border: 4px solid white !important;
+    }
+    
+    .modern-slider::-moz-range-thumb {
+      height: 32px !important;
+      width: 32px !important;
+      border: 4px solid white !important;
+    }
+    
+    .slider-labels {
+      margin-top: 4px;
+      gap: 2px;
+    }
+    
+    .slider-label {
+      padding: 4px;
+      min-width: 28px;
+      min-height: 28px;
+    }
+    
+    .label-value {
+      font-size: 10px;
+    }
+    
+    .label-text {
+      font-size: 8px;
+    }
+  }
+  
+  /* Оптимизация для iPhone и других touch-устройств */
+  @media (hover: none) and (pointer: coarse) {
+    .modern-slider-card:hover {
+      transform: none;
+    }
+    
+    .modern-slider-card:hover::before {
+      opacity: 0;
+    }
+    
+    .modern-slider-card:hover::after {
+      opacity: 0;
+    }
+    
+    .modern-slider-card:hover .slider-icon {
+      transform: none;
+    }
+    
+    .slider-label:hover {
+      background: transparent;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    /* Улучшенная обратная связь для touch */
+    .modern-slider:active::-webkit-slider-thumb {
+      transform: scale(1.2) !important;
+    }
+    
+    .modern-slider:active::-moz-range-thumb {
+      transform: scale(1.2) !important;
+    }
+    
+    .slider-label:active {
+      background: rgba(59, 130, 246, 0.1);
+      transform: scale(0.95);
+    }
+    
+    /* Увеличенные области касания */
+    .modern-slider {
+      height: 64px !important;
+      padding: 28px 0 !important;
+    }
+    
+    .slider-track {
+      height: 12px;
+    }
+    
+    .modern-slider::-webkit-slider-thumb {
+      height: 36px !important;
+      width: 36px !important;
+      border: 5px solid white !important;
+    }
+    
+    .modern-slider::-moz-range-thumb {
+      height: 36px !important;
+      width: 36px !important;
+      border: 5px solid white !important;
+    }
+  }
+
+  /* Дополнительные интерактивные эффекты */
+  
+  /* Эффект ripple при клике на метки */
+  .slider-label {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .slider-label::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+  }
+  
+  .slider-label:active::before {
+    width: 100px;
+    height: 100px;
+  }
+  
+  /* Анимация появления прогресс-бара */
+  .slider-progress {
+    animation: progressGrow 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes progressGrow {
+    from {
+      width: 0%;
+    }
+    to {
+      width: var(--progress-width);
+    }
+  }
+  
+  /* Эффект свечения для активных слайдеров */
+  .modern-slider-card:focus-within {
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8),
+      0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+  
+  .modern-slider-card:focus-within::before {
+    opacity: 1;
+  }
+  
+  /* Анимация изменения значения */
+  .slider-value-badge {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .modern-slider-card:focus-within .slider-value-badge {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  }
+  
+  /* Эффект волны для ползунка */
+  .modern-slider::-webkit-slider-thumb::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: ripple 0.6s ease-out;
+  }
+  
+  @keyframes ripple {
+    to {
+      transform: translate(-50%, -50%) scale(2);
+      opacity: 0;
+    }
+  }
+  
+  /* Улучшенные hover эффекты для иконок */
+  .slider-icon {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .modern-slider-card:hover .slider-icon {
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.2);
+  }
+  
+  /* Анимация появления карточек с задержкой */
+  .modern-slider-card:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+  
+  .modern-slider-card:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  .modern-slider-card:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  
+  /* Эффект параллакса для фона */
+  .modern-slider-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  
+  .modern-slider-card:hover::after {
+    opacity: 1;
+  }
+  
+  /* Улучшенная анимация shimmer для прогресс-бара */
+  .slider-progress::after {
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { 
+      transform: translateX(-100%); 
+      opacity: 0;
+    }
+    50% { 
+      opacity: 1;
+    }
+    100% { 
+      transform: translateX(100%); 
+      opacity: 0;
+    }
+  }
+  
+  /* Эффект магнитного притяжения для меток */
+  .slider-label {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .slider-label:hover {
+    background: rgba(59, 130, 246, 0.05);
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  }
+  
+  /* Анимация пульсации для активных значений */
+  .value-number {
+    transition: all 0.3s ease;
+  }
+  
+  .modern-slider-card:focus-within .value-number {
+    animation: valuePulse 0.6s ease-in-out;
+  }
+  
+  @keyframes valuePulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+  
+  /* Дополнительные красивые эффекты */
+  
+  /* Пульсирующая анимация для активных ползунков */
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+    50% {
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.4);
+    }
+  }
+
+  @keyframes pulse-glow-green {
+    0%, 100% {
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+    50% {
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.6), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(16, 185, 129, 0.4);
+    }
+  }
+
+  @keyframes pulse-glow-orange {
+    0%, 100% {
+      box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(249, 115, 22, 0.2);
+    }
+    50% {
+      box-shadow: 0 8px 24px rgba(249, 115, 22, 0.6), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(249, 115, 22, 0.4);
+    }
+  }
+
+  /* Анимация при изменении значения */
+  input[type="range"]:active::-webkit-slider-thumb {
+    animation: pulse-glow 0.6s ease-in-out;
+  }
+
+  input[type="range"]:active::-moz-range-thumb {
+    animation: pulse-glow 0.6s ease-in-out;
+  }
+
+  .feeding-slider:active::-webkit-slider-thumb {
+    animation: pulse-glow 0.6s ease-in-out;
+  }
+
+  .feeding-slider:active::-moz-range-thumb {
+    animation: pulse-glow 0.6s ease-in-out;
+  }
+
+  .diaper-slider:active::-webkit-slider-thumb {
+    animation: pulse-glow-green 0.6s ease-in-out;
+  }
+
+  .diaper-slider:active::-moz-range-thumb {
+    animation: pulse-glow-green 0.6s ease-in-out;
+  }
+
+  .bath-slider:active::-webkit-slider-thumb {
+    animation: pulse-glow-orange 0.6s ease-in-out;
+  }
+
+  .bath-slider:active::-moz-range-thumb {
+    animation: pulse-glow-orange 0.6s ease-in-out;
+  }
+
+  /* Красивые метки значений */
+  .slider-value-display {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%); /* Более контрастный фон */
+    backdrop-filter: blur(12px); /* Увеличен blur с 10px до 12px */
+    border: 2px solid rgba(255, 255, 255, 0.4); /* Увеличена толщина границы с 1px до 2px */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.3); /* Усилены тени */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .slider-value-display:hover {
+    transform: scale(1.08); /* Увеличен масштаб с 1.05 до 1.08 */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.4); /* Усилены тени */
+  }
+
+  /* Градиентные границы для контейнеров слайдеров */
+  .slider-container {
+    position: relative;
+    padding: 8px; /* Уменьшен padding с 12px до 8px */
+    border-radius: 12px; /* Уменьшен радиус с 20px до 12px */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); /* Более тонкий фон */
+    backdrop-filter: blur(4px); /* Уменьшен blur с 8px до 4px */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Уменьшена толщина границы с 2px до 1px */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.1); /* Уменьшены тени */
+    /* Добавляем видимый фон для трека как запасной вариант */
+    background-image: linear-gradient(to right, #d1d5db 0%, #d1d5db 100%);
+    background-size: 100% 24px;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  /* Анимация появления слайдеров */
+  .slider-container {
+    animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   /* Settings specific styles */
@@ -385,6 +1539,30 @@
   }
   80%, 100% {
     content: '...';
+  }
+}
+
+/* Анимации для экрана загрузки */
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 75%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
