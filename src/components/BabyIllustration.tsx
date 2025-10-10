@@ -37,12 +37,12 @@ export default function BabyIllustration({ className = '', state = 'normal' }: B
   return (
     <div className={`relative ${className}`}>
       {/* Основной круг с градиентом */}
-      <div className={`relative w-32 h-32 mx-auto ${getGradientClass()} rounded-full shadow-lg overflow-hidden flex items-center justify-center iphone14-baby-illustration`}>
+      <div className={`relative w-48 h-48 mx-auto ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration`}>
         {/* Изображение малыша */}
         <img 
           src={getImageSrc()} 
           alt="Малыш" 
-          className="w-20 h-20 object-contain"
+          className="w-30 h-30 object-contain relative z-10"
         />
       </div>
     </div>
