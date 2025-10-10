@@ -47,12 +47,6 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:items-center sm:p-6">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
       {/* Modal */}
       <div className={`relative w-full ${sizeClasses[size]} max-h-[80vh] sm:max-h-[90vh] sm:mt-0 mt-10`}>
         <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-bounce-in">

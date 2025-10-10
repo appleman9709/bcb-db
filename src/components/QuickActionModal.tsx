@@ -31,7 +31,7 @@ const actionConfig: Record<QuickActionType, {
 }> = {
   feeding: {
     title: 'Кормление',
-    icon: '🍼',
+    icon: '/icons/feeding.png',
     description: 'Записать кормление, чтобы отслеживать режим питания и планировать следующее кормление.',
     buttonText: 'Записать кормление',
     buttonVariant: 'primary',
@@ -39,7 +39,7 @@ const actionConfig: Record<QuickActionType, {
   },
   diaper: {
     title: 'Смена подгузника',
-    icon: '💩',
+    icon: '/icons/poor.png',
     description: 'Отметить смену подгузника, чтобы следить за гигиеной малыша.',
     buttonText: 'Записать смену',
     buttonVariant: 'success',
@@ -47,7 +47,7 @@ const actionConfig: Record<QuickActionType, {
   },
   bath: {
     title: 'Купание',
-    icon: '🛁',
+    icon: '/icons/bath.png',
     description: 'Записать купание, чтобы поддерживать чистоту и здоровье малыша.',
     buttonText: 'Записать купание',
     buttonVariant: 'warning',
@@ -202,8 +202,8 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     <Modal isOpen={isOpen} onClose={onClose} title={config.title} size="sm">
       <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center gap-3 rounded-2xl bg-gray-50 px-4 py-3 sm:px-5 sm:py-4">
-          <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-r ${config.accent} text-xl shadow-md`}>
-            {config.icon}
+          <div className="flex h-16 w-16 items-center justify-center">
+            <img src={config.icon} alt={config.title} className="w-14 h-14 object-contain" />
           </div>
           <p className="text-sm text-gray-600 sm:text-base text-left">{config.description}</p>
         </div>

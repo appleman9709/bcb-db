@@ -6,6 +6,11 @@ import Card from '../components/Card'
 import Button from '../components/Button'
 import LoadingScreen from '../components/LoadingScreen'
 import DebugPanel from '../components/DebugPanel'
+import BabyIllustration from '../components/BabyIllustration'
+import ActivityCard from '../components/ActivityCard'
+import Header from '../components/Header'
+import BottomNavigation from '../components/BottomNavigation'
+import BackgroundElements from '../components/BackgroundElements'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, Tip } from '../services/dataService'
 
@@ -91,6 +96,7 @@ export default function Dashboard() {
   const [modalAction, setModalAction] = useState<QuickActionType>('feeding')
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(requestDefaultNotificationPermission)
   const [pullDistance, setPullDistance] = useState(0)
+  const [activeTab, setActiveTab] = useState<'home' | 'history'>('home')
 
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
@@ -518,222 +524,419 @@ export default function Dashboard() {
     return <LoadingScreen />
   }
 
+  const handleMenuClick = () => {
+    setActiveSection('settings')
+    setActiveTab('home') // Убедимся, что мы на главной вкладке
+  }
+
+  const handleTabChange = (tab: 'home' | 'history') => {
+    setActiveTab(tab)
+    if (tab === 'history') {
+      setActiveSection('history')
+    } else {
+      setActiveSection('dashboard')
+    }
+  }
+
   return (
-    <div className="pwa-container bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-1 sm:p-2 md:p-4 lg:p-6 iphone14-dashboard overflow-x-hidden max-w-full">
-      <div
-        className="pointer-events-none fixed inset-x-0 top-2 z-50 flex justify-center transition-all duration-200"
-        style={{
-          opacity: pullDistance > 0 ? 1 : 0,
-          transform: `translateY(${Math.min(pullDistance, MAX_PULL_DISTANCE) / 2}px)`
-        }}
-      >
-        <div className="flex items-center gap-2 rounded-full bg-slate-900/90 px-3 py-1.5 text-xs font-medium text-white shadow-lg shadow-slate-900/60 backdrop-blur">
-          <svg
-            aria-hidden="true"
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="opacity-80"
-          >
-            <path d="M12 5v14" />
-            <path d="m5 12 7 7 7-7" />
-          </svg>
-          <span>
-            {pullDistance >= PULL_REFRESH_THRESHOLD
-              ? 'Отпустите, чтобы обновить'
-              : 'Потяните вниз, чтобы обновить'}
-          </span>
+    <div className="h-screen bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden pwa-container">
+      <BackgroundElements />
+      
+      <div className="relative z-10 flex flex-col h-full">
+        <Header onMenuClick={handleMenuClick} />
+        
+        <div className="flex-1 px-4 py-2 pb-16 iphone14-dashboard pwa-content">
+          {activeSection === 'settings' ? (
+            <div className="space-y-3">
+              <div className="text-center">
+                <button
+                  onClick={() => setActiveSection('dashboard')}
+                  className="mb-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
+                >
+                  ← Назад
+                </button>
+                <h1 className="text-lg font-bold text-gray-900 mb-1">⚙️ Настройки</h1>
+                <p className="text-xs text-gray-600">Персонализируйте приложение под вашего малыша</p>
         </div>
+
+              {/* Профиль малыша */}
+              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg">
+                    👶
       </div>
-      <div className="h-full max-w-full mx-auto flex flex-col overflow-hidden">
-        <Card variant="glass" className="p-2 sm:p-3 md:p-4 iphone14-header">
-          <div className="flex flex-col gap-2 sm:gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex w-full min-w-0">
-              <Button
-                variant={activeSection === 'dashboard' ? 'primary' : 'secondary'}
-                onClick={() => setActiveSection('dashboard')}
-                className="flex-1 min-h-[44px] sm:min-h-[48px] md:min-h-[52px] px-1 sm:px-2 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold shadow-sm rounded-l-xl rounded-r-none border-r border-white/20 iphone14-nav-button min-w-0"
-              >
-                <span className="mobile-emoji text-sm sm:text-base">📊</span> <span className="hidden sm:inline ml-1">Главная</span>
-              </Button>
-              <Button
-                variant={activeSection === 'history' ? 'primary' : 'secondary'}
-                onClick={() => setActiveSection('history')}
-                className="flex-1 min-h-[44px] sm:min-h-[48px] md:min-h-[52px] px-1 sm:px-2 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold shadow-sm !rounded-none border-r border-white/20 iphone14-nav-button min-w-0"
-              >
-                <span className="mobile-emoji text-sm sm:text-base">🕒</span> <span className="hidden sm:inline ml-1">История</span>
-              </Button>
-              <Button
-                variant={activeSection === 'settings' ? 'primary' : 'secondary'}
-                onClick={() => setActiveSection('settings')}
-                className="flex-1 min-h-[44px] sm:min-h-[48px] md:min-h-[52px] px-1 sm:px-2 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold shadow-sm rounded-r-xl rounded-l-none iphone14-nav-button min-w-0"
-              >
-                <span className="mobile-emoji text-sm sm:text-base">⚙️</span> <span className="hidden sm:inline ml-1">Настройки</span>
-              </Button>
+                  <h2 className="text-base font-semibold text-gray-900">Профиль малыша</h2>
             </div>
-            <div className="flex flex-col gap-0.5 sm:gap-1 sm:items-end mt-1 sm:mt-2 lg:mt-0">
-              <div className="text-xs text-white/70 text-center sm:text-right">
-                {latestActivityTimestamp ? (
-                  <>Обновлено {formatTime(latestActivityTimestamp)}</>
-                ) : (
-                  'Загрузка...'
-                )}
+                <div className="space-y-2">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      📅 Дата рождения
+                    </label>
+                    <input
+                      type="date"
+                      value={settings.birthDate}
+                      onChange={(event) => handleSettingChange('birthDate', event.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Возраст: {calculateAgeInMonths(settings.birthDate)} месяцев
+                    </p>
               </div>
             </div>
           </div>
-        </Card>
 
-        {activeSection === 'dashboard' && (
-          <div className="pwa-content space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6">
-            <Card className="relative overflow-hidden border border-white/10 bg-gradient-to-br from-slate-950 via-indigo-950/60 to-slate-900 text-white shadow-[0_28px_120px_-60px_rgba(79,70,229,0.65)] p-2 sm:p-3 md:p-4 iphone14-greeting">
-              <div className="pointer-events-none absolute inset-0">
-                <div className="absolute -top-16 sm:-top-32 left-1/2 h-36 w-36 sm:h-72 sm:w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(129,140,248,0.55),rgba(129,140,248,0))] blur-3xl opacity-90" />
-                <div className="absolute -bottom-12 sm:-bottom-24 -right-6 sm:-right-12 h-40 w-40 sm:h-80 sm:w-80 rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.45),rgba(236,72,153,0))] blur-3xl opacity-75" />
-                <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.12)_0%,rgba(255,255,255,0)_55%)] mix-blend-screen opacity-80" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.15),rgba(255,255,255,0))]" />
+              {/* Напоминания */}
+              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg">
+                    ⏰
               </div>
-              <div className="relative z-10 space-y-2 sm:space-y-3">
-                <div className="space-y-1 sm:space-y-2">
-                  <span className="inline-flex items-center rounded-full bg-white/15 px-2 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
-                    Режим малыша
-                  </span>
-                  <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold leading-tight">
-                    Привет, {greetingName}! 👋
-                  </h1>
+                  <h2 className="text-base font-semibold text-gray-900">Напоминания</h2>
                 </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      🍼 Интервал кормления: {settings.feedingInterval} часов
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="6"
+                      value={settings.feedingInterval}
+                      onChange={(event) => handleSettingChange('feedingInterval', parseInt(event.target.value, 10))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-0.5">
+                      <span>1ч</span>
+                      <span>6ч</span>
               </div>
-            </Card>
-
-            {isNotificationSupported && notificationPermission !== 'granted' && (
-              <Card className="grid items-start gap-2 sm:gap-3 border border-indigo-500/30 bg-slate-900/70 backdrop-blur sm:grid-cols-[1fr_auto] p-3 sm:p-4 iphone14-card">
-                <div className="space-y-1">
-                  <h2 className="text-sm sm:text-base md:text-lg font-semibold text-white">Включите напоминания</h2>
-                  <p className="text-xs sm:text-sm text-gray-300">
-                    Получайте уведомления о кормлении и смене подгузника точно в срок.
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Рекомендуется кормить каждые 2-3 часа для новорожденных
                   </p>
                 </div>
-                <Button variant="primary" onClick={requestNotificationPermission} className="w-full sm:w-auto text-xs sm:text-sm px-3 py-2">
-                  Активировать
-                </Button>
-              </Card>
-            )}
-
-            <div className="grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-2">
-              <StatCard
-                title="Последнее кормление"
-                value={data?.lastFeeding ? getTimeAgo(data.lastFeeding.timestamp) : 'Нет данных'}
-                icon="🍼"
-                color="blue"
-                subtitle={data?.lastFeeding ? new Date(data.lastFeeding.timestamp).toLocaleString('ru-RU') : ''}
-                gradientProgress={data?.lastFeeding ? getGradientColor(data.lastFeeding.timestamp, settings.feedingInterval) : 0.1}
-              />
-              <StatCard
-                title="Последняя смена подгузника"
-                value={data?.lastDiaper ? getTimeAgo(data.lastDiaper.timestamp) : 'Нет данных'}
-                icon="💩"
-                color="green"
-                subtitle={data?.lastDiaper ? new Date(data.lastDiaper.timestamp).toLocaleString('ru-RU') : ''}
-                gradientProgress={data?.lastDiaper ? getGradientColor(data.lastDiaper.timestamp, settings.diaperInterval) : 0.9}
-              />
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      💩 Интервал смены подгузника: {settings.diaperInterval} часов
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="6"
+                      value={settings.diaperInterval}
+                      onChange={(event) => handleSettingChange('diaperInterval', parseInt(event.target.value, 10))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-0.5">
+                      <span>1ч</span>
+                      <span>6ч</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Меняйте подгузник каждые 2-4 часа или по необходимости
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                      🛁 Период купания: {settings.bathInterval} дней
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="7"
+                      value={settings.bathInterval}
+                      onChange={(event) => handleSettingChange('bathInterval', parseInt(event.target.value, 10))}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-0.5">
+                      <span>1д</span>
+                      <span>7д</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Купайте малыша 2-3 раза в неделю или ежедневно
+                    </p>
+                  </div>
+                </div>
             </div>
 
-
-            <Card variant="glass" className="space-y-2 sm:space-y-3 p-3 sm:p-4 iphone14-card">
-              <div className="space-y-0.5 sm:space-y-1">
-                <h2 className="text-base sm:text-lg md:text-xl font-semibold text-white">Быстрые действия</h2>
-                <p className="text-sm sm:text-base text-white/70">Отмечайте важные события</p>
-              </div>
-              <div className="flex gap-1 sm:gap-1.5 w-full items-stretch min-w-0">
-                <div className="flex-1 min-w-0">
-                  <QuickAction
-                    title="Кормление"
-                    description="Записать время"
-                    icon="🍼"
-                    onClick={() => handleQuickAction('feeding')}
-                    variant="primary"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <QuickAction
-                    title="Подгузник"
-                    description="Сменить"
-                    icon="💩"
-                    onClick={() => handleQuickAction('diaper')}
-                    variant="success"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <QuickAction
-                    title="Купание"
-                    description="Записать время"
-                    icon="🛁"
-                    onClick={() => handleQuickAction('bath')}
-                    variant="warning"
-                  />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="relative overflow-hidden border border-indigo-500/30 bg-slate-900/70 backdrop-blur p-3 sm:p-4 iphone14-tip">
-              <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500" />
-              <div className="relative z-10 flex flex-col gap-2 sm:gap-3 md:flex-row md:items-start md:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-lg sm:text-xl md:text-2xl shadow-lg iphone14-tip-icon">
-                  💡
-                </div>
-                <div className="flex-1 space-y-1 sm:space-y-2">
-                  <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white">Совет дня</h3>
-                  {data?.dailyTip ? (
-                    <div className="space-y-1 sm:space-y-2">
-                      <p className="text-sm sm:text-base md:text-lg text-gray-300">{data.dailyTip.content}</p>
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-sm text-gray-400">
-                        <span>Категория: {data.dailyTip.category}</span>
-                        <span>Возраст: {data.dailyTip.age_months} мес.</span>
+              {/* Уведомления */}
+              {isNotificationSupported && (
+                <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg">
+                      🔔
+                    </div>
+                    <h2 className="text-base font-semibold text-gray-900">Уведомления</h2>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-medium text-gray-900">Push-уведомления</p>
+                        <p className="text-xs text-gray-500">Получайте напоминания о кормлении и смене подгузника</p>
+                      </div>
+                      <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        notificationPermission === 'granted' 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-red-100 text-red-700'
+                      }`}>
+                        {notificationPermission === 'granted' ? 'Включено' : 'Отключено'}
                       </div>
                     </div>
-                  ) : (
-                    <p className="text-sm sm:text-base md:text-lg text-gray-300">
-                      Рекомендуется кормить малыша каждые 2-3 часа, регулярно менять подгузник и купать ежедневно.
-                    </p>
-                  )}
+                    {notificationPermission !== 'granted' && (
+                      <button
+                        onClick={requestNotificationPermission}
+                        className="w-full bg-blue-500 text-white font-medium py-1.5 px-3 rounded-lg hover:bg-blue-600 transition-colors text-xs"
+                      >
+                        Включить уведомления
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Информация о семье */}
+              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center text-white text-sm shadow-lg">
+                    👥
+              </div>
+                  <h2 className="text-base font-semibold text-gray-900">Информация о семье</h2>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-xs font-medium text-gray-900">Семья</p>
+                      <p className="text-xs text-gray-500">Название вашей семьи</p>
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{family?.name ?? 'Family'}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="text-xs font-medium text-gray-900">Ваше имя</p>
+                      <p className="text-xs text-gray-500">Как вас называть в приложении</p>
+                    </div>
+                    <span className="text-xs font-medium text-gray-700">{memberDisplayName}</span>
+                  </div>
+                  <button
+                    onClick={signOut}
+                    className="w-full mt-2 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-xs"
+                  >
+                    🚪 Выйти из аккаунта
+                  </button>
                 </div>
               </div>
-            </Card>
+
+              {/* Сохранение */}
+              <button
+                onClick={handleSaveSettings}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 text-sm"
+              >
+                💾 Сохранить все изменения
+              </button>
+            </div>
+          ) : activeTab === 'home' && (
+            <div className="space-y-3">
+              {/* Иллюстрация младенца */}
+              <div className="text-center">
+                <BabyIllustration className="mb-2" />
+                <h2 className="text-lg font-bold text-gray-900 mb-1">Кормление малыша</h2>
+                <p className="text-xs text-gray-600 mb-3">Следите за режимом питания вашего ребенка</p>
+              </div>
+
+              {/* Карточки активности */}
+              <div className="space-y-2">
+                <button
+                    onClick={() => handleQuickAction('feeding')}
+                  className="w-full bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 iphone14-quick-action"
+                >
+                  <div className="w-12 h-12 flex items-center justify-center">
+                    <img src="/icons/feeding.png" alt="Кормление" className="w-10 h-10 object-contain" />
+                </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <h3 className="font-semibold text-gray-900 text-sm">Кормление</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {data?.lastFeeding ? `${formatTime(new Date(data.lastFeeding.timestamp))}` : "Еще не кормили"}
+                    </p>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          data?.lastFeeding && (Date.now() - new Date(data.lastFeeding.timestamp).getTime()) >= (settings.feedingInterval * 60 * 60 * 1000)
+                            ? 'bg-red-500' 
+                            : 'bg-blue-400'
+                        }`}
+                        style={{ 
+                          width: `${Math.min(100, Math.max(0, data?.lastFeeding 
+                            ? Math.min(100, ((Date.now() - new Date(data.lastFeeding.timestamp).getTime()) / (settings.feedingInterval * 60 * 60 * 1000)) * 100)
+                            : 0))}%` 
+                        }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {data?.lastFeeding ? (
+                        getGradientColor(data.lastFeeding.timestamp, settings.feedingInterval) < 0.5 
+                          ? "Все хорошо" 
+                          : getGradientColor(data.lastFeeding.timestamp, settings.feedingInterval) < 0.8
+                          ? "Скоро пора кормить"
+                          : "Пора кормить!"
+                      ) : "Запишите первое кормление"}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-gray-700">
+                      {data?.lastFeeding ? formatDuration(Math.floor((Date.now() - new Date(data.lastFeeding.timestamp).getTime()) / (1000 * 60))) + ' назад' : "Нет данных"}
+                    </span>
+                    <div className="text-xs text-blue-600 mt-0.5">Нажмите для записи</div>
+                  </div>
+                </button>
+
+                <button
+                    onClick={() => handleQuickAction('diaper')}
+                  className="w-full bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-all duration-200 iphone14-quick-action"
+                >
+                  <div className="w-12 h-12 flex items-center justify-center">
+                    <img src="/icons/poor.png" alt="Смена подгузника" className="w-10 h-10 object-contain" />
+                </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <h3 className="font-semibold text-gray-900 text-sm">Подгузник</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {data?.lastDiaper ? `${formatTime(new Date(data.lastDiaper.timestamp))}` : "Еще не меняли"}
+                    </p>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          data?.lastDiaper && (Date.now() - new Date(data.lastDiaper.timestamp).getTime()) >= (settings.diaperInterval * 60 * 60 * 1000)
+                            ? 'bg-red-500' 
+                            : 'bg-green-400'
+                        }`}
+                        style={{ 
+                          width: `${Math.min(100, Math.max(0, data?.lastDiaper 
+                            ? Math.min(100, ((Date.now() - new Date(data.lastDiaper.timestamp).getTime()) / (settings.diaperInterval * 60 * 60 * 1000)) * 100)
+                            : 0))}%` 
+                        }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {data?.lastDiaper ? (
+                        getGradientColor(data.lastDiaper.timestamp, settings.diaperInterval) < 0.5 
+                          ? "Подгузник чистый" 
+                          : getGradientColor(data.lastDiaper.timestamp, settings.diaperInterval) < 0.8
+                          ? "Скоро пора сменить"
+                          : "Пора сменить подгузник!"
+                      ) : "Запишите первую смену"}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-gray-700">
+                      {data?.lastDiaper ? formatDuration(Math.floor((Date.now() - new Date(data.lastDiaper.timestamp).getTime()) / (1000 * 60))) + ' назад' : "Нет данных"}
+                    </span>
+                    <div className="text-xs text-green-600 mt-0.5">Нажмите для записи</div>
+                  </div>
+                </button>
+
+                <button
+                    onClick={() => handleQuickAction('bath')}
+                  className="w-full bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200 transition-all duration-200 iphone14-quick-action"
+                >
+                  <div className="w-12 h-12 flex items-center justify-center">
+                    <img src="/icons/bath.png" alt="Купание" className="w-10 h-10 object-contain" />
+                </div>
+                  <div className="flex-1 min-w-0 text-left">
+                    <h3 className="font-semibold text-gray-900 text-sm">Купание</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {data?.lastBath ? `${formatTime(new Date(data.lastBath.timestamp))}` : "Еще не купали"}
+                    </p>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          data?.lastBath && (Date.now() - new Date(data.lastBath.timestamp).getTime()) >= (settings.bathInterval * 24 * 60 * 60 * 1000)
+                            ? 'bg-red-500' 
+                            : 'bg-orange-400'
+                        }`}
+                        style={{ 
+                          width: `${Math.min(100, Math.max(0, data?.lastBath 
+                            ? Math.min(100, ((Date.now() - new Date(data.lastBath.timestamp).getTime()) / (settings.bathInterval * 24 * 60 * 60 * 1000)) * 100)
+                            : 0))}%` 
+                        }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {data?.lastBath ? (
+                        getGradientColor(data.lastBath.timestamp, settings.bathInterval * 24) < 0.5 
+                          ? "Купание недавно" 
+                          : getGradientColor(data.lastBath.timestamp, settings.bathInterval * 24) < 0.8
+                          ? "Скоро пора купать"
+                          : "Пора искупать малыша!"
+                      ) : "Запишите первое купание"}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-medium text-gray-700">
+                      {data?.lastBath ? formatDuration(Math.floor((Date.now() - new Date(data.lastBath.timestamp).getTime()) / (1000 * 60))) + ' назад' : "Нет данных"}
+                    </span>
+                    <div className="text-xs text-orange-600 mt-0.5">Нажмите для записи</div>
+                  </div>
+                </button>
+              </div>
+
+              {/* Совет дня */}
+              {data?.dailyTip && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3 shadow-sm border border-blue-100 iphone14-tip">
+                  <div className="flex items-start gap-2">
+                    <div className="w-8 h-8 flex items-center justify-center iphone14-tip-icon">
+                      <img src="/icons/sovet.png" alt="Совет" className="w-8 h-8 object-contain" />
+                </div>
+                    <div className="flex-1">
+                      <h3 className="text-base font-semibold text-gray-900 mb-1">Совет дня</h3>
+                      <p className="text-xs text-gray-700 mb-1">{data.dailyTip.content}</p>
+                      <div className="flex flex-wrap gap-1 text-xs text-gray-500">
+                        <span className="bg-white px-1.5 py-0.5 rounded-full">📂 {data.dailyTip.category}</span>
+                        <span className="bg-white px-1.5 py-0.5 rounded-full">👶 {data.dailyTip.age_months} мес.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
           </div>
         )}
 
-        {activeSection === 'history' && (
-          <div className="pwa-content">
-            <div className="mb-6">
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">История событий</h1>
-              <p className="text-gray-300 text-base sm:text-lg">Просматривайте все записи по кормлению, подгузникам и купаниям.</p>
+          {activeTab === 'history' && (
+            <div className="space-y-0.125">
+              <div className="text-center">
+                <h1 className="text-lg font-bold text-gray-900 mb-1">📋 История событий</h1>
+                <p className="text-xs text-gray-600">Подробная статистика и хронология всех записей</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              <Card className="text-center p-4">
-                <div className="text-3xl font-bold text-blue-600 mb-2">{totalCounts?.feedings || 0}</div>
-                <div className="text-base text-gray-600">Кормления</div>
-              </Card>
-              <Card className="text-center p-4">
-                <div className="text-3xl font-bold text-green-600 mb-2">{totalCounts?.diapers || 0}</div>
-                <div className="text-base text-gray-600">Смены подгузника</div>
-              </Card>
-              <Card className="text-center p-4">
-                <div className="text-3xl font-bold text-yellow-600 mb-2">{totalCounts?.baths || 0}</div>
-                <div className="text-base text-gray-600">Купания</div>
-              </Card>
+              {/* Общая статистика */}
+              <div className="bg-white rounded-xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
+                <h2 className="text-xs font-semibold text-gray-900 mb-0.5">📊 Общая статистика</h2>
+                <div className="grid grid-cols-3 gap-0.5">
+                  <div className="text-center p-0.125 bg-blue-50 rounded-lg">
+                    <div className="text-xs font-bold text-blue-500 mb-0.5">{totalCounts?.feedings || 0}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Кормлений</div>
+                    <div className="text-xs text-gray-500">{settings.feedingInterval}ч</div>
+                  </div>
+                  <div className="text-center p-0.125 bg-green-50 rounded-lg">
+                    <div className="text-xs font-bold text-green-500 mb-0.5">{totalCounts?.diapers || 0}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Подгузников</div>
+                    <div className="text-xs text-gray-500">{settings.diaperInterval}ч</div>
+                  </div>
+                  <div className="text-center p-0.125 bg-yellow-50 rounded-lg">
+                    <div className="text-xs font-bold text-yellow-500 mb-0.5">{totalCounts?.baths || 0}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Купаний</div>
+                    <div className="text-xs text-gray-500">{settings.bathInterval}д</div>
+                  </div>
+                </div>
             </div>
 
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-semibold text-gray-900">Хронология записей</h2>
+              {/* Последние события */}
+              <div className="bg-white rounded-xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
+                <div className="flex items-center justify-between mb-0.5">
+                  <h2 className="text-xs font-semibold text-gray-900">🕒 Последние события</h2>
+                  <span className="text-xs text-gray-500">
+                    {latestActivityTimestamp ? `Обновлено ${formatTime(latestActivityTimestamp)}` : 'Загрузка...'}
+                  </span>
               </div>
 
-              <div className="space-y-5">
+                <div className="space-y-0.0625">
                 {historyData ? (
                   (() => {
                     const allEvents = [
@@ -748,32 +951,58 @@ export default function Dashboard() {
                       const getTypeInfo = (type: typeof item.type) => {
                         switch (type) {
                           case 'feeding':
-                            return { icon: '🍼', label: 'Кормление', color: 'from-blue-500 to-blue-600' }
+                              return { 
+                                icon: <img src="/icons/feeding.png" alt="Кормление" className="w-2 h-2 object-contain" />, 
+                                label: 'Кормление', 
+                                color: 'bg-blue-100 text-blue-600',
+                                bgColor: 'bg-blue-50',
+                                description: 'Ребенок покормлен'
+                              }
                           case 'diaper':
-                            return { icon: '💩', label: 'Смена подгузника', color: 'from-green-500 to-green-600' }
+                              return { 
+                                icon: <img src="/icons/poor.png" alt="Смена подгузника" className="w-2 h-2 object-contain" />, 
+                                label: 'Смена подгузника', 
+                                color: 'bg-green-100 text-green-600',
+                                bgColor: 'bg-green-50',
+                                description: 'Подгузник заменен'
+                              }
                           case 'bath':
-                            return { icon: '🛁', label: 'Купание', color: 'from-yellow-500 to-yellow-600' }
+                              return { 
+                                icon: <img src="/icons/bath.png" alt="Купание" className="w-2 h-2 object-contain" />, 
+                                label: 'Купание', 
+                                color: 'bg-yellow-100 text-yellow-600',
+                                bgColor: 'bg-yellow-50',
+                                description: 'Ребенок искупан'
+                              }
                           default:
-                            return { icon: '⭐', label: 'Событие', color: 'from-gray-500 to-gray-600' }
+                              return { 
+                                icon: '⭐', 
+                                label: 'Событие', 
+                                color: 'bg-gray-100 text-gray-600',
+                                bgColor: 'bg-gray-50',
+                                description: 'Записано событие'
+                              }
                         }
                       }
 
                       const typeInfo = getTypeInfo(item.type)
+                        const eventDate = new Date(item.timestamp)
+                        const timeAgo = getTimeAgo(item.timestamp)
 
                       return (
-                        <div key={`${item.type}-${item.id}-${index}`} className="flex items-center space-x-5 p-5 rounded-xl border-2 border-gray-700 bg-gray-800/50 transition-all duration-200 hover:shadow-md hover:bg-gray-800/70">
-                          <div className="flex-shrink-0">
-                            <div className={`w-16 h-16 sm:w-18 sm:h-18 rounded-full flex items-center justify-center text-white text-2xl sm:text-3xl shadow-lg bg-gradient-to-r ${typeInfo.color}`}>
+                          <div key={`${item.type}-${item.id}-${index}`} className={`flex items-center space-x-0.125 p-0.125 rounded-lg ${typeInfo.bgColor} border border-gray-100 iphone14-card`}>
+                            <div className="w-3 h-3 flex items-center justify-center">
                               {typeInfo.icon}
                             </div>
-                          </div>
-
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <h3 className="text-xl font-medium text-gray-100">{typeInfo.label}</h3>
-                              <span className="text-base font-medium text-gray-400">{getTimeAgo(item.timestamp)}</span>
+                                <h3 className="text-xs font-semibold text-gray-900">{typeInfo.label}</h3>
+                                <span className="text-xs font-medium text-gray-500">{timeAgo}</span>
                             </div>
-                            <p className="text-base text-gray-300 mt-2">{formatTime(new Date(item.timestamp))}</p>
+                              <p className="text-xs text-gray-600 mt-0.5">{typeInfo.description}</p>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                📅 {eventDate.toLocaleDateString('ru-RU')} в {formatTime(eventDate)}
+                              </p>
                           </div>
                         </div>
                       )
@@ -782,134 +1011,18 @@ export default function Dashboard() {
                 ) : (
                   <div className="text-center py-8 text-gray-400">
                     <div className="text-4xl mb-2">⏳</div>
-                    <p>Загружаем историю...</p>
+                      <p>Загружаем историю событий...</p>
                   </div>
                 )}
               </div>
-            </Card>
+              </div>
           </div>
         )}
 
-        
-        {activeSection === 'settings' && (
-          <div className="pwa-content settings-section space-y-6 sm:space-y-8 md:space-y-10">
-            <div className="animate-slide-up space-y-4">
-              <h1 className="text-4xl font-bold text-white gradient-text">Настройки</h1>
-              <p className="max-w-2xl text-xl text-gray-300">Обновите данные малыша и настройте напоминания, чтобы всегда быть в курсе его режима.</p>
             </div>
 
-            <Card className="settings-card animate-slide-up">
-              <div className="settings-heading">
-                <div className="settings-heading-icon bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-indigo-500/20 text-blue-100">👶</div>
-                <span className="settings-heading-label">Профиль малыша</span>
+        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
               </div>
-
-              <div className="space-y-8">
-                <div className="space-y-3">
-                  <label className="settings-label text-base">Дата рождения</label>
-                  <input
-                    type="date"
-                    value={settings.birthDate}
-                    onChange={(event) => handleSettingChange('birthDate', event.target.value)}
-                    className="settings-input w-full ios-input text-base py-4"
-                  />
-                </div>
-              </div>
-            </Card>
-
-            <Card className="settings-card animate-slide-up">
-              <div className="settings-heading">
-                <div className="settings-heading-icon bg-gradient-to-br from-emerald-500/30 via-teal-500/30 to-green-400/20 text-emerald-100">⏰</div>
-                <span className="settings-heading-label">Напоминания</span>
-              </div>
-
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                <div className="settings-slider-container">
-                  <label className="settings-label text-base">Интервал кормления (часы)</label>
-                  <div className="mt-4 flex items-center gap-5">
-                    <input
-                      type="range"
-                      min="1"
-                      max="6"
-                      value={settings.feedingInterval}
-                      onChange={(event) => handleSettingChange('feedingInterval', parseInt(event.target.value, 10))}
-                      className="slider flex-1 appearance-none rounded-full bg-white/20 h-3"
-                    />
-                    <span className="settings-value-display text-blue-600 text-lg px-5 py-2">{settings.feedingInterval}ч</span>
-                  </div>
-                </div>
-
-                <div className="settings-slider-container">
-                  <label className="settings-label text-base">Интервал смены подгузника (часы)</label>
-                  <div className="mt-4 flex items-center gap-5">
-                    <input
-                      type="range"
-                      min="1"
-                      max="6"
-                      value={settings.diaperInterval}
-                      onChange={(event) => handleSettingChange('diaperInterval', parseInt(event.target.value, 10))}
-                      className="slider flex-1 appearance-none rounded-full bg-white/20 h-3"
-                    />
-                    <span className="settings-value-display text-emerald-600 text-lg px-5 py-2">{settings.diaperInterval}ч</span>
-                  </div>
-                </div>
-
-                <div className="settings-slider-container md:col-span-2">
-                  <label className="settings-label text-base">Период купания (дни)</label>
-                  <div className="mt-4 flex items-center gap-5">
-                    <input
-                      type="range"
-                      min="1"
-                      max="7"
-                      value={settings.bathInterval}
-                      onChange={(event) => handleSettingChange('bathInterval', parseInt(event.target.value, 10))}
-                      className="slider flex-1 appearance-none rounded-full bg-white/20 h-3"
-                    />
-                    <span className="settings-value-display text-amber-600 text-lg px-5 py-2">{settings.bathInterval}д</span>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="settings-card animate-slide-up">
-              <div className="settings-heading">
-                <div className="settings-heading-icon bg-gradient-to-br from-purple-500/30 via-pink-500/30 to-rose-500/20 text-purple-100">👥</div>
-                <span className="settings-heading-label">Информация о семье</span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 rounded-xl sm:rounded-2xl bg-white/5 px-4 py-3 sm:px-5 sm:py-4 text-white/80">
-                <div className="text-left">
-                  <p className="text-sm uppercase tracking-[0.15em] text-white/60">Family</p>
-                  <p className="text-sm sm:text-base font-semibold text-white">{family?.name ?? 'Family'}</p>
-                </div>
-                <div className="hidden sm:block h-6 sm:h-8 w-px bg-white/10" />
-                <div className="mt-3 sm:mt-0 text-left">
-                  <p className="text-sm uppercase tracking-[0.15em] text-white/60">You</p>
-                  <p className="text-sm sm:text-base font-medium text-white truncate max-w-[10rem] sm:max-w-[12rem]">{memberDisplayName}</p>
-                </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={signOut}
-                  className="mt-3 sm:mt-0 sm:ml-3 whitespace-nowrap text-sm px-3 py-2"
-                >
-                  Выйти
-                </Button>
-              </div>
-            </Card>
-
-            <div className="flex justify-end animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleSaveSettings}
-                className="settings-save-button text-lg px-10 py-4"
-              >
-                💾 Сохранить изменения
-              </Button>
-            </div>
-          </div>
-        )}
 
         <QuickActionModal
           isOpen={modalOpen}
@@ -920,6 +1033,6 @@ export default function Dashboard() {
 
         {process.env.NODE_ENV === 'development' && <DebugPanel />}
       </div>
-    </div>
+
   )
 }
