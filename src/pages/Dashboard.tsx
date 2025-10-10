@@ -681,21 +681,27 @@ export default function Dashboard() {
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       📅 Дата рождения
                     </label>
-                    <input
-                      type="date"
-                      value={settings.birthDate}
-                      onChange={(event) => handleSettingChange('birthDate', event.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm max-w-full overflow-hidden"
-                      style={{
-                        fontSize: '16px',
-                        minHeight: '48px',
-                        WebkitAppearance: 'none',
-                        MozAppearance: 'textfield'
-                      }}
-                    />
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Возраст: {calculateAgeInMonths(settings.birthDate)} месяцев
-                    </p>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={settings.birthDate}
+                        onChange={(event) => handleSettingChange('birthDate', event.target.value)}
+                        className="w-full"
+                        // iOS специфичные атрибуты
+                        inputMode="numeric"
+                        autoComplete="bday"
+                        placeholder=""
+                        // Улучшенная доступность
+                        aria-label="Дата рождения малыша"
+                        aria-describedby="birth-date-description"
+                      />
+                      {/* Декоративный элемент для лучшего UX */}
+                      <div className="focus-ring"></div>
+                    </div>
+                    <div id="birth-date-description" className="age-description">
+                      <span className="age-indicator"></span>
+                      <span>Возраст: <span className="age-value">{calculateAgeInMonths(settings.birthDate)} месяцев</span></span>
+                    </div>
               </div>
             </div>
           </div>

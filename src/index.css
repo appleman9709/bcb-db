@@ -1590,3 +1590,231 @@
 .text-gray-900.drop-shadow-lg {
   filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.8)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
+
+/* Оптимизация поля ввода даты рождения для iPhone */
+.date-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.date-input-container input[type="date"] {
+  /* iOS оптимизации */
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  
+  /* Улучшенная область касания */
+  min-height: 56px;
+  padding: 16px;
+  font-size: 16px; /* Предотвращает зум на iOS */
+  
+  /* iOS специфичные стили */
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #374151;
+  font-weight: 500;
+  
+  /* Улучшенная типографика для мобильных */
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  
+  /* Плавные переходы */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Тени для глубины */
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Состояния фокуса и hover */
+.date-input-container input[type="date"]:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 
+    0 0 0 3px rgba(59, 130, 246, 0.1),
+    0 4px 6px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.date-input-container input[type="date"]:hover {
+  border-color: #9ca3af;
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Календарная иконка */
+.date-input-container input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.date-input-container input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+.date-input-container input[type="date"]:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+
+/* Декоративный элемент для лучшего UX */
+.date-input-container .focus-ring {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.date-input-container:focus-within .focus-ring {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Описание возраста */
+.date-input-container .age-description {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.date-input-container .age-description .age-indicator {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+}
+
+.date-input-container .age-description .age-value {
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Адаптивность для разных размеров экрана */
+@media (max-width: 640px) {
+  .date-input-container input[type="date"] {
+    min-height: 52px;
+    padding: 14px 16px;
+    font-size: 16px; /* Критично для предотвращения зума */
+  }
+  
+  .date-input-container input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 18px;
+    height: 18px;
+    right: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .date-input-container input[type="date"] {
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+  
+  .date-input-container input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 16px;
+    height: 16px;
+    right: 12px;
+  }
+  
+  .date-input-container .focus-ring {
+    border-radius: 10px;
+  }
+}
+
+/* Touch-оптимизация для устройств без hover */
+@media (hover: none) and (pointer: coarse) {
+  .date-input-container input[type="date"]:hover {
+    border-color: #d1d5db;
+    box-shadow: 
+      0 1px 3px rgba(0, 0, 0, 0.1),
+      0 1px 2px rgba(0, 0, 0, 0.06);
+    transform: none;
+  }
+  
+  .date-input-container input[type="date"]:active {
+    transform: scale(0.98);
+    border-color: #3b82f6;
+    box-shadow: 
+      0 0 0 3px rgba(59, 130, 246, 0.1),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Увеличенная область касания для touch-устройств */
+  .date-input-container input[type="date"] {
+    min-height: 60px;
+    padding: 18px 16px;
+  }
+}
+
+/* Анимация появления */
+.date-input-container {
+  animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Улучшенная доступность */
+.date-input-container input[type="date"]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Состояние ошибки */
+.date-input-container.error input[type="date"] {
+  border-color: #ef4444;
+  box-shadow: 
+    0 1px 3px rgba(239, 68, 68, 0.1),
+    0 1px 2px rgba(239, 68, 68, 0.06);
+}
+
+.date-input-container.error:focus-within .focus-ring {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Состояние успеха */
+.date-input-container.success input[type="date"] {
+  border-color: #10b981;
+  box-shadow: 
+    0 1px 3px rgba(16, 185, 129, 0.1),
+    0 1px 2px rgba(16, 185, 129, 0.06);
+}
+
+.date-input-container.success:focus-within .focus-ring {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
