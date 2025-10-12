@@ -4,8 +4,8 @@
   "description": "Панель управления для ухода за ребенком",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#f1f5f9",
+  "background_color": "#d6e7fe",
+  "theme_color": "#d6e7fe",
   "orientation": "portrait-primary",
   "icons": [
     {
