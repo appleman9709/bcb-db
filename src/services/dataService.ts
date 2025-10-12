@@ -97,6 +97,24 @@ export interface ParentCoins {
   updated_at: string
 }
 
+export interface TetrisRecord {
+  id: number
+  family_id: number
+  user_id: string
+  player_name: string
+  score: number
+  level: number
+  lines_cleared: number
+  game_duration_seconds: number
+  pieces_placed: number
+  game_mode: string
+  created_at: string
+}
+
+export interface TetrisRecordWithRank extends TetrisRecord {
+  rank: number
+}
+
 type AuthorContext = {
   authorId: string
   authorName: string
@@ -663,6 +681,113 @@ class DataService {
     console.log('DataService: Updating coins record:', updatedCoins)
 
     return await this.updateParentCoins(updatedCoins)
+  }
+
+  // Tetris records operations
+  async getFamilyTetrisRecords(limit: number = 10): Promise<TetrisRecordWithRank[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .rpc('get_family_tetris_records', {
+        family_id_param: familyId,
+        limit_count: limit
+      })
+
+    if (error) {
+      console.error('Error fetching family tetris records', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  async getUserTetrisRecords(limit: number = 10): Promise<TetrisRecordWithRank[]> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    const { data, error } = await supabase
+      .rpc('get_user_tetris_records', {
+        family_id_param: familyId,
+        user_id_param: authorId,
+        limit_count: limit
+      })
+
+    if (error) {
+      console.error('Error fetching user tetris records', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  async addTetrisRecord(record: {
+    player_name: string
+    score: number
+    level: number
+    lines_cleared: number
+    game_duration_seconds: number
+    pieces_placed: number
+    game_mode?: string
+  }): Promise<TetrisRecord | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName } = this.requireAuthor()
+
+    const { data, error } = await supabase
+      .from('tetris_records')
+      .insert({
+        family_id: familyId,
+        user_id: authorId,
+        player_name: record.player_name || authorName,
+        score: record.score,
+        level: record.level,
+        lines_cleared: record.lines_cleared,
+        game_duration_seconds: record.game_duration_seconds,
+        pieces_placed: record.pieces_placed,
+        game_mode: record.game_mode || 'classic'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding tetris record', error)
+      return null
+    }
+
+    return data
+  }
+
+  async getTetrisRecordRank(score: number): Promise<number> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('tetris_records')
+      .select('score')
+      .eq('family_id', familyId)
+      .gte('score', score)
+      .order('score', { ascending: false })
+
+    if (error) {
+      console.error('Error getting tetris record rank', error)
+      return 0
+    }
+
+    return data ? data.length : 0
+  }
+
+  async getFamilyBestTetrisRecord(): Promise<TetrisRecord | null> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .rpc('get_family_best_tetris_record', {
+        family_id_param: familyId
+      })
+
+    if (error) {
+      console.error('Error fetching family best tetris record', error)
+      return null
+    }
+
+    return data && data.length > 0 ? data[0] : null
   }
 }
 

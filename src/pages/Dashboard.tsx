@@ -11,6 +11,7 @@ import ActivityCard from '../components/ActivityCard'
 import BottomNavigation from '../components/BottomNavigation'
 import BackgroundElements from '../components/BackgroundElements'
 import TamagotchiPage from './TamagotchiPage'
+import TetrisPage from './TetrisPage'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, Tip } from '../services/dataService'
 
@@ -97,7 +98,7 @@ export default function Dashboard() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(requestDefaultNotificationPermission)
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [activeTab, setActiveTab] = useState<'home' | 'history' | 'settings' | 'tamagotchi'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris'>('home')
 
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
@@ -424,8 +425,8 @@ export default function Dashboard() {
         return
       }
 
-      // Дополнительная проверка: не активируем pull-to-refresh в настройках и истории
-      if (activeTab === 'settings' || activeTab === 'history') {
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории и тетрисе
+      if (activeTab === 'settings' || activeTab === 'history' || activeTab === 'tetris') {
         resetPullState()
         return
       }
@@ -439,8 +440,8 @@ export default function Dashboard() {
         return
       }
 
-      // Дополнительная проверка: не активируем pull-to-refresh в настройках и истории
-      if (activeTab === 'settings' || activeTab === 'history') {
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории и тетрисе
+      if (activeTab === 'settings' || activeTab === 'history' || activeTab === 'tetris') {
         resetPullState()
         return
       }
@@ -509,6 +510,18 @@ export default function Dashboard() {
 
     setNotificationPermission(requestDefaultNotificationPermission())
   }, [isNotificationSupported])
+
+  // Обработчик сообщений от игры Tetris
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'TETRIS_BACK') {
+        setActiveTab('home')
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -613,7 +626,7 @@ export default function Dashboard() {
   }
 
 
-  const handleTabChange = (tab: 'home' | 'history' | 'settings' | 'tamagotchi') => {
+  const handleTabChange = (tab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris') => {
     console.log('Tab changed to:', tab) // Отладочная информация
     setActiveTab(tab)
     if (tab === 'history') {
@@ -622,6 +635,8 @@ export default function Dashboard() {
       setActiveSection('settings')
     } else if (tab === 'tamagotchi') {
       setActiveSection('dashboard') // Используем dashboard для тамагочи
+    } else if (tab === 'tetris') {
+      setActiveSection('dashboard') // Используем dashboard для тетриса
     } else {
       setActiveSection('dashboard')
     }
@@ -668,9 +683,11 @@ export default function Dashboard() {
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        <div className="flex-1 px-4 py-2 pb-16 iphone14-dashboard pwa-content overflow-y-auto overflow-x-hidden">
+        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content overflow-y-auto overflow-x-hidden'}`}>
           {activeTab === 'tamagotchi' ? (
             <TamagotchiPage />
+          ) : activeTab === 'tetris' ? (
+            <TetrisPage />
           ) : activeTab === 'settings' ? (
             <div className="space-y-3">
               <div className="text-center">
@@ -1290,7 +1307,7 @@ export default function Dashboard() {
 
             </div>
 
-        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+        {activeTab !== 'tetris' && <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />}
               </div>
 
         <QuickActionModal

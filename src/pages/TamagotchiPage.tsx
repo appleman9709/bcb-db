@@ -379,56 +379,56 @@ export default function TamagotchiPage() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Стопки монеток */}
-      <div className="text-center">
-        <div className="flex justify-center gap-2 flex-wrap items-center">
+    <div className="tamagotchi-container">
+      {/* Стопки монеток - компактные */}
+      <div className="tamagotchi-coins text-center">
+        <div className="flex justify-center gap-1 flex-wrap items-center">
           {/* Стопка кормления */}
           {feedingCoins > 0 && (
-            <div className="flex items-center gap-1 bg-pink-100 px-2 py-1 rounded-full">
-              <img src="/icons/feeding.png" alt="Кормление" className="w-4 h-4" />
+            <div className="flex items-center gap-1 bg-pink-100 px-1.5 py-0.5 rounded-full">
+              <img src="/icons/feeding.png" alt="Кормление" className="w-3 h-3" />
               <span className="text-xs font-bold text-pink-800">{feedingCoins}</span>
             </div>
           )}
           
           {/* Стопка подгузников */}
           {diaperCoins > 0 && (
-            <div className="flex items-center gap-1 bg-yellow-100 px-2 py-1 rounded-full">
-              <img src="/icons/poor.png" alt="Подгузник" className="w-4 h-4" />
+            <div className="flex items-center gap-1 bg-yellow-100 px-1.5 py-0.5 rounded-full">
+              <img src="/icons/poor.png" alt="Подгузник" className="w-3 h-3" />
               <span className="text-xs font-bold text-yellow-800">{diaperCoins}</span>
             </div>
           )}
           
           {/* Стопка купания */}
           {bathCoins > 0 && (
-            <div className="flex items-center gap-1 bg-purple-100 px-2 py-1 rounded-full">
-              <img src="/icons/sponge.png" alt="Купание" className="w-4 h-4" />
+            <div className="flex items-center gap-1 bg-purple-100 px-1.5 py-0.5 rounded-full">
+              <img src="/icons/sponge.png" alt="Купание" className="w-3 h-3" />
               <span className="text-xs font-bold text-purple-800">{bathCoins}</span>
             </div>
           )}
           
           {/* Стопка обычных монеток */}
           {momCoins > 0 && (
-            <div className="flex items-center gap-1 bg-green-100 px-2 py-1 rounded-full">
-              <img src="/icons/mom.png" alt="Монетка" className="w-4 h-4" />
+            <div className="flex items-center gap-1 bg-green-100 px-1.5 py-0.5 rounded-full">
+              <img src="/icons/mom.png" alt="Монетка" className="w-3 h-3" />
               <span className="text-xs font-bold text-green-800">{momCoins}</span>
             </div>
           )}
           
           {/* Общий счетчик очков */}
-          <div className={`inline-flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full transition-all duration-300 ${
+          <div className={`inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full transition-all duration-300 ${
             scoreAnimation ? 'score-animation bg-gray-200 shadow-lg' : 'scale-100'
           }`}>
-            <span className="text-sm font-bold text-gray-800">⭐</span>
-            <span className={`text-sm font-bold text-gray-800 transition-all duration-300 ${
+            <span className="text-xs font-bold text-gray-800">⭐</span>
+            <span className={`text-xs font-bold text-gray-800 transition-all duration-300 ${
               scoreAnimation ? 'text-gray-900' : ''
             }`}>{score}</span>
           </div>
         </div>
       </div>
 
-      {/* Видео малыша */}
-      <div className="text-center">
+      {/* Видео малыша - адаптивное */}
+      <div className="tamagotchi-video-container">
         <div className="relative inline-block">
           <video
             key={babyState} // Принудительно перезагружаем видео при смене состояния
@@ -437,7 +437,7 @@ export default function TamagotchiPage() {
             muted={isVideoMuted}
             playsInline
             onClick={handleVideoClick}
-            className="w-[85vw] max-w-[500px] max-h-[700px] object-cover rounded-lg cursor-pointer"
+            className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-lg cursor-pointer"
           >
             <source src={getVideoSource(babyState)} type="video/mp4" />
             Ваш браузер не поддерживает видео.
@@ -486,7 +486,7 @@ export default function TamagotchiPage() {
           ))}
         </div>
         
-        <p className="text-sm font-medium text-gray-700 mt-3">
+        <p className="text-xs font-medium text-gray-700 mt-2">
           {getStateDescription(babyState)}
         </p>
         {isVideoMuted && babyState !== 'ok' && (
@@ -496,44 +496,44 @@ export default function TamagotchiPage() {
         )}
       </div>
 
-      {/* Лоток с предметами */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-        <h2 className="text-sm font-semibold text-gray-900 mb-3 text-center">🛠️ Инвентарь</h2>
+      {/* Лоток с предметами - компактный */}
+      <div className="tamagotchi-inventory bg-white rounded-xl shadow-sm border border-gray-100">
+        <h2 className="text-xs font-semibold text-gray-900 mb-2 text-center">🛠️ Инвентарь</h2>
         
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {/* Подгузник */}
           <div 
             onClick={() => handleItemClick('diaper')}
-            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/diaper.png" 
               alt="Подгузник" 
-              className="w-12 h-12 object-contain"
+              className="w-8 h-8 object-contain"
             />
           </div>
 
           {/* Бутылочка */}
           <div 
             onClick={() => handleItemClick('feeding')}
-            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/feeding.png" 
               alt="Бутылочка" 
-              className="w-12 h-12 object-contain"
+              className="w-8 h-8 object-contain"
             />
           </div>
 
           {/* Губка */}
           <div 
             onClick={() => handleItemClick('bath')}
-            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/sponge.png" 
               alt="Губка" 
-              className="w-12 h-12 object-contain"
+              className="w-8 h-8 object-contain"
             />
           </div>
         </div>

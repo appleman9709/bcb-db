@@ -1,8 +1,8 @@
 import React from 'react'
 
 interface BottomNavigationProps {
-  activeTab: 'home' | 'history' | 'settings' | 'tamagotchi'
-  onTabChange: (tab: 'home' | 'history' | 'settings' | 'tamagotchi') => void
+  activeTab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris'
+  onTabChange: (tab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris') => void
 }
 
 export default function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
@@ -89,6 +89,35 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
             <circle cx="12" cy="12" r="2"/>
           </svg>
           <span className="text-xs font-medium">Тамагочи</span>
+        </button>
+
+        {/* Тетрис */}
+        <button
+          onClick={() => onTabChange('tetris')}
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors iphone14-nav-button ${
+            activeTab === 'tetris' 
+              ? 'text-blue-500 bg-blue-50' 
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <svg 
+            width="20" 
+            height="20" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className="w-5 h-5"
+          >
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <rect x="7" y="7" width="3" height="3"/>
+            <rect x="14" y="7" width="3" height="3"/>
+            <rect x="7" y="14" width="3" height="3"/>
+            <rect x="14" y="14" width="3" height="3"/>
+          </svg>
+          <span className="text-xs font-medium">Тетрис</span>
         </button>
 
         {/* Настройки */}

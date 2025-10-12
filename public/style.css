@@ -1,0 +1,596 @@
+﻿/* Основные стили и сброс */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    overflow: hidden;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+}
+
+body {
+    background: #F5F3EF;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+    color: #1F2937;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    font-size: 16px;
+    font-feature-settings: "tnum"; /* Tabular numerals */
+}
+
+/* Основной контейнер игры */
+.game-container {
+    background: #F5F3EF;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* iPhone safe areas */
+@supports (padding: max(0px)) {
+    body {
+        padding-top: max(0px, env(safe-area-inset-top));
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+    .game-container {
+        padding-top: max(0px, env(safe-area-inset-top));
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+}
+
+/* Хедер */
+.game-header {
+    flex-shrink: 0;
+    padding: 16px 20px;
+    background: transparent;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 100%;
+}
+
+.game-logo {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1F2937;
+    letter-spacing: 0.5px;
+}
+
+.score-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.current-score {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1F2937;
+    font-feature-settings: "tnum";
+    letter-spacing: 1px;
+}
+
+.combo-indicator {
+    background: #31C48D;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    animation: comboBounce 200ms ease-out;
+}
+
+.combo-text {
+    font-feature-settings: "tnum";
+}
+
+/* Основная игровая область */
+.game-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0 20px;
+    gap: 20px;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Секция игрового поля */
+.game-board-section {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-board {
+    background: #FAF6EF;
+    border-radius: 24px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(207, 198, 184, 0.3);
+    position: relative;
+}
+
+#gameCanvas {
+    width: 324px;
+    height: 324px;
+    border-radius: 8px;
+    background: #FAF6EF;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    touch-action: none;
+    display: block;
+}
+
+/* Лоток фигур */
+.pieces-tray {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pieces-container {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    padding: 8px 0;
+}
+
+/* Карточки-слоты для фигур */
+[id^="slot"] {
+    background: transparent;
+    border-radius: 18px;
+    min-height: 80px;
+    min-width: 80px;
+    max-width: 140px;
+    max-height: 140px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 120ms ease;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    border: 2px solid transparent;
+    box-shadow: none;
+}
+
+/* Активный слот (выбранная фигура) */
+[id^="slot"].active {
+    border: 2px solid rgba(31, 41, 55, 0.2);
+    box-shadow: 0 2px 8px rgba(31, 41, 55, 0.15), 0 0 0 1px rgba(31, 41, 55, 0.1);
+}
+
+/* Пустой слот (фигура уже размещена) */
+[id^="slot"].empty {
+    opacity: 0.5;
+    background: transparent;
+    border: 2px dashed #CFC6B8;
+}
+
+/* Эффекты при наведении */
+[id^="slot"]:hover:not(.empty) {
+    transform: scale(1.02);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+[id^="slot"]:active:not(.empty) {
+    transform: scale(0.98);
+}
+
+.piece-item {
+    border-radius: 0;
+    padding: 0;
+    cursor: pointer;
+    transition: transform 120ms ease;
+    touch-action: none;
+    user-select: none;
+    min-height: auto;
+    min-width: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: transparent;
+    box-shadow: none;
+}
+
+/* Базовые эффекты для фигур */
+.piece-item:hover {
+    transform: scale(1.05);
+}
+
+.piece-item:active {
+    transform: scale(0.95);
+}
+
+/* Выделение теперь происходит на уровне слота, а не фигуры */
+
+.piece-item.dragging {
+    opacity: 0.8;
+    transform: scale(1.05);
+    z-index: 1000;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.piece-canvas {
+    border-radius: 8px;
+    transition: filter 120ms ease;
+    flex-shrink: 0;
+    object-fit: contain;
+    /* Размеры теперь устанавливаются динамически в JavaScript */
+}
+
+/* Нижняя панель */
+.game-footer {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 0 0 20px 0;
+}
+
+.new-game-btn {
+    background: #1F2937;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 120ms ease;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.new-game-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.new-game-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.game-hints {
+    text-align: center;
+}
+
+.hint-text {
+    font-size: 12px;
+    color: #6B7280;
+    line-height: 1.4;
+    margin: 2px 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Убираем цветную подложку у фигур в лотке - оставляем только сами фигуры */
+.piece-item {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Эффекты при наведении - только легкое масштабирование */
+.piece-item:hover {
+    background: transparent !important;
+    box-shadow: none !important;
+    filter: none !important;
+}
+
+/* Модальное окно окончания игры */
+.game-over {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    border: 1px solid #E5DFD6;
+    color: #1F2937;
+    max-width: 90%;
+    width: 400px;
+}
+
+.game-over h2 {
+    color: #1F2937;
+    margin-bottom: 20px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.game-over p {
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #6B7280;
+}
+
+.final-score {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1F2937;
+    margin: 20px 0;
+    font-feature-settings: "tnum";
+}
+
+.record-info {
+    font-size: 14px;
+    color: #9CA3AF;
+    margin-bottom: 25px;
+}
+
+.game-over button {
+    background: #1F2937;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 120ms ease;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+}
+
+.game-over button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.game-over button:active {
+    transform: scale(0.98);
+}
+
+/* Анимации */
+@keyframes comboBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes pieceAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.96) translateY(-10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes piecePlace {
+    0% { transform: scale(0.96); }
+    100% { transform: scale(1); }
+}
+
+@keyframes lineClear {
+    0% { 
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% { 
+        opacity: 0;
+        transform: translateY(-2px);
+    }
+}
+
+.piece-item.appearing {
+    animation: pieceAppear 120ms ease-out forwards;
+}
+
+.piece-item.placing {
+    animation: piecePlace 120ms ease-out forwards;
+}
+
+/* Адаптивность */
+@media (max-width: 400px) {
+    .game-main {
+        padding: 0 16px;
+        gap: 16px;
+    }
+    
+    .game-board {
+        padding: 12px;
+        border-radius: 20px;
+    }
+    
+    .pieces-container {
+        gap: 6px;
+    }
+    
+    [id^="slot"] {
+        min-height: 70px;
+        min-width: 70px;
+        max-width: 120px;
+        max-height: 120px;
+        border-radius: 16px;
+    }
+    
+    .piece-item {
+        min-height: 72px;
+        min-width: 72px;
+        padding: 12px;
+        border-radius: 16px;
+    }
+    
+    .piece-canvas {
+        /* Размеры устанавливаются динамически в JavaScript */
+        flex-shrink: 0;
+        object-fit: contain;
+    }
+    
+    .current-score {
+        font-size: 24px;
+    }
+    
+    .game-logo {
+        font-size: 16px;
+    }
+}
+
+@media (min-width: 401px) {
+    [id^="slot"] {
+        min-height: 80px;
+        min-width: 80px;
+        max-width: 140px;
+        max-height: 140px;
+        border-radius: 20px;
+    }
+    
+    .piece-item {
+        min-height: 84px;
+        min-width: 84px;
+    }
+    
+    .piece-canvas {
+        /* Размеры устанавливаются динамически в JavaScript */
+        flex-shrink: 0;
+        object-fit: contain;
+    }
+}
+
+/* Дополнительные правила для предотвращения прокрутки */
+* {
+    -webkit-overflow-scrolling: touch;
+}
+
+body, html {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Стили для комплиментов при достижении уровня */
+.level-up-compliment {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.level-up-compliment.show {
+    opacity: 1;
+}
+
+.compliment-content {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 2px solid #31C48D;
+    max-width: 90%;
+    width: 400px;
+    transform: scale(0.8) translateY(-50px);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.level-up-compliment.show .compliment-content {
+    transform: scale(1) translateY(0);
+}
+
+.level-badge {
+    font-size: 24px;
+    font-weight: 700;
+    color: #31C48D;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+.compliment-text {
+    font-size: 16px;
+    color: #1F2937;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    font-weight: 500;
+    padding: 20px;
+    background: #F9FAFB;
+    border-radius: 16px;
+    border: 1px solid #E5E7EB;
+}
+
+.compliment-close {
+    background: #31C48D;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 120ms ease;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+}
+
+.compliment-close:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(49, 196, 141, 0.3);
+}
+
+.compliment-close:active {
+    transform: scale(0.98);
+}
+
+/* Адаптивность для комплиментов */
+@media (max-width: 480px) {
+    .compliment-content {
+        padding: 25px;
+        width: 95%;
+        margin: 0 10px;
+    }
+    
+    .level-badge {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .compliment-text {
+        font-size: 14px;
+        padding: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .compliment-close {
+        padding: 12px 25px;
+        font-size: 14px;
+    }
+}

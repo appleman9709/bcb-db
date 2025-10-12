@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover, maximum-scale=1.0">
+    <title>Судоку Тетрис</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Судоку Тетрис">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Тетрис">
+    <meta name="description" content="Мобильная игра Судоку Тетрис для релакса">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-config" content="public/browserconfig.xml">
+    <meta name="msapplication-TileColor" content="#4a90e2">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="theme-color" content="#4a90e2">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="public/favicon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="public/favicon.png">
+    <link rel="shortcut icon" href="public/favicon.png">
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="public/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="public/icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="public/icons/icon-192x192.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="public/manifest.json">
+    
+    <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Хедер с логотипом, счетом и комбо -->
+        <header class="game-header">
+            <div class="header-content">
+                <div class="game-logo">Важное дело</div>
+                <button class="new-game-btn" id="newGameBtn">Новая игра</button>
+                <div class="score-section">
+                    <div class="current-score" id="currentScore">0</div>
+                    <div class="combo-indicator" id="comboIndicator" style="display: none;">
+                        <span class="combo-text">x2</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Основная игровая область -->
+        <main class="game-main">
+            <!-- Поле 9×9 -->
+            <section class="game-board-section">
+                <div class="game-board">
+                    <canvas id="gameCanvas"></canvas>
+                </div>
+            </section>
+            
+            <!-- Лоток фигур -->
+            <section class="pieces-tray">
+                <div class="pieces-container" id="piecesContainer">
+                    <!-- Слоты для фигур -->
+                    <div id="slot1" data-slot="1">
+                        <!-- Фигура будет добавлена динамически -->
+                    </div>
+                    <div id="slot2" data-slot="2">
+                        <!-- Фигура будет добавлена динамически -->
+                    </div>
+                    <div id="slot3" data-slot="3">
+                        <!-- Фигура будет добавлена динамически -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Нижняя панель -->
+            <footer class="game-footer">
+                <div class="game-hints">
+                    <p class="hint-text" id="complimentText">Ты самая красивая жена на свете! 💕</p>
+                </div>
+            </footer>
+        </main>
+        
+        <!-- Модальное окно окончания игры -->
+        <div class="game-over" id="gameOver" style="display: none;">
+            <!-- Контент генерируется динамически в JavaScript -->
+        </div>
+    </div>
+    
+    <script type="module" src="src/main.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('public/sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+        
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Показать кнопку установки (можно добавить в UI)
+            console.log('PWA can be installed');
+        });
+        
+        // Обработка установки PWA
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('PWA was installed');
+        });
+    </script>
+</body>
+</html>

@@ -122,6 +122,22 @@ CREATE TABLE IF NOT EXISTS parent_coins (
     UNIQUE(family_id, user_id)
 );
 
+-- Таблица рекордов тетриса
+CREATE TABLE IF NOT EXISTS tetris_records (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER REFERENCES families(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL,
+    player_name TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    level INTEGER NOT NULL,
+    lines_cleared INTEGER NOT NULL,
+    game_duration_seconds INTEGER NOT NULL,
+    pieces_placed INTEGER NOT NULL,
+    game_mode TEXT DEFAULT 'classic',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(family_id, user_id, score) -- Предотвращает дублирование одинаковых рекордов
+);
+
 
 -- Создание индексов для оптимизации запросов
 CREATE INDEX IF NOT EXISTS idx_family_members_user_id ON family_members(user_id);
@@ -139,6 +155,10 @@ CREATE INDEX IF NOT EXISTS idx_tips_age_months ON tips(age_months);
 CREATE INDEX IF NOT EXISTS idx_tips_category ON tips(category);
 CREATE INDEX IF NOT EXISTS idx_parent_coins_family_id ON parent_coins(family_id);
 CREATE INDEX IF NOT EXISTS idx_parent_coins_user_id ON parent_coins(user_id);
+CREATE INDEX IF NOT EXISTS idx_tetris_records_family_id ON tetris_records(family_id);
+CREATE INDEX IF NOT EXISTS idx_tetris_records_user_id ON tetris_records(user_id);
+CREATE INDEX IF NOT EXISTS idx_tetris_records_score ON tetris_records(score DESC);
+CREATE INDEX IF NOT EXISTS idx_tetris_records_created_at ON tetris_records(created_at DESC);
 
 -- Функция для автоматического обновления updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -172,6 +192,7 @@ ALTER TABLE sleep_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tips ENABLE ROW LEVEL SECURITY;
 ALTER TABLE parent_coins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tetris_records ENABLE ROW LEVEL SECURITY;
 
 -- Политики безопасности (разрешаем все операции для аутентифицированных пользователей)
 -- В реальном проекте здесь должны быть более строгие политики
@@ -185,3 +206,77 @@ CREATE POLICY "Enable all operations for authenticated users" ON sleep_sessions 
 CREATE POLICY "Enable all operations for authenticated users" ON settings FOR ALL USING (true);
 CREATE POLICY "Enable all operations for authenticated users" ON tips FOR ALL USING (true);
 CREATE POLICY "Enable all operations for authenticated users" ON parent_coins FOR ALL USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON tetris_records FOR ALL USING (true);
+
+-- Функция для получения топ-10 рекордов семьи
+CREATE OR REPLACE FUNCTION get_family_tetris_records(family_id_param INTEGER, limit_count INTEGER DEFAULT 10)
+RETURNS TABLE (
+    id INTEGER,
+    user_id BIGINT,
+    player_name TEXT,
+    score INTEGER,
+    level INTEGER,
+    lines_cleared INTEGER,
+    game_duration_seconds INTEGER,
+    pieces_placed INTEGER,
+    game_mode TEXT,
+    created_at TIMESTAMP WITH TIME ZONE,
+    rank INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        tr.id,
+        tr.user_id,
+        tr.player_name,
+        tr.score,
+        tr.level,
+        tr.lines_cleared,
+        tr.game_duration_seconds,
+        tr.pieces_placed,
+        tr.game_mode,
+        tr.created_at,
+        ROW_NUMBER() OVER (ORDER BY tr.score DESC, tr.created_at ASC)::INTEGER as rank
+    FROM tetris_records tr
+    WHERE tr.family_id = family_id_param
+    ORDER BY tr.score DESC, tr.created_at ASC
+    LIMIT limit_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Функция для получения личных рекордов пользователя
+CREATE OR REPLACE FUNCTION get_user_tetris_records(family_id_param INTEGER, user_id_param BIGINT, limit_count INTEGER DEFAULT 10)
+RETURNS TABLE (
+    id INTEGER,
+    user_id BIGINT,
+    player_name TEXT,
+    score INTEGER,
+    level INTEGER,
+    lines_cleared INTEGER,
+    game_duration_seconds INTEGER,
+    pieces_placed INTEGER,
+    game_mode TEXT,
+    created_at TIMESTAMP WITH TIME ZONE,
+    rank INTEGER
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        tr.id,
+        tr.user_id,
+        tr.player_name,
+        tr.score,
+        tr.level,
+        tr.lines_cleared,
+        tr.game_duration_seconds,
+        tr.pieces_placed,
+        tr.game_mode,
+        tr.created_at,
+        ROW_NUMBER() OVER (ORDER BY tr.score DESC, tr.created_at ASC)::INTEGER as rank
+    FROM tetris_records tr
+    WHERE tr.family_id = family_id_param 
+      AND tr.user_id = user_id_param
+    ORDER BY tr.score DESC, tr.created_at ASC
+    LIMIT limit_count;
+END;
+$$ LANGUAGE plpgsql;
