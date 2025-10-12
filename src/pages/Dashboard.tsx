@@ -624,7 +624,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden pwa-container">
+    <div className="h-screen h-dvh bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden pwa-container">
       <BackgroundElements />
       
       {/* Pull-to-refresh индикатор */}
@@ -664,7 +664,7 @@ export default function Dashboard() {
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        <div className="flex-1 px-4 py-2 pb-16 iphone14-dashboard pwa-content">
+        <div className="flex-1 px-4 py-2 pb-16 iphone14-dashboard pwa-content overflow-y-auto overflow-x-hidden">
           {activeTab === 'settings' ? (
             <div className="space-y-3">
               <div className="text-center">
