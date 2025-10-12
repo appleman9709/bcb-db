@@ -1929,8 +1929,8 @@
 }
 
 .tamagotchi-video {
-  max-height: 50vh;
-  max-height: 50dvh;
+  max-height: 60vh;
+  max-height: 60dvh;
   width: auto;
   height: auto;
   object-fit: contain;

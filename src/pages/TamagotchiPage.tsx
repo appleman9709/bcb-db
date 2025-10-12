@@ -489,11 +489,6 @@ export default function TamagotchiPage() {
         <p className="text-xs font-medium text-gray-700 mt-2">
           {getStateDescription(babyState)}
         </p>
-        {isVideoMuted && babyState !== 'ok' && (
-          <p className="text-xs text-gray-500 mt-1">
-            🔊 Нажмите на видео, чтобы включить звук
-          </p>
-        )}
       </div>
 
       {/* Лоток с предметами - компактный */}

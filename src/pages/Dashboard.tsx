@@ -691,12 +691,6 @@ export default function Dashboard() {
           ) : activeTab === 'settings' ? (
             <div className="space-y-3">
               <div className="text-center">
-                <button
-                  onClick={() => setActiveTab('home')}
-                  className="mb-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
-                >
-                  ← Назад
-                </button>
                 <h1 className="text-lg font-bold text-gray-900 mb-1">⚙️ Настройки</h1>
                 <p className="text-xs text-gray-600">Персонализируйте приложение под вашего малыша</p>
         </div>
