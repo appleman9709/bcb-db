@@ -30,9 +30,6 @@ export default function Header({ onMenuClick }: HeaderProps) {
         </svg>
       </button>
 
-      {/* Название приложения */}
-      <h1 className="text-lg font-bold text-gray-900">Никола</h1>
-
       {/* Пустое место для симметрии */}
       <div className="w-8 h-8"></div>
     </div>

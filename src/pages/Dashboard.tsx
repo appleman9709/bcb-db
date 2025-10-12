@@ -8,7 +8,6 @@ import LoadingScreen from '../components/LoadingScreen'
 import DebugPanel from '../components/DebugPanel'
 import BabyIllustration from '../components/BabyIllustration'
 import ActivityCard from '../components/ActivityCard'
-import Header from '../components/Header'
 import BottomNavigation from '../components/BottomNavigation'
 import BackgroundElements from '../components/BackgroundElements'
 import { useAuth } from '../contexts/AuthContext'
@@ -97,7 +96,7 @@ export default function Dashboard() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(requestDefaultNotificationPermission)
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [activeTab, setActiveTab] = useState<'home' | 'history'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'history' | 'settings'>('home')
 
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
@@ -251,7 +250,7 @@ export default function Dashboard() {
 
   const handleModalSuccess = () => {
     fetchData()
-    if (activeSection === 'history') {
+    if (activeTab === 'history') {
       fetchHistoryData()
     }
     setModalOpen(false)
@@ -262,14 +261,14 @@ export default function Dashboard() {
     try {
       await Promise.all([
         fetchData(),
-        activeSection === 'history' ? fetchHistoryData() : Promise.resolve()
+        activeTab === 'history' ? fetchHistoryData() : Promise.resolve()
       ])
     } catch (error) {
       console.error('Error refreshing data:', error)
     } finally {
       setIsRefreshing(false)
     }
-  }, [fetchData, fetchHistoryData, activeSection])
+  }, [fetchData, fetchHistoryData, activeTab])
 
   const handleSettingChange = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -383,10 +382,10 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    if (activeSection === 'history' && member && family) {
+    if (activeTab === 'history' && member && family) {
       fetchHistoryData()
     }
-  }, [activeSection, member, family, fetchHistoryData])
+  }, [activeTab, member, family, fetchHistoryData])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -425,7 +424,7 @@ export default function Dashboard() {
       }
 
       // Дополнительная проверка: не активируем pull-to-refresh в настройках и истории
-      if (activeSection === 'settings' || activeTab === 'history') {
+      if (activeTab === 'settings' || activeTab === 'history') {
         resetPullState()
         return
       }
@@ -440,7 +439,7 @@ export default function Dashboard() {
       }
 
       // Дополнительная проверка: не активируем pull-to-refresh в настройках и истории
-      if (activeSection === 'settings' || activeTab === 'history') {
+      if (activeTab === 'settings' || activeTab === 'history') {
         resetPullState()
         return
       }
@@ -612,22 +611,13 @@ export default function Dashboard() {
     return <LoadingScreen />
   }
 
-  const handleMenuClick = () => {
-    if (activeSection === 'settings') {
-      // Если мы в настройках, возвращаемся на главную страницу
-      setActiveSection('dashboard')
-      setActiveTab('home')
-    } else {
-      // Если мы на главной странице, переходим в настройки
-      setActiveSection('settings')
-      setActiveTab('home') // Убедимся, что мы на главной вкладке
-    }
-  }
 
-  const handleTabChange = (tab: 'home' | 'history') => {
+  const handleTabChange = (tab: 'home' | 'history' | 'settings') => {
     setActiveTab(tab)
     if (tab === 'history') {
       setActiveSection('history')
+    } else if (tab === 'settings') {
+      setActiveSection('settings')
     } else {
       setActiveSection('dashboard')
     }
@@ -674,14 +664,12 @@ export default function Dashboard() {
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        <Header onMenuClick={handleMenuClick} />
-        
         <div className="flex-1 px-4 py-2 pb-16 iphone14-dashboard pwa-content">
-          {activeSection === 'settings' ? (
+          {activeTab === 'settings' ? (
             <div className="space-y-3">
               <div className="text-center">
                 <button
-                  onClick={() => setActiveSection('dashboard')}
+                  onClick={() => setActiveTab('home')}
                   className="mb-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
                 >
                   ← Назад
