@@ -10,6 +10,7 @@ import BabyIllustration from '../components/BabyIllustration'
 import ActivityCard from '../components/ActivityCard'
 import BottomNavigation from '../components/BottomNavigation'
 import BackgroundElements from '../components/BackgroundElements'
+import TamagotchiPage from './TamagotchiPage'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, Tip } from '../services/dataService'
 
@@ -96,7 +97,7 @@ export default function Dashboard() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(requestDefaultNotificationPermission)
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [activeTab, setActiveTab] = useState<'home' | 'history' | 'settings'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'history' | 'settings' | 'tamagotchi'>('home')
 
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
@@ -612,12 +613,15 @@ export default function Dashboard() {
   }
 
 
-  const handleTabChange = (tab: 'home' | 'history' | 'settings') => {
+  const handleTabChange = (tab: 'home' | 'history' | 'settings' | 'tamagotchi') => {
+    console.log('Tab changed to:', tab) // Отладочная информация
     setActiveTab(tab)
     if (tab === 'history') {
       setActiveSection('history')
     } else if (tab === 'settings') {
       setActiveSection('settings')
+    } else if (tab === 'tamagotchi') {
+      setActiveSection('dashboard') // Используем dashboard для тамагочи
     } else {
       setActiveSection('dashboard')
     }
@@ -665,7 +669,9 @@ export default function Dashboard() {
       
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex-1 px-4 py-2 pb-16 iphone14-dashboard pwa-content overflow-y-auto overflow-x-hidden">
-          {activeTab === 'settings' ? (
+          {activeTab === 'tamagotchi' ? (
+            <TamagotchiPage />
+          ) : activeTab === 'settings' ? (
             <div className="space-y-3">
               <div className="text-center">
                 <button

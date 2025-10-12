@@ -1840,3 +1840,63 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
+/* Анимация появления монеток с zoom out */
+@keyframes coinZoomOut {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1.2) rotate(72deg);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1.1) rotate(144deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1) rotate(216deg);
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0.8) rotate(288deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(0.3) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes coinFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.coin-falling {
+  animation: coinZoomOut 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, coinFloat 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Анимация счетчика очков */
+@keyframes scoreBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.score-animation {
+  animation: scoreBounce 0.3s ease-out;
+}
+

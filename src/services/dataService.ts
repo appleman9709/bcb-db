@@ -84,6 +84,19 @@ export interface Tip {
   created_at: string
 }
 
+export interface ParentCoins {
+  id: number
+  family_id: number
+  user_id: string
+  feeding_coins: number
+  diaper_coins: number
+  bath_coins: number
+  mom_coins: number
+  total_score: number
+  created_at: string
+  updated_at: string
+}
+
 type AuthorContext = {
   authorId: string
   authorName: string
@@ -552,6 +565,104 @@ class DataService {
       diapers: diapersCount.count || 0,
       baths: bathsCount.count || 0
     }
+  }
+
+  // Parent coins operations
+  async getParentCoins(): Promise<ParentCoins | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    const { data, error } = await supabase
+      .from('parent_coins')
+      .select('*')
+      .eq('family_id', familyId)
+      .eq('user_id', authorId)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null
+      }
+
+      console.error('Error fetching parent coins', error)
+      return null
+    }
+
+    return data
+  }
+
+  async updateParentCoins(coins: {
+    feeding_coins?: number
+    diaper_coins?: number
+    bath_coins?: number
+    mom_coins?: number
+    total_score?: number
+  }): Promise<ParentCoins | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    // Сначала получаем текущие данные
+    const currentCoins = await this.getParentCoins()
+    
+    const coinsData = {
+      family_id: familyId,
+      user_id: authorId,
+      feeding_coins: coins.feeding_coins ?? currentCoins?.feeding_coins ?? 0,
+      diaper_coins: coins.diaper_coins ?? currentCoins?.diaper_coins ?? 0,
+      bath_coins: coins.bath_coins ?? currentCoins?.bath_coins ?? 0,
+      mom_coins: coins.mom_coins ?? currentCoins?.mom_coins ?? 0,
+      total_score: coins.total_score ?? currentCoins?.total_score ?? 0
+    }
+
+    console.log('DataService: Upserting coins data:', coinsData)
+    const { data, error } = await supabase
+      .from('parent_coins')
+      .upsert(coinsData, { 
+        onConflict: 'family_id,user_id',
+        ignoreDuplicates: false 
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating parent coins', error)
+      return null
+    }
+
+    console.log('DataService: Upsert successful:', data)
+
+    return data
+  }
+
+  async addCoins(coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'mom_coins', amount: number = 1): Promise<ParentCoins | null> {
+    console.log(`DataService: Adding ${amount} ${coinType} coins`)
+    const currentCoins = await this.getParentCoins()
+    console.log('DataService: Current coins:', currentCoins)
+    
+    if (!currentCoins) {
+      // Создаем новую запись
+      const newCoins = {
+        feeding_coins: coinType === 'feeding_coins' ? amount : 0,
+        diaper_coins: coinType === 'diaper_coins' ? amount : 0,
+        bath_coins: coinType === 'bath_coins' ? amount : 0,
+        mom_coins: coinType === 'mom_coins' ? amount : 0,
+        total_score: amount * 1 // Каждая монетка дает 1 очко
+      }
+      console.log('DataService: Creating new coins record:', newCoins)
+      return await this.updateParentCoins(newCoins)
+    }
+
+    // Обновляем существующую запись
+    const updatedCoins = {
+      feeding_coins: coinType === 'feeding_coins' ? currentCoins.feeding_coins + amount : currentCoins.feeding_coins,
+      diaper_coins: coinType === 'diaper_coins' ? currentCoins.diaper_coins + amount : currentCoins.diaper_coins,
+      bath_coins: coinType === 'bath_coins' ? currentCoins.bath_coins + amount : currentCoins.bath_coins,
+      mom_coins: coinType === 'mom_coins' ? currentCoins.mom_coins + amount : currentCoins.mom_coins,
+      total_score: currentCoins.total_score + (amount * 1)
+    }
+    console.log('DataService: Updating coins record:', updatedCoins)
+
+    return await this.updateParentCoins(updatedCoins)
   }
 }
 

@@ -1,8 +1,8 @@
 import React from 'react'
 
 interface BottomNavigationProps {
-  activeTab: 'home' | 'history' | 'settings'
-  onTabChange: (tab: 'home' | 'history' | 'settings') => void
+  activeTab: 'home' | 'history' | 'settings' | 'tamagotchi'
+  onTabChange: (tab: 'home' | 'history' | 'settings' | 'tamagotchi') => void
 }
 
 export default function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
@@ -62,6 +62,33 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
             <polyline points="10,9 9,9 8,9"/>
           </svg>
           <span className="text-xs font-medium">История</span>
+        </button>
+
+        {/* Тамагочи */}
+        <button
+          onClick={() => onTabChange('tamagotchi')}
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors iphone14-nav-button ${
+            activeTab === 'tamagotchi' 
+              ? 'text-blue-500 bg-blue-50' 
+              : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          <svg 
+            width="20" 
+            height="20" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className="w-5 h-5"
+          >
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+          <span className="text-xs font-medium">Тамагочи</span>
         </button>
 
         {/* Настройки */}

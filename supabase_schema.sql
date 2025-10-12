@@ -107,6 +107,21 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Таблица монеток родителей
+CREATE TABLE IF NOT EXISTS parent_coins (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER REFERENCES families(id) ON DELETE CASCADE,
+    user_id BIGINT NOT NULL,
+    feeding_coins INTEGER DEFAULT 0,
+    diaper_coins INTEGER DEFAULT 0,
+    bath_coins INTEGER DEFAULT 0,
+    mom_coins INTEGER DEFAULT 0,
+    total_score INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(family_id, user_id)
+);
+
 
 -- Создание индексов для оптимизации запросов
 CREATE INDEX IF NOT EXISTS idx_family_members_user_id ON family_members(user_id);
@@ -122,6 +137,8 @@ CREATE INDEX IF NOT EXISTS idx_sleep_sessions_family_id ON sleep_sessions(family
 CREATE INDEX IF NOT EXISTS idx_sleep_sessions_start_time ON sleep_sessions(start_time);
 CREATE INDEX IF NOT EXISTS idx_tips_age_months ON tips(age_months);
 CREATE INDEX IF NOT EXISTS idx_tips_category ON tips(category);
+CREATE INDEX IF NOT EXISTS idx_parent_coins_family_id ON parent_coins(family_id);
+CREATE INDEX IF NOT EXISTS idx_parent_coins_user_id ON parent_coins(user_id);
 
 -- Функция для автоматического обновления updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -138,6 +155,12 @@ CREATE TRIGGER update_settings_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+-- Триггер для автоматического обновления updated_at в таблице parent_coins
+CREATE TRIGGER update_parent_coins_updated_at 
+    BEFORE UPDATE ON parent_coins 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Включение Row Level Security (RLS) для безопасности
 ALTER TABLE families ENABLE ROW LEVEL SECURITY;
 ALTER TABLE family_members ENABLE ROW LEVEL SECURITY;
@@ -148,6 +171,7 @@ ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sleep_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE parent_coins ENABLE ROW LEVEL SECURITY;
 
 -- Политики безопасности (разрешаем все операции для аутентифицированных пользователей)
 -- В реальном проекте здесь должны быть более строгие политики
@@ -160,3 +184,4 @@ CREATE POLICY "Enable all operations for authenticated users" ON activities FOR 
 CREATE POLICY "Enable all operations for authenticated users" ON sleep_sessions FOR ALL USING (true);
 CREATE POLICY "Enable all operations for authenticated users" ON settings FOR ALL USING (true);
 CREATE POLICY "Enable all operations for authenticated users" ON tips FOR ALL USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON parent_coins FOR ALL USING (true);
