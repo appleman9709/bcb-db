@@ -5,9 +5,10 @@ type BabyState = 'normal' | 'hungry' | 'diaper' | 'bath'
 interface BabyIllustrationProps {
   className?: string
   state?: BabyState
+  onClick?: () => void
 }
 
-export default function BabyIllustration({ className = '', state = 'normal' }: BabyIllustrationProps) {
+export default function BabyIllustration({ className = '', state = 'normal', onClick }: BabyIllustrationProps) {
   const getImageSrc = () => {
     switch (state) {
       case 'hungry':
@@ -37,13 +38,26 @@ export default function BabyIllustration({ className = '', state = 'normal' }: B
   return (
     <div className={`relative ${className}`}>
       {/* Основной круг с градиентом */}
-      <div className={`relative w-48 h-48 mx-auto ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration`}>
+      <div 
+        className={`relative w-52 h-52 mx-auto ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration ${
+          onClick ? 'cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-105' : ''
+        }`}
+        onClick={onClick}
+      >
         {/* Изображение малыша */}
         <img 
           src={getImageSrc()} 
           alt="Малыш" 
-          className="w-30 h-30 object-contain relative z-10"
+          className="object-contain relative z-10"
+          style={{ width: '128px', height: '128px' }}
         />
+        
+        {/* Индикатор кликабельности */}
+        {onClick && (
+          <div className="absolute top-2 right-2 w-6 h-6 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
+            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+          </div>
+        )}
       </div>
     </div>
   )

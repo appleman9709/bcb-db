@@ -227,6 +227,28 @@ export default function Dashboard() {
     setModalOpen(true)
   }
 
+  // Функция для определения действия при клике на изображение малыша
+  const handleBabyImageClick = () => {
+    const babyState = getBabyImageState()
+    
+    switch (babyState) {
+      case 'hungry':
+        handleQuickAction('feeding')
+        break
+      case 'diaper':
+        handleQuickAction('diaper')
+        break
+      case 'bath':
+        handleQuickAction('bath')
+        break
+      default:
+        // Если все в порядке, предлагаем выбрать действие
+        // Можно открыть модальное окно с выбором или просто показать подсказку
+        handleQuickAction('feeding') // По умолчанию кормление
+        break
+    }
+  }
+
   const handleModalSuccess = () => {
     fetchData()
     if (activeSection === 'history') {
@@ -981,8 +1003,17 @@ export default function Dashboard() {
             <div className="space-y-3">
               {/* Иллюстрация младенца */}
               <div className="text-center">
-                <BabyIllustration className="mb-3" state={getBabyImageState()} />
-                <p className="text-xs text-gray-600 mb-3">Следите за режимом питания вашего ребенка</p>
+                <BabyIllustration 
+                  className="mb-3" 
+                  state={getBabyImageState()} 
+                  onClick={handleBabyImageClick}
+                />
+                <p className="text-xs text-gray-600 mb-3">
+                  {getBabyImageState() === 'normal' 
+                    ? 'Нажмите на малыша для быстрой записи' 
+                    : 'Нажмите на малыша - пора действовать!'
+                  }
+                </p>
               </div>
 
               {/* Карточки активности */}
