@@ -1,12 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, type TetrisRecord } from '../services/dataService'
+import BottomNavigation from '../components/BottomNavigation'
 
 export default function TetrisPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const { family, member } = useAuth()
   const [familyBestRecord, setFamilyBestRecord] = useState<TetrisRecord | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const handleTabChange = (tab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris') => {
+    console.log('TetrisPage: Switching to tab:', tab)
+    // Отправляем событие для переключения вкладки в родительском компоненте
+    window.dispatchEvent(new CustomEvent('tetris-navigation', { 
+      detail: { tab } 
+    }))
+  }
 
   useEffect(() => {
     if (iframeRef.current) {
@@ -73,6 +82,23 @@ export default function TetrisPage() {
         } catch (error) {
           console.error('Error saving tetris record from iframe:', error)
         }
+      } else if (event.data?.type === 'NAVIGATION') {
+        // Обработка навигации из iframe
+        const tab = event.data.tab
+        console.log('Navigation from iframe:', tab)
+        
+        // Отправляем событие для переключения вкладки
+        window.dispatchEvent(new CustomEvent('tetris-navigation', { 
+          detail: { tab } 
+        }))
+      } else if (event.data?.type === 'TETRIS_BACK') {
+        // Обработка кнопки "Назад" из iframe
+        console.log('Back button pressed in tetris iframe')
+        
+        // Отправляем событие для переключения на главную вкладку
+        window.dispatchEvent(new CustomEvent('tetris-navigation', { 
+          detail: { tab: 'home' } 
+        }))
       }
     }
 
@@ -81,7 +107,7 @@ export default function TetrisPage() {
   }, [family, member])
 
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="h-full w-full flex flex-col pb-20">
       {/* Лучший рекорд семьи */}
       {!loading && familyBestRecord && (
         <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-b border-yellow-200 p-3">
@@ -105,7 +131,7 @@ export default function TetrisPage() {
       )}
 
       {/* Игра Тетрис */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative pb-20">
         <iframe
           ref={iframeRef}
           className="h-full w-full border-0"
@@ -114,12 +140,18 @@ export default function TetrisPage() {
             top: 0,
             left: 0,
             right: 0,
-            bottom: 0,
+            bottom: '80px', // Оставляем место для панели навигации
             zIndex: 1000
           }}
           title="Tetris Game"
         />
       </div>
+
+      {/* Панель навигации */}
+      <BottomNavigation 
+        activeTab="tetris" 
+        onTabChange={handleTabChange} 
+      />
     </div>
   )
 }

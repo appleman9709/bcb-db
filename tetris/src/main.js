@@ -696,7 +696,8 @@ class MobileSudokuTetris {
                     cells.push({
                         x: x + px,
                         y: y + py,
-                        startTime: performance.now()
+                        startTime: performance.now(),
+                        color: piece.color // Сохраняем цвет фигуры для анимации
                     });
                 }
             }
@@ -966,6 +967,123 @@ class MobileSudokuTetris {
         return Math.max(minLift, fullLift);
     }
 
+    // Настройка обработчиков для нижней панели навигации
+    setupNavigationListeners() {
+        const navButtons = document.querySelectorAll('[data-tab]');
+        
+        navButtons.forEach((button, index) => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tab = button.dataset.tab;
+                this.handleNavigation(tab);
+            });
+            
+            // Добавляем эффекты при наведении
+            button.addEventListener('mouseenter', () => {
+                if (!button.classList.contains('text-blue-500')) {
+                    button.style.transform = 'scale(1.05)';
+                }
+            });
+            
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'scale(1)';
+            });
+        });
+    }
+    
+    // Обработка навигации
+    handleNavigation(tab) {
+        console.log('Navigation to:', tab);
+        
+        // Отправляем сообщение родительскому окну (если игра запущена в iframe)
+        if (window.parent !== window) {
+            window.parent.postMessage({
+                type: 'NAVIGATION',
+                tab: tab
+            }, '*');
+        } else {
+            // Если игра запущена не в iframe, можно добавить другую логику
+            console.log('Игра запущена не в iframe, навигация:', tab);
+            
+            // Пример: можно показать уведомление или выполнить другое действие
+            this.showNavigationMessage(tab);
+        }
+    }
+    
+    // Показ сообщения о навигации (для случая, когда игра не в iframe)
+    showNavigationMessage(tab) {
+        const tabNames = {
+            'home': 'Главная',
+            'history': 'История',
+            'tamagotchi': 'Тамагочи',
+            'tetris': 'Тетрис',
+            'settings': 'Настройки'
+        };
+        
+        const tabName = tabNames[tab] || tab;
+        
+        // Создаем временное уведомление
+        const notification = document.createElement('div');
+        notification.className = 'navigation-notification';
+        notification.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-icon">🎮</div>
+                <div class="notification-text">Переход на: ${tabName}</div>
+            </div>
+        `;
+        
+        // Добавляем стили для уведомления
+        notification.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 16px;
+            z-index: 2000;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: center;
+            animation: fadeInOut 2s ease-in-out;
+        `;
+        
+        // Добавляем CSS анимацию
+        if (!document.getElementById('navigation-styles')) {
+            const style = document.createElement('style');
+            style.id = 'navigation-styles';
+            style.textContent = `
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                }
+                .notification-content {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                .notification-icon {
+                    font-size: 24px;
+                }
+                .notification-text {
+                    font-size: 16px;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Удаляем уведомление через 2 секунды
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 2000);
+    }
 
     setupEventListeners() {
         // События для canvas
@@ -987,8 +1105,14 @@ class MobileSudokuTetris {
         const newGameBtn = document.getElementById('newGameBtn');
         
         if (newGameBtn) {
-            newGameBtn.addEventListener('click', () => this.restart());
+            newGameBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.restart();
+            });
         }
+        
+        // Обработчики для нижней панели навигации
+        this.setupNavigationListeners();
         
         // Предотвращаем скролл страницы при перетаскивании
         document.addEventListener('touchmove', (e) => {
@@ -1220,6 +1344,8 @@ class MobileSudokuTetris {
             return false;
         }
         
+        console.log(`Размещаем фигуру ${piece.id} цвета ${piece.color} в позиции (${x}, ${y})`);
+        
         // Размещаем фигуру на доске
         for (let py = 0; py < piece.shape.length; py++) {
             for (let px = 0; px < piece.shape[py].length; px++) {
@@ -1228,6 +1354,7 @@ class MobileSudokuTetris {
                     const boardY = y + py;
                     this.board[boardY][boardX] = 1;
                     this.boardColors[boardY][boardX] = piece.color;
+                    console.log(`  Клетка (${boardX}, ${boardY}) установлена в цвет ${piece.color}`);
                 }
             }
         }
@@ -1552,11 +1679,14 @@ class MobileSudokuTetris {
             return;
         }
 
-        const baseColor = '#3BA3FF'; // Синий цвет для размещенных фигур
+        console.log(`Отрисовываем анимацию размещения для ${this.placementAnimations.length} клеток`);
 
         this.placementAnimations.forEach(cell => {
             const pixelX = cell.x * this.CELL_SIZE;
             const pixelY = cell.y * this.CELL_SIZE;
+            const baseColor = cell.color || '#3BA3FF'; // Используем цвет фигуры или синий по умолчанию
+            
+            console.log(`  Анимация клетки (${cell.x}, ${cell.y}) с цветом ${baseColor}`);
             
             if (cell.progress !== undefined) {
                 // Анимация масштабирования
@@ -1589,14 +1719,14 @@ class MobileSudokuTetris {
             return;
         }
 
-        const baseColor = '#3BA3FF'; // Синий цвет для анимаций очистки
-
         this.clearAnimations.forEach(effect => {
             const progress = effect.progress ?? 0;
             effect.cells.forEach(cell => {
                 const pixelX = cell.x * this.CELL_SIZE;
                 const pixelY = cell.y * this.CELL_SIZE;
-                this.drawClearBurst(pixelX, pixelY, progress, baseColor);
+                // Используем сохраненный цвет клетки или синий по умолчанию
+                const cellColor = cell.color || '#3BA3FF';
+                this.drawClearBurst(pixelX, pixelY, progress, cellColor);
             });
         });
     }
@@ -1639,7 +1769,11 @@ class MobileSudokuTetris {
         }
 
         const effect = {
-            cells: cells.map(cell => ({ x: cell.x, y: cell.y })),
+            cells: cells.map(cell => ({ 
+                x: cell.x, 
+                y: cell.y,
+                color: this.boardColors[cell.y] && this.boardColors[cell.y][cell.x] || '#3BA3FF'
+            })),
             startTime: performance.now(),
             progress: 0
         };

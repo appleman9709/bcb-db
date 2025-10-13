@@ -34,8 +34,9 @@ export default function TamagotchiPage() {
   const [modalAction, setModalAction] = useState<QuickActionType>('feeding')
   const [score, setScore] = useState(0)
   const [scoreAnimation, setScoreAnimation] = useState(false)
-  const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string}>>([])
+  const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string, type: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'mom_coins'}>>([])
   const [isVideoMuted, setIsVideoMuted] = useState(true) // Состояние для управления звуком видео
+  const [coinSpawnInterval, setCoinSpawnInterval] = useState<NodeJS.Timeout | null>(null)
   
   // Отдельные счетчики для каждого типа монеток
   const [feedingCoins, setFeedingCoins] = useState(0)
@@ -129,6 +130,29 @@ export default function TamagotchiPage() {
   useEffect(() => {
     setBabyState(calculateBabyState())
   }, [calculateBabyState])
+
+  // Автоматическое появление монет каждые 3-7 секунд
+  useEffect(() => {
+    const startCoinSpawning = () => {
+      const spawnInterval = () => {
+        const delay = Math.random() * 4000 + 3000 // 3-7 секунд
+        const timeout = setTimeout(() => {
+          spawnCoin()
+          spawnInterval() // Рекурсивно планируем следующую монетку
+        }, delay)
+        setCoinSpawnInterval(timeout)
+      }
+      spawnInterval()
+    }
+
+    startCoinSpawning()
+
+    return () => {
+      if (coinSpawnInterval) {
+        clearTimeout(coinSpawnInterval)
+      }
+    }
+  }, [babyState]) // Перезапускаем при изменении состояния малыша
 
   // Синхронизируем локальное состояние монеток с данными из БД
   useEffect(() => {
@@ -272,40 +296,86 @@ export default function TamagotchiPage() {
     }
   }
 
-  const handleVideoClick = async (event: React.MouseEvent<HTMLVideoElement>) => {
-    // Включаем звук при первом нажатии только если малыш не в состоянии "ok"
-    if (isVideoMuted && babyState !== 'ok') {
-      setIsVideoMuted(false)
-    }
-    
-    const rect = event.currentTarget.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
-    
-    // Определяем тип монетки в зависимости от состояния малыша
-    let coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'mom_coins' = 'mom_coins'
-    
-    switch (babyState) {
+  // Функция для получения типа монетки в зависимости от состояния
+  const getCoinType = (state: BabyState): 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'mom_coins' => {
+    switch (state) {
       case 'feeding':
-        coinType = 'feeding_coins'
-        break
+        return 'feeding_coins'
       case 'poo':
-        coinType = 'diaper_coins'
-        break
+        return 'diaper_coins'
       case 'dirty':
-        coinType = 'bath_coins'
-        break
+        return 'bath_coins'
       case 'all-in':
       case 'ok':
       default:
-        coinType = 'mom_coins'
-        break
+        return 'mom_coins'
     }
+  }
+
+  // Функция для создания случайной позиции монетки
+  const getRandomCoinPosition = () => {
+    const containerWidth = window.innerWidth
+    const containerHeight = window.innerHeight
+    const coinSize = 48 // размер монетки
     
+    // Позиционируем монеты в области видео и вокруг него
+    const videoAreaWidth = Math.min(400, containerWidth * 0.75) // ширина видео
+    const videoAreaHeight = containerHeight * 0.6 // высота области видео
+    
+    const centerX = containerWidth / 2
+    const centerY = containerHeight / 2
+    
+    return {
+      x: centerX + (Math.random() - 0.5) * videoAreaWidth,
+      y: centerY + (Math.random() - 0.5) * videoAreaHeight
+    }
+  }
+
+  // Функция для создания новой монетки
+  const spawnCoin = () => {
+    // Ограничиваем количество монет на экране (максимум 5)
+    setCoins(prev => {
+      if (prev.filter(coin => !coin.collected).length >= 5) {
+        return prev
+      }
+      
+      const position = getRandomCoinPosition()
+      const coinType = getCoinType(babyState)
+      const coinIcon = getCoinIcon(babyState)
+      
+      const newCoin = {
+        id: Date.now() + Math.random(),
+        x: position.x,
+        y: position.y,
+        collected: false,
+        falling: false,
+        icon: coinIcon,
+        type: coinType
+      }
+      
+      // Автоматически убираем монетку через 10 секунд, если она не была собрана
+      setTimeout(() => {
+        setCoins(prevCoins => prevCoins.filter(coin => coin.id !== newCoin.id))
+      }, 10000)
+      
+      return [...prev, newCoin]
+    })
+  }
+
+  // Функция для сбора монетки
+  const collectCoin = async (coinId: number) => {
+    const coin = coins.find(c => c.id === coinId)
+    if (!coin || coin.collected) return
+
+    // Помечаем монетку как собранную
+    setCoins(prev => prev.map(c => 
+      c.id === coinId ? { ...c, collected: true, falling: true } : c
+    ))
+
     try {
       // Сохраняем монетку в БД
-      console.log(`Adding ${coinType} coin to database...`)
-      const updatedCoins = await dataService.addCoins(coinType, 1)
+      console.log(`Adding ${coin.type} coin to database...`)
+      const updatedCoins = await dataService.addCoins(coin.type, 1)
       
       if (updatedCoins) {
         console.log('Coins updated successfully:', updatedCoins)
@@ -326,19 +396,17 @@ export default function TamagotchiPage() {
       // В случае ошибки все равно обновляем локальное состояние для UX
       setScore(prev => prev + 10)
       
-      switch (babyState) {
-        case 'feeding':
+      switch (coin.type) {
+        case 'feeding_coins':
           setFeedingCoins(prev => prev + 1)
           break
-        case 'poo':
+        case 'diaper_coins':
           setDiaperCoins(prev => prev + 1)
           break
-        case 'dirty':
+        case 'bath_coins':
           setBathCoins(prev => prev + 1)
           break
-        case 'all-in':
-        case 'ok':
-        default:
+        case 'mom_coins':
           setMomCoins(prev => prev + 1)
           break
       }
@@ -348,22 +416,19 @@ export default function TamagotchiPage() {
     setScoreAnimation(true)
     setTimeout(() => setScoreAnimation(false), 300)
     
-    // Создаем новую монетку с анимацией zoom out (только для визуального эффекта)
-    const newCoin = {
-      id: Date.now(),
-      x: x,
-      y: y,
-      collected: true, // Помечаем как собранную сразу
-      falling: true,
-      icon: getCoinIcon(babyState) // Добавляем иконку в зависимости от состояния
+    // Убираем монетку через время анимации
+    setTimeout(() => {
+      setCoins(prev => prev.filter(c => c.id !== coinId))
+    }, 1800)
+  }
+
+  const handleVideoClick = (event: React.MouseEvent<HTMLVideoElement>) => {
+    // Включаем звук при первом нажатии только если малыш не в состоянии "ok"
+    if (isVideoMuted && babyState !== 'ok') {
+      setIsVideoMuted(false)
     }
     
-    setCoins(prev => [...prev, newCoin])
-    
-    // Автоматически убираем монетку через 1.8 секунды (время анимации + небольшой буфер)
-    setTimeout(() => {
-      setCoins(prev => prev.filter(coin => coin.id !== newCoin.id))
-    }, 1800)
+    // Теперь клик по видео только включает звук, монеты появляются автоматически
   }
 
 
@@ -379,7 +444,29 @@ export default function TamagotchiPage() {
   }
 
   return (
-    <div className="tamagotchi-container">
+    <div className="tamagotchi-container relative">
+      {/* Монетки для сбора - позиционированы относительно всего контейнера */}
+      {coins.map(coin => (
+        <div
+          key={coin.id}
+          className={`absolute w-12 h-12 transition-all duration-200 cursor-pointer ${
+            coin.falling ? 'coin-falling' : coin.collected ? 'opacity-0 scale-0' : 'coin-float'
+          }`}
+          style={{
+            left: `${coin.x - 24}px`,
+            top: `${coin.y - 24}px`,
+            zIndex: 20
+          }}
+          onClick={() => !coin.collected && collectCoin(coin.id)}
+        >
+          <img 
+            src={coin.icon} 
+            alt="Монетка" 
+            className="w-full h-full object-contain hover:scale-110 transition-transform duration-200"
+          />
+        </div>
+      ))}
+
       {/* Стопки монеток - компактные */}
       <div className="tamagotchi-coins text-center">
         <div className="flex justify-center gap-1 flex-wrap items-center">
@@ -463,31 +550,13 @@ export default function TamagotchiPage() {
               </div>
             )}
           </div>
-          
-          
-          {/* Монетки (только визуальный эффект) */}
-          {coins.map(coin => (
-            <div
-              key={coin.id}
-              className={`absolute w-12 h-12 transition-all duration-200 ${
-                coin.falling ? 'coin-falling' : 'opacity-0 scale-0'
-              }`}
-              style={{
-                left: `${coin.x - 24}px`,
-                top: `${coin.y - 24}px`,
-              }}
-            >
-              <img 
-                src={coin.icon} 
-                alt="Монетка" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-          ))}
         </div>
         
         <p className="text-xs font-medium text-gray-700 mt-2">
           {getStateDescription(babyState)}
+        </p>
+        <p className="text-xs text-gray-500 mt-1">
+          💡 Тапайте по появляющимся монеткам, чтобы собирать их!
         </p>
       </div>
 
@@ -495,40 +564,40 @@ export default function TamagotchiPage() {
       <div className="tamagotchi-inventory bg-white rounded-xl shadow-sm border border-gray-100">
         <h2 className="text-xs font-semibold text-gray-900 mb-2 text-center">🛠️ Инвентарь</h2>
         
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           {/* Подгузник */}
           <div 
             onClick={() => handleItemClick('diaper')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/diaper.png" 
               alt="Подгузник" 
-              className="w-8 h-8 object-contain"
+              className="w-12 h-12 object-contain"
             />
           </div>
 
           {/* Бутылочка */}
           <div 
             onClick={() => handleItemClick('feeding')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/feeding.png" 
               alt="Бутылочка" 
-              className="w-8 h-8 object-contain"
+              className="w-12 h-12 object-contain"
             />
           </div>
 
           {/* Губка */}
           <div 
             onClick={() => handleItemClick('bath')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/sponge.png" 
               alt="Губка" 
-              className="w-8 h-8 object-contain"
+              className="w-12 h-12 object-contain"
             />
           </div>
         </div>

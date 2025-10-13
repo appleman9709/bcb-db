@@ -724,7 +724,8 @@ class MobileSudokuTetris {
                     cells.push({
                         x: x + px,
                         y: y + py,
-                        startTime: performance.now()
+                        startTime: performance.now(),
+                        color: piece.color // Сохраняем цвет фигуры для анимации
                     });
                 }
             }
@@ -1583,11 +1584,10 @@ class MobileSudokuTetris {
             return;
         }
 
-        const baseColor = '#3BA3FF'; // Синий цвет для размещенных фигур
-
         this.placementAnimations.forEach(cell => {
             const pixelX = cell.x * this.CELL_SIZE;
             const pixelY = cell.y * this.CELL_SIZE;
+            const baseColor = cell.color || '#3BA3FF'; // Используем цвет фигуры или синий по умолчанию
             
             if (cell.progress !== undefined) {
                 // Анимация масштабирования
@@ -1620,14 +1620,14 @@ class MobileSudokuTetris {
             return;
         }
 
-        const baseColor = '#3BA3FF'; // Синий цвет для анимаций очистки
-
         this.clearAnimations.forEach(effect => {
             const progress = effect.progress ?? 0;
             effect.cells.forEach(cell => {
                 const pixelX = cell.x * this.CELL_SIZE;
                 const pixelY = cell.y * this.CELL_SIZE;
-                this.drawClearBurst(pixelX, pixelY, progress, baseColor);
+                // Используем сохраненный цвет клетки или синий по умолчанию
+                const cellColor = cell.color || '#3BA3FF';
+                this.drawClearBurst(pixelX, pixelY, progress, cellColor);
             });
         });
     }
@@ -1670,7 +1670,11 @@ class MobileSudokuTetris {
         }
 
         const effect = {
-            cells: cells.map(cell => ({ x: cell.x, y: cell.y })),
+            cells: cells.map(cell => ({ 
+                x: cell.x, 
+                y: cell.y,
+                color: this.boardColors[cell.y] && this.boardColors[cell.y][cell.x] || '#3BA3FF'
+            })),
             startTime: performance.now(),
             progress: 0
         };

@@ -25,8 +25,8 @@
         <!-- Хедер с логотипом, счетом и комбо -->
         <header class="game-header">
             <div class="header-content">
-                <button class="back-btn" id="backBtn" style="padding: 8px 16px; background: #6B7280; color: white; border: none; border-radius: 8px; font-size: 14px; margin-right: 8px;">← Назад</button>
                 <div class="game-logo">Важное дело</div>
+                <button class="new-game-btn" id="newGameBtn" style="padding: 8px 16px; background: #3BA3FF; color: white; border: none; border-radius: 8px; font-size: 14px; margin-left: 8px;">Новая игра</button>
                 <div class="score-section">
                     <div class="current-score" id="currentScore">0</div>
                     <div class="combo-indicator" id="comboIndicator" style="display: none;">
@@ -66,11 +66,8 @@
                 <div class="game-hints">
                     <p class="hint-text" id="complimentText">Ты самая красивая жена на свете! 💕</p>
                 </div>
-                <!-- Кнопка "Новая игра" -->
-                <div style="text-align: center; margin-top: 16px;">
-                    <button class="new-game-btn" id="newGameBtn" style="padding: 12px 24px; background: #3BA3FF; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold;">Новая игра</button>
-                </div>
             </footer>
+            
         </main>
         
         <!-- Модальное окно окончания игры -->
@@ -81,15 +78,30 @@
     
     <script src="/main.js"></script>
     <script>
-        // Добавляем обработчик для кнопки "Назад"
+        // Добавляем обработчики для кнопок навигации
         document.addEventListener('DOMContentLoaded', function() {
-            const backBtn = document.getElementById('backBtn');
-            if (backBtn) {
-                backBtn.addEventListener('click', function() {
-                    // Отправляем событие для возврата к основному приложению
-                    window.parent.postMessage({ type: 'TETRIS_BACK' }, '*');
+            // Обработчик для кнопки "Новая игра"
+            const newGameBtn = document.getElementById('newGameBtn');
+            if (newGameBtn) {
+                newGameBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Вызываем функцию перезапуска игры
+                    if (window.game && window.game.restart) {
+                        window.game.restart();
+                    }
                 });
             }
+            
+            // Обработчики для других кнопок навигации
+            const navButtons = document.querySelectorAll('[data-tab]');
+            navButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const tab = this.dataset.tab;
+                    // Отправляем событие для переключения вкладки
+                    window.parent.postMessage({ type: 'NAVIGATION', tab: tab }, '*');
+                });
+            });
         });
     </script>
 </body>

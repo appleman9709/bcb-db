@@ -7,7 +7,7 @@ interface BottomNavigationProps {
 
 export default function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-2 safe-area-pb iphone14-nav">
+    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 pb-4 safe-area-pb iphone14-nav z-40">
       <div className="flex justify-center items-center gap-6">
         {/* Дом */}
         <button
