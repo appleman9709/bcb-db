@@ -35,7 +35,6 @@ export default function TamagotchiPage() {
   const [score, setScore] = useState(0)
   const [scoreAnimation, setScoreAnimation] = useState(false)
   const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string, type: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'mom_coins'}>>([])
-  const [isVideoMuted, setIsVideoMuted] = useState(true) // Состояние для управления звуком видео
   const [coinSpawnInterval, setCoinSpawnInterval] = useState<NodeJS.Timeout | null>(null)
   
   // Отдельные счетчики для каждого типа монеток
@@ -165,20 +164,20 @@ export default function TamagotchiPage() {
     }
   }, [data?.parentCoins])
 
-  const getVideoSource = (state: BabyState): string => {
+  const getGifSource = (state: BabyState): string => {
     switch (state) {
       case 'ok':
-        return '/icons/ok.MP4'
+        return '/icons/ok.gif'
       case 'feeding':
-        return '/icons/feeding.MP4'
+        return '/icons/feeding.gif'
       case 'all-in':
-        return '/icons/all-in.MP4'
+        return '/icons/all-in.gif'
       case 'poo':
-        return '/icons/poo.MP4'
+        return '/icons/poo.gif'
       case 'dirty':
-        return '/icons/dirty.MP4'
+        return '/icons/dirty.gif'
       default:
-        return '/icons/ok.MP4'
+        return '/icons/ok.gif'
     }
   }
 
@@ -367,6 +366,11 @@ export default function TamagotchiPage() {
     const coin = coins.find(c => c.id === coinId)
     if (!coin || coin.collected) return
 
+    // Добавляем вибрацию при сборе монетки
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50) // Короткая вибрация 50мс
+    }
+
     // Помечаем монетку как собранную
     setCoins(prev => prev.map(c => 
       c.id === coinId ? { ...c, collected: true, falling: true } : c
@@ -422,14 +426,6 @@ export default function TamagotchiPage() {
     }, 1800)
   }
 
-  const handleVideoClick = (event: React.MouseEvent<HTMLVideoElement>) => {
-    // Включаем звук при первом нажатии только если малыш не в состоянии "ok"
-    if (isVideoMuted && babyState !== 'ok') {
-      setIsVideoMuted(false)
-    }
-    
-    // Теперь клик по видео только включает звук, монеты появляются автоматически
-  }
 
 
   if (loading) {
@@ -514,21 +510,15 @@ export default function TamagotchiPage() {
         </div>
       </div>
 
-      {/* Видео малыша - адаптивное */}
+      {/* GIF малыша - адаптивное */}
       <div className="tamagotchi-video-container">
         <div className="relative inline-block">
-          <video
-            key={babyState} // Принудительно перезагружаем видео при смене состояния
-            autoPlay
-            loop
-            muted={isVideoMuted}
-            playsInline
-            onClick={handleVideoClick}
+          <img
+            key={babyState} // Принудительно перезагружаем GIF при смене состояния
+            src={getGifSource(babyState)}
+            alt={`Малыш в состоянии ${babyState}`}
             className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-lg cursor-pointer"
-          >
-            <source src={getVideoSource(babyState)} type="video/mp4" />
-            Ваш браузер не поддерживает видео.
-          </video>
+          />
           
           {/* Индикатор состояния */}
           <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg">
@@ -554,9 +544,6 @@ export default function TamagotchiPage() {
         
         <p className="text-xs font-medium text-gray-700 mt-2">
           {getStateDescription(babyState)}
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          💡 Тапайте по появляющимся монеткам, чтобы собирать их!
         </p>
       </div>
 

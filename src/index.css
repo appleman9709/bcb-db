@@ -1923,6 +1923,39 @@
   animation: scoreBounce 0.3s ease-out;
 }
 
+/* Стили для модального окна - предотвращение перекрытия с нижней панелью */
+.modal-overlay {
+  z-index: 100 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+.modal-content {
+  max-height: calc(100vh - 120px) !important; /* Оставляем место для нижней панели */
+  max-height: calc(100dvh - 120px) !important; /* Dynamic viewport height */
+  margin-bottom: 80px !important; /* Отступ от нижней панели */
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-height: 600px) {
+  .modal-content {
+    max-height: calc(100vh - 100px) !important;
+    max-height: calc(100dvh - 100px) !important;
+    margin-bottom: 60px !important;
+  }
+}
+
+@media (max-height: 500px) {
+  .modal-content {
+    max-height: calc(100vh - 80px) !important;
+    max-height: calc(100dvh - 80px) !important;
+    margin-bottom: 50px !important;
+  }
+}
+
 /* Специальные стили для Тамагочи страницы - предотвращение прокрутки */
 .tamagotchi-container {
   height: 100%;

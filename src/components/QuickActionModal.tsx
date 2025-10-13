@@ -188,6 +188,11 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           break
       }
 
+      // Добавляем вибрацию при успешном выполнении действия
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100]) // Паттерн вибрации: 100мс, пауза 50мс, 100мс
+      }
+
       onSuccess?.()
       onClose()
     } catch (submitError) {
