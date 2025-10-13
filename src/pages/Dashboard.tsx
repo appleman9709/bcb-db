@@ -13,10 +13,11 @@ import BackgroundElements from '../components/BackgroundElements'
 import TamagotchiPage from './TamagotchiPage'
 import TetrisPage from './TetrisPage'
 import { useAuth } from '../contexts/AuthContext'
-import { dataService, Feeding, Diaper, Bath, Tip } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, Activity, Tip } from '../services/dataService'
 import { achievementService, NewAchievement } from '../services/achievementService'
 import { AchievementModal } from '../components/AchievementModal'
 import { AchievementNotification } from '../components/AchievementNotification'
+import RecordDetailModal from '../components/RecordDetailModal'
 // import { TestComponent } from '../components/TestComponent'
 
 type DashboardSection = 'dashboard' | 'history' | 'settings'
@@ -34,12 +35,14 @@ interface HistoryData {
   feedings: Feeding[]
   diapers: Diaper[]
   baths: Bath[]
+  activities: Activity[]
 }
 
 interface TotalCounts {
   feedings: number
   diapers: number
   baths: number
+  activities: number
 }
 
 interface SettingsState {
@@ -106,6 +109,15 @@ export default function Dashboard() {
   const [achievementModalOpen, setAchievementModalOpen] = useState(false)
   const [newAchievements, setNewAchievements] = useState<NewAchievement[]>([])
   const [showAchievementNotification, setShowAchievementNotification] = useState(false)
+  const [recordDetailModalOpen, setRecordDetailModalOpen] = useState(false)
+  const [selectedRecord, setSelectedRecord] = useState<{
+    type: 'feeding' | 'diaper' | 'bath' | 'activity'
+    id: number
+    timestamp: string
+    author_name: string
+    author_role: string
+    activity_type?: string
+  } | null>(null)
 
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
@@ -168,17 +180,19 @@ export default function Dashboard() {
     }
 
     try {
-      const [feedings, diapers, baths, counts] = await Promise.all([
+      const [feedings, diapers, baths, activities, counts] = await Promise.all([
         dataService.getFeedings(50),
         dataService.getDiapers(50),
         dataService.getBaths(50),
+        dataService.getActivities(50),
         dataService.getTotalCounts()
       ])
 
       setHistoryData({
         feedings,
         diapers,
-        baths
+        baths,
+        activities
       })
 
       setTotalCounts(counts)
@@ -266,6 +280,70 @@ export default function Dashboard() {
     
     // Проверяем достижения после успешного действия
     checkAchievements()
+  }
+
+  const handleDeleteRecord = async (type: 'feeding' | 'diaper' | 'bath' | 'activity', id: number) => {
+    if (!member || !family) return
+
+    try {
+      let success = false
+      switch (type) {
+        case 'feeding':
+          success = await dataService.deleteFeeding(id)
+          break
+        case 'diaper':
+          success = await dataService.deleteDiaper(id)
+          break
+        case 'bath':
+          success = await dataService.deleteBath(id)
+          break
+        case 'activity':
+          success = await dataService.deleteActivity(id)
+          break
+      }
+
+      if (success) {
+        // Обновляем данные
+        fetchData()
+        if (activeTab === 'history') {
+          fetchHistoryData()
+        }
+        
+        // Вибрация при успешном удалении
+        if ('vibrate' in navigator) {
+          navigator.vibrate([50, 50, 50])
+        }
+      } else {
+        console.error('Failed to delete record')
+      }
+    } catch (error) {
+      console.error('Error deleting record:', error)
+    }
+  }
+
+  const handleRecordClick = (record: any) => {
+    setSelectedRecord({
+      type: record.type,
+      id: record.id,
+      timestamp: record.timestamp,
+      author_name: record.author_name,
+      author_role: record.author_role,
+      activity_type: record.activity_type
+    })
+    setRecordDetailModalOpen(true)
+  }
+
+  const handleRecordDelete = async () => {
+    if (!selectedRecord) return
+    
+    await handleDeleteRecord(selectedRecord.type, selectedRecord.id)
+    setRecordDetailModalOpen(false)
+    setSelectedRecord(null)
+  }
+
+  const handleRecordModalClose = () => {
+    setRecordDetailModalOpen(false)
+    setSelectedRecord(null)
   }
 
   const checkAchievements = async () => {
@@ -744,6 +822,27 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-600">Персонализируйте приложение под вашего малыша</p>
         </div>
 
+              {/* Достижения */}
+              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 flex items-center justify-center text-sm">
+                    🏆
+                  </div>
+                  <h2 className="text-base font-semibold text-gray-900">Достижения</h2>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-600 mb-3">
+                    Просматривайте ваши достижения и статистику семьи
+                  </p>
+                  <button
+                    onClick={() => setAchievementModalOpen(true)}
+                    className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                  >
+                    🏆 Открыть достижения
+                  </button>
+                </div>
+              </div>
+
               {/* Профиль малыша */}
               <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center gap-2 mb-2">
@@ -1042,27 +1141,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Достижения */}
-              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 flex items-center justify-center text-sm">
-                    🏆
-                  </div>
-                  <h2 className="text-base font-semibold text-gray-900">Достижения</h2>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-600 mb-3">
-                    Просматривайте ваши достижения и статистику семьи
-                  </p>
-                  <button
-                    onClick={() => setAchievementModalOpen(true)}
-                    className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-200 text-sm flex items-center justify-center gap-2"
-                  >
-                    🏆 Открыть достижения
-                  </button>
-                </div>
-              </div>
-
               {/* Сохранение */}
               <button
                 onClick={handleSaveSettings}
@@ -1258,7 +1336,7 @@ export default function Dashboard() {
               {/* Общая статистика */}
               <div className="bg-white rounded-xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
                 <h2 className="text-xs font-semibold text-gray-900 mb-0.5">📊 Общая статистика</h2>
-                <div className="grid grid-cols-3 gap-0.5">
+                <div className="grid grid-cols-2 gap-0.5">
                   <div className="text-center p-0.125 bg-blue-50 rounded-lg">
                     <div className="text-xs font-bold text-blue-500 mb-0.5">{totalCounts?.feedings || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Кормлений</div>
@@ -1274,6 +1352,11 @@ export default function Dashboard() {
                     <div className="text-xs text-gray-600 mb-0.5">Купаний</div>
                     <div className="text-xs text-gray-500">{settings.bathInterval}д</div>
                   </div>
+                  <div className="text-center p-0.125 bg-purple-50 rounded-lg">
+                    <div className="text-xs font-bold text-purple-500 mb-0.5">{totalCounts?.activities || 0}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Активностей</div>
+                    <div className="text-xs text-gray-500">🎮</div>
+                  </div>
                 </div>
             </div>
 
@@ -1285,6 +1368,9 @@ export default function Dashboard() {
                     {latestActivityTimestamp ? `Обновлено ${formatTime(latestActivityTimestamp)}` : 'Загрузка...'}
                   </span>
               </div>
+              <p className="text-xs text-gray-500 mb-0.5 px-0.125">
+                💡 Нажмите на запись для просмотра деталей
+              </p>
 
                 <div className="space-y-0.0625">
                 {historyData ? (
@@ -1292,7 +1378,8 @@ export default function Dashboard() {
                     const allEvents = [
                       ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' as const })),
                       ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
-                      ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const }))
+                      ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const })),
+                      ...(historyData.activities || []).map(item => ({ ...item, type: 'activity' as const }))
                     ]
                       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                       .slice(0, MAX_HISTORY_EVENTS)
@@ -1324,6 +1411,14 @@ export default function Dashboard() {
                                 bgColor: 'bg-yellow-50',
                                 description: 'Ребенок искупан'
                               }
+                          case 'activity':
+                              return { 
+                                icon: <img src="/icons/baby.png" alt="Активность" className="w-6 h-6 object-contain" />, 
+                                label: 'Активность', 
+                                color: 'bg-purple-100 text-purple-600',
+                                bgColor: 'bg-purple-50',
+                                description: (item as any).activity_type || 'Активность записана'
+                              }
                           default:
                               return { 
                                 icon: '⭐', 
@@ -1340,14 +1435,23 @@ export default function Dashboard() {
                         const timeAgo = getTimeAgo(item.timestamp)
 
                       return (
-                          <div key={`${item.type}-${item.id}-${index}`} className={`flex items-center space-x-0.125 p-0.125 rounded-lg ${typeInfo.bgColor} border border-gray-100 iphone14-card`}>
+                          <div 
+                            key={`${item.type}-${item.id}-${index}`} 
+                            className={`flex items-center space-x-0.125 p-0.125 rounded-lg ${typeInfo.bgColor} border border-gray-100 iphone14-card cursor-pointer hover:shadow-md transition-all duration-200`}
+                            onClick={() => handleRecordClick(item)}
+                          >
                             <div className="w-8 h-8 flex items-center justify-center">
                               {typeInfo.icon}
                             </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-xs font-semibold text-gray-900">{typeInfo.label}</h3>
-                                <span className="text-xs font-medium text-gray-500">{timeAgo}</span>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs font-medium text-gray-500">{timeAgo}</span>
+                                  <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                  </svg>
+                                </div>
                             </div>
                               <p className="text-xs text-gray-600 mt-0.5">{typeInfo.description}</p>
                               <p className="text-xs text-gray-500 mt-0.5">
@@ -1395,6 +1499,14 @@ export default function Dashboard() {
           onClose={() => setAchievementModalOpen(false)}
           familyId={family?.id || 0}
           userId={member?.user_id || 0}
+        />
+
+        {/* Модальное окно деталей записи */}
+        <RecordDetailModal
+          isOpen={recordDetailModalOpen}
+          onClose={handleRecordModalClose}
+          onDelete={handleRecordDelete}
+          record={selectedRecord}
         />
 
         {process.env.NODE_ENV === 'development' && <DebugPanel />}

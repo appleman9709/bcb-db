@@ -91,6 +91,7 @@ export interface ParentCoins {
   feeding_coins: number
   diaper_coins: number
   bath_coins: number
+  activity_coins: number
   mom_coins: number
   total_score: number
   created_at: string
@@ -254,6 +255,25 @@ class DataService {
     return data
   }
 
+  async deleteFeeding(id: number): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    const { error } = await supabase
+      .from('feedings')
+      .delete()
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .eq('author_id', authorId)
+
+    if (error) {
+      console.error('Error deleting feeding', error)
+      return false
+    }
+
+    return true
+  }
+
   // Diaper operations
   async getDiapers(limit: number = 10): Promise<Diaper[]> {
     const familyId = this.requireFamilyId()
@@ -324,6 +344,25 @@ class DataService {
     }
 
     return data
+  }
+
+  async deleteDiaper(id: number): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    const { error } = await supabase
+      .from('diapers')
+      .delete()
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .eq('author_id', authorId)
+
+    if (error) {
+      console.error('Error deleting diaper', error)
+      return false
+    }
+
+    return true
   }
 
   // Bath operations
@@ -398,6 +437,25 @@ class DataService {
     return data
   }
 
+  async deleteBath(id: number): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    const { error } = await supabase
+      .from('baths')
+      .delete()
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .eq('author_id', authorId)
+
+    if (error) {
+      console.error('Error deleting bath', error)
+      return false
+    }
+
+    return true
+  }
+
   // Activity operations
   async getActivities(limit: number = 10): Promise<Activity[]> {
     const familyId = this.requireFamilyId()
@@ -440,6 +498,25 @@ class DataService {
     }
 
     return data
+  }
+
+  async deleteActivity(id: number): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    const { error } = await supabase
+      .from('activities')
+      .delete()
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .eq('author_id', authorId)
+
+    if (error) {
+      console.error('Error deleting activity', error)
+      return false
+    }
+
+    return true
   }
 
   // Tips operations
@@ -563,7 +640,7 @@ class DataService {
   async getTotalCounts() {
     const familyId = this.requireFamilyId()
 
-    const [feedingsCount, diapersCount, bathsCount] = await Promise.all([
+    const [feedingsCount, diapersCount, bathsCount, activitiesCount] = await Promise.all([
       supabase
         .from('feedings')
         .select('id', { count: 'exact', head: true })
@@ -575,13 +652,18 @@ class DataService {
       supabase
         .from('baths')
         .select('id', { count: 'exact', head: true })
+        .eq('family_id', familyId),
+      supabase
+        .from('activities')
+        .select('id', { count: 'exact', head: true })
         .eq('family_id', familyId)
     ])
 
     return {
       feedings: feedingsCount.count || 0,
       diapers: diapersCount.count || 0,
-      baths: bathsCount.count || 0
+      baths: bathsCount.count || 0,
+      activities: activitiesCount.count || 0
     }
   }
 
@@ -613,6 +695,7 @@ class DataService {
     feeding_coins?: number
     diaper_coins?: number
     bath_coins?: number
+    activity_coins?: number
     mom_coins?: number
     total_score?: number
   }): Promise<ParentCoins | null> {
@@ -628,6 +711,7 @@ class DataService {
       feeding_coins: coins.feeding_coins ?? currentCoins?.feeding_coins ?? 0,
       diaper_coins: coins.diaper_coins ?? currentCoins?.diaper_coins ?? 0,
       bath_coins: coins.bath_coins ?? currentCoins?.bath_coins ?? 0,
+      activity_coins: coins.activity_coins ?? currentCoins?.activity_coins ?? 0,
       mom_coins: coins.mom_coins ?? currentCoins?.mom_coins ?? 0,
       total_score: coins.total_score ?? currentCoins?.total_score ?? 0
     }
@@ -652,7 +736,7 @@ class DataService {
     return data
   }
 
-  async addCoins(coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'mom_coins', amount: number = 1): Promise<ParentCoins | null> {
+  async addCoins(coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins', amount: number = 1): Promise<ParentCoins | null> {
     console.log(`DataService: Adding ${amount} ${coinType} coins`)
     const currentCoins = await this.getParentCoins()
     console.log('DataService: Current coins:', currentCoins)
@@ -663,6 +747,7 @@ class DataService {
         feeding_coins: coinType === 'feeding_coins' ? amount : 0,
         diaper_coins: coinType === 'diaper_coins' ? amount : 0,
         bath_coins: coinType === 'bath_coins' ? amount : 0,
+        activity_coins: coinType === 'activity_coins' ? amount : 0,
         mom_coins: coinType === 'mom_coins' ? amount : 0,
         total_score: amount * 1 // Каждая монетка дает 1 очко
       }
@@ -675,6 +760,7 @@ class DataService {
       feeding_coins: coinType === 'feeding_coins' ? currentCoins.feeding_coins + amount : currentCoins.feeding_coins,
       diaper_coins: coinType === 'diaper_coins' ? currentCoins.diaper_coins + amount : currentCoins.diaper_coins,
       bath_coins: coinType === 'bath_coins' ? currentCoins.bath_coins + amount : currentCoins.bath_coins,
+      activity_coins: coinType === 'activity_coins' ? (currentCoins.activity_coins || 0) + amount : (currentCoins.activity_coins || 0),
       mom_coins: coinType === 'mom_coins' ? currentCoins.mom_coins + amount : currentCoins.mom_coins,
       total_score: currentCoins.total_score + (amount * 1)
     }

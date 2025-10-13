@@ -4,7 +4,7 @@ import { dataService, Feeding, Diaper, Bath, ParentCoins } from '../services/dat
 import QuickActionModal from '../components/QuickActionModal'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
-type QuickActionType = 'feeding' | 'diaper' | 'bath'
+type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
 
 interface TamagotchiData {
   lastFeeding: Feeding | null
@@ -34,13 +34,14 @@ export default function TamagotchiPage() {
   const [modalAction, setModalAction] = useState<QuickActionType>('feeding')
   const [score, setScore] = useState(0)
   const [scoreAnimation, setScoreAnimation] = useState(false)
-  const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string, type: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'mom_coins'}>>([])
+  const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string, type: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins'}>>([])
   const [coinSpawnInterval, setCoinSpawnInterval] = useState<NodeJS.Timeout | null>(null)
   
   // Отдельные счетчики для каждого типа монеток
   const [feedingCoins, setFeedingCoins] = useState(0)
   const [diaperCoins, setDiaperCoins] = useState(0)
   const [bathCoins, setBathCoins] = useState(0)
+  const [activityCoins, setActivityCoins] = useState(0)
   const [momCoins, setMomCoins] = useState(0)
 
   const { member, family } = useAuth()
@@ -159,6 +160,7 @@ export default function TamagotchiPage() {
       setFeedingCoins(data.parentCoins.feeding_coins)
       setDiaperCoins(data.parentCoins.diaper_coins)
       setBathCoins(data.parentCoins.bath_coins)
+      setActivityCoins(data.parentCoins.activity_coins || 0)
       setMomCoins(data.parentCoins.mom_coins)
       setScore(data.parentCoins.total_score)
     }
@@ -296,7 +298,7 @@ export default function TamagotchiPage() {
   }
 
   // Функция для получения типа монетки в зависимости от состояния
-  const getCoinType = (state: BabyState): 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'mom_coins' => {
+  const getCoinType = (state: BabyState): 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' => {
     switch (state) {
       case 'feeding':
         return 'feeding_coins'
@@ -339,8 +341,17 @@ export default function TamagotchiPage() {
       }
       
       const position = getRandomCoinPosition()
-      const coinType = getCoinType(babyState)
-      const coinIcon = getCoinIcon(babyState)
+      
+      // Для состояния "all-in" случайно выбираем между feeding и poor
+      let coinType, coinIcon
+      if (babyState === 'all-in') {
+        const isFeeding = Math.random() < 0.5
+        coinType = isFeeding ? 'feeding_coins' : 'diaper_coins'
+        coinIcon = isFeeding ? '/icons/feeding.png' : '/icons/poor.png'
+      } else {
+        coinType = getCoinType(babyState)
+        coinIcon = getCoinIcon(babyState)
+      }
       
       const newCoin = {
         id: Date.now() + Math.random(),
@@ -387,6 +398,7 @@ export default function TamagotchiPage() {
         setFeedingCoins(updatedCoins.feeding_coins)
         setDiaperCoins(updatedCoins.diaper_coins)
         setBathCoins(updatedCoins.bath_coins)
+        setActivityCoins(updatedCoins.activity_coins || 0)
         setMomCoins(updatedCoins.mom_coins)
         setScore(updatedCoins.total_score)
         
@@ -409,6 +421,9 @@ export default function TamagotchiPage() {
           break
         case 'bath_coins':
           setBathCoins(prev => prev + 1)
+          break
+        case 'activity_coins':
+          setActivityCoins(prev => prev + 1)
           break
         case 'mom_coins':
           setMomCoins(prev => prev + 1)
@@ -490,6 +505,14 @@ export default function TamagotchiPage() {
             </div>
           )}
           
+          {/* Стопка активности */}
+          {activityCoins > 0 && (
+            <div className="flex items-center gap-1 bg-indigo-100 px-1.5 py-0.5 rounded-full">
+              <img src="/icons/baby.png" alt="Активность" className="w-3 h-3" />
+              <span className="text-xs font-bold text-indigo-800">{activityCoins}</span>
+            </div>
+          )}
+          
           {/* Стопка обычных монеток */}
           {momCoins > 0 && (
             <div className="flex items-center gap-1 bg-green-100 px-1.5 py-0.5 rounded-full">
@@ -551,40 +574,52 @@ export default function TamagotchiPage() {
       <div className="tamagotchi-inventory bg-white rounded-xl shadow-sm border border-gray-100">
         <h2 className="text-xs font-semibold text-gray-900 mb-2 text-center">🛠️ Инвентарь</h2>
         
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-2">
           {/* Подгузник */}
           <div 
             onClick={() => handleItemClick('diaper')}
-            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/diaper.png" 
               alt="Подгузник" 
-              className="w-12 h-12 object-contain"
+              className="w-10 h-10 object-contain"
             />
           </div>
 
           {/* Бутылочка */}
           <div 
             onClick={() => handleItemClick('feeding')}
-            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/feeding.png" 
               alt="Бутылочка" 
-              className="w-12 h-12 object-contain"
+              className="w-10 h-10 object-contain"
             />
           </div>
 
           {/* Губка */}
           <div 
             onClick={() => handleItemClick('bath')}
-            className="flex flex-col items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/sponge.png" 
               alt="Губка" 
-              className="w-12 h-12 object-contain"
+              className="w-10 h-10 object-contain"
+            />
+          </div>
+
+          {/* Активность */}
+          <div 
+            onClick={() => handleItemClick('activity')}
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+          >
+            <img 
+              src="/icons/baby.png" 
+              alt="Активность" 
+              className="w-10 h-10 object-contain"
             />
           </div>
         </div>

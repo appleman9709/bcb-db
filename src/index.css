@@ -1923,9 +1923,9 @@
   animation: scoreBounce 0.3s ease-out;
 }
 
-/* Стили для модального окна - предотвращение перекрытия с нижней панелью */
+/* Стили для модального окна - поверх нижней панели */
 .modal-overlay {
-  z-index: 100 !important;
+  z-index: 200 !important;
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -1934,26 +1934,8 @@
 }
 
 .modal-content {
-  max-height: calc(100vh - 120px) !important; /* Оставляем место для нижней панели */
-  max-height: calc(100dvh - 120px) !important; /* Dynamic viewport height */
-  margin-bottom: 80px !important; /* Отступ от нижней панели */
-}
-
-/* Адаптивность для мобильных устройств */
-@media (max-height: 600px) {
-  .modal-content {
-    max-height: calc(100vh - 100px) !important;
-    max-height: calc(100dvh - 100px) !important;
-    margin-bottom: 60px !important;
-  }
-}
-
-@media (max-height: 500px) {
-  .modal-content {
-    max-height: calc(100vh - 80px) !important;
-    max-height: calc(100dvh - 80px) !important;
-    margin-bottom: 50px !important;
-  }
+  max-height: 90vh !important; /* Полная высота экрана */
+  max-height: 90dvh !important; /* Dynamic viewport height */
 }
 
 /* Специальные стили для Тамагочи страницы - предотвращение прокрутки */
@@ -2020,19 +2002,75 @@
   }
 }
 
-@media (max-height: 500px) {
-  .tamagotchi-video {
-    max-height: 35vh;
-    max-height: 35dvh;
+/* Стили для нативных элементов выбора даты и времени */
+@layer components {
+  /* Календарик выбора даты */
+  input[type="date"] {
+    position: relative;
   }
   
-  .tamagotchi-coins {
-    padding: 0.0625rem 0;
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
   }
   
-  .tamagotchi-inventory {
-    padding: 0.125rem;
-    margin-bottom: 0.125rem;
+  input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  /* Колесико выбора времени */
+  input[type="time"] {
+    position: relative;
+  }
+  
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
+  }
+  
+  input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+  
+  /* Firefox стили */
+  input[type="date"]::-moz-calendar-picker-indicator,
+  input[type="time"]::-moz-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    cursor: pointer;
+  }
+  
+  /* Улучшенные стили для мобильных устройств */
+  @media (max-width: 768px) {
+    input[type="date"],
+    input[type="time"] {
+      font-size: 16px; /* Предотвращает зум на iOS */
+      min-height: 44px; /* Минимальный размер для удобного тапа */
+    }
   }
 }
 

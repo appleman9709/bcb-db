@@ -39,7 +39,7 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
     <div className={`relative ${className}`}>
       {/* Основной круг с градиентом */}
       <div 
-        className={`relative w-52 h-52 mx-auto ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration ${
+        className={`relative w-48 h-48 mx-auto ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration ${
           onClick ? 'cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-105' : ''
         }`}
         onClick={onClick}

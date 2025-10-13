@@ -4,7 +4,7 @@ import Modal from './Modal'
 import Button from './Button'
 import { dataService } from '../services/dataService'
 
-type QuickActionType = 'feeding' | 'diaper' | 'bath'
+type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
 
 interface QuickActionModalProps {
   isOpen: boolean
@@ -17,8 +17,7 @@ const QUICK_OFFSETS = [
   { label: 'Сейчас', minutes: 0 },
   { label: '-15 мин', minutes: -15 },
   { label: '-30 мин', minutes: -30 },
-  { label: '-1 час', minutes: -60 },
-  { label: '+15 мин', minutes: 15 }
+  { label: '-1 час', minutes: -60 }
 ]
 
 const actionConfig: Record<QuickActionType, {
@@ -52,6 +51,14 @@ const actionConfig: Record<QuickActionType, {
     buttonText: 'Записать купание',
     buttonVariant: 'warning',
     accent: 'from-yellow-500 to-orange-500'
+  },
+  activity: {
+    title: 'Активность',
+    icon: '/icons/baby.png',
+    description: 'Записать активность малыша (прогулка, массаж, игры, развивающие занятия).',
+    buttonText: 'Записать активность',
+    buttonVariant: 'primary',
+    accent: 'from-purple-500 to-pink-500'
   }
 }
 
@@ -76,11 +83,43 @@ const buildLocalState = (date: Date) => {
 
 const combineLocalDateTime = (date: string, time: string) => `${date}T${time}`
 
+const activityTypes = [
+  {
+    id: 'Прогулка',
+    label: 'Прогулка',
+    icon: '🚶',
+    description: 'Прогулка на свежем воздухе',
+    color: 'from-green-400 to-emerald-500'
+  },
+  {
+    id: 'Выкладывание на живот',
+    label: 'Выкладывание на живот',
+    icon: '🦋',
+    description: 'Развитие мышц спины и шеи',
+    color: 'from-blue-400 to-cyan-500'
+  },
+  {
+    id: 'Массаж',
+    label: 'Массаж',
+    icon: '🤲',
+    description: 'Расслабляющий массаж для малыша',
+    color: 'from-purple-400 to-pink-500'
+  },
+  {
+    id: 'Танцы на руках',
+    label: 'Танцы на руках',
+    icon: '💃',
+    description: 'Веселые танцы с малышом',
+    color: 'from-orange-400 to-red-500'
+  }
+]
+
 export default function QuickActionModal({ isOpen, onClose, actionType, onSuccess }: QuickActionModalProps) {
   const initialStateRef = useRef(buildLocalState(new Date()))
   const [selectedDateTime, setSelectedDateTime] = useState(initialStateRef.current.value)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedActivity, setSelectedActivity] = useState<string>('Прогулка')
 
   useEffect(() => {
     if (isOpen) {
@@ -88,6 +127,9 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       initialStateRef.current = next
       setSelectedDateTime(next.value)
       setError(null)
+      if (actionType === 'activity') {
+        setSelectedActivity('Прогулка')
+      }
     }
   }, [isOpen, actionType])
 
@@ -184,6 +226,9 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
         case 'bath':
           await dataService.addBath(timestamp)
           break
+        case 'activity':
+          await dataService.addActivity(selectedActivity)
+          break
         default:
           break
       }
@@ -205,41 +250,112 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={config.title} size="sm">
-      <div className="space-y-4 sm:space-y-6">
-        <div className="flex items-center justify-center">
-          <img 
-            src={actionType === 'diaper' ? '/icons/poo.png' : (actionType === 'bath' ? '/icons/alarm.png' : '/icons/eat.png')} 
-            alt={config.title} 
-            className="w-32 h-32 object-contain" 
-          />
-        </div>
+      <div className={`space-y-4 ${actionType === 'activity' ? 'sm:space-y-4' : 'sm:space-y-6'}`}>
+        {/* Изображение только для кормления, подгузника и купания */}
+        {actionType !== 'activity' && (
+          <div className="flex items-center justify-center">
+            <img 
+              src={
+                actionType === 'diaper' ? '/icons/poo.png' : 
+                actionType === 'bath' ? '/icons/alarm.png' : 
+                '/icons/eat.png'
+              } 
+              alt={config.title} 
+              className="w-32 h-32 object-contain" 
+            />
+          </div>
+        )}
 
         <div className="space-y-3 sm:space-y-4">
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-4">
-            <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm sm:px-5 sm:py-4">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-gray-400">Дата</span>
-              <input
-                type="date"
-                value={datePart}
-                onChange={(event) => handleDateChange(event.target.value)}
-                className="mt-1 w-full bg-transparent text-base font-semibold text-gray-900 focus:outline-none focus:ring-0 sm:mt-2 sm:text-lg"
-              />
+          {/* Выбор типа активности - только для активности */}
+          {actionType === 'activity' && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                {activityTypes.map((activity) => (
+                  <button
+                    key={activity.id}
+                    type="button"
+                    onClick={() => setSelectedActivity(activity.id)}
+                    className={`relative p-3 rounded-xl border-2 transition-all duration-200 ${
+                      selectedActivity === activity.id
+                        ? `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg`
+                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center space-y-1">
+                      <span className="text-2xl">{activity.icon}</span>
+                      <span className="text-xs font-medium text-center leading-tight">
+                        {activity.label}
+                      </span>
+                    </div>
+                    {selectedActivity === activity.id && (
+                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="text-center">
+                <p className="text-xs text-gray-600">
+                  {activityTypes.find(a => a.id === selectedActivity)?.description}
+                </p>
+              </div>
             </div>
+          )}
 
-            <div className="relative rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 py-3 shadow-[0_10px_30px_-18px_rgba(59,130,246,0.65)] sm:rounded-[2rem] sm:px-6 sm:py-5 sm:shadow-[0_15px_45px_-20px_rgba(59,130,246,0.7)]">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.32em] text-blue-600">Время</span>
-              <input
-                type="time"
-                step={300}
-                value={timePart}
-                onChange={(event) => handleTimeChange(event.target.value)}
-                className="mt-2 w-full bg-transparent text-xl font-semibold tracking-[0.22em] text-blue-700 focus:outline-none focus:ring-0 sm:mt-3 sm:text-2xl sm:tracking-[0.3em]"
-              />
-              <div className="pointer-events-none absolute inset-0 rounded-2xl border border-white/60 sm:rounded-[2rem]" aria-hidden="true" />
+          {/* Поля даты и времени - адаптивный макет */}
+          <div className="space-y-3">
+            {/* Поле даты - компактное, меньше */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-2 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer">
+              <div className="space-y-1">
+                <label className="text-[9px] font-medium uppercase tracking-wide text-gray-500">Дата</label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="date"
+                    value={datePart}
+                    onChange={(event) => handleDateChange(event.target.value)}
+                    className="flex-1 bg-transparent text-xs font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
+                    style={{
+                      colorScheme: 'light',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield'
+                    }}
+                  />
+                  <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            {/* Поле времени - основной, больше */}
+            <div className="rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-3 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
+              <div className="space-y-1">
+                <label className="text-[10px] font-medium uppercase tracking-wide text-blue-600">Время</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="time"
+                    step={300}
+                    value={timePart}
+                    onChange={(event) => handleTimeChange(event.target.value)}
+                    className="flex-1 bg-transparent text-sm font-semibold text-blue-700 focus:outline-none focus:ring-0 cursor-pointer"
+                    style={{
+                      colorScheme: 'light',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield'
+                    }}
+                  />
+                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          {/* Компактные кнопки быстрого времени */}
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {QUICK_OFFSETS.map(option => {
               const active = isQuickOptionActive(option.minutes)
               return (
@@ -247,10 +363,10 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                   key={option.label}
                   type="button"
                   onClick={() => applyQuickOffset(option.minutes)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
                     active
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-500/35'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   {option.label}
@@ -259,8 +375,9 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             })}
           </div>
 
-          <div className="rounded-2xl bg-gray-50 px-3 py-2 text-xs text-gray-600 sm:px-4 sm:py-3 sm:text-sm">
-            Предварительный просмотр: <span className="font-semibold text-gray-900">{formattedPreview}</span>
+          {/* Компактный предварительный просмотр */}
+          <div className="rounded-lg bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
+            <span className="font-medium text-gray-900">{formattedPreview}</span>
           </div>
 
           {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
