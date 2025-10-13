@@ -21,6 +21,7 @@ export interface Feeding {
   timestamp: string
   author_role: string
   author_name: string
+  ounces?: number
   created_at: string
 }
 
@@ -31,6 +32,7 @@ export interface Diaper {
   timestamp: string
   author_role: string
   author_name: string
+  diaper_type?: string
   created_at: string
 }
 
@@ -41,6 +43,7 @@ export interface Bath {
   timestamp: string
   author_role: string
   author_name: string
+  bath_mood?: string
   created_at: string
 }
 
@@ -225,7 +228,7 @@ class DataService {
     return data
   }
 
-  async addFeeding(timestamp?: string): Promise<Feeding | null> {
+  async addFeeding(timestamp?: string, ounces?: number): Promise<Feeding | null> {
     const familyId = this.requireFamilyId()
     const { authorId, authorName, authorRole } = this.requireAuthor()
 
@@ -242,7 +245,8 @@ class DataService {
         author_id: authorId,
         timestamp: eventDate.toISOString(),
         author_role: authorRole,
-        author_name: authorName
+        author_name: authorName,
+        ounces: ounces || null
       })
       .select()
       .single()
@@ -316,7 +320,7 @@ class DataService {
     return data
   }
 
-  async addDiaper(timestamp?: string): Promise<Diaper | null> {
+  async addDiaper(timestamp?: string, diaperType?: string): Promise<Diaper | null> {
     const familyId = this.requireFamilyId()
     const { authorId, authorName, authorRole } = this.requireAuthor()
 
@@ -333,7 +337,8 @@ class DataService {
         author_id: authorId,
         timestamp: eventDate.toISOString(),
         author_role: authorRole,
-        author_name: authorName
+        author_name: authorName,
+        diaper_type: diaperType || 'Просто'
       })
       .select()
       .single()
@@ -407,7 +412,7 @@ class DataService {
     return data
   }
 
-  async addBath(timestamp?: string): Promise<Bath | null> {
+  async addBath(timestamp?: string, bathMood?: string): Promise<Bath | null> {
     const familyId = this.requireFamilyId()
     const { authorId, authorName, authorRole } = this.requireAuthor()
 
@@ -424,7 +429,8 @@ class DataService {
         author_id: authorId,
         timestamp: eventDate.toISOString(),
         author_role: authorRole,
-        author_name: authorName
+        author_name: authorName,
+        bath_mood: bathMood || 'Спокойное купание'
       })
       .select()
       .single()

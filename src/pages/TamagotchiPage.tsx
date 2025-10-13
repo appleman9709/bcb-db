@@ -617,7 +617,7 @@ export default function TamagotchiPage() {
             className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
-              src="/icons/baby.png" 
+              src="/icons/activity.png" 
               alt="Активность" 
               className="w-10 h-10 object-contain"
             />

@@ -13,6 +13,9 @@ interface RecordDetailModalProps {
     author_name: string
     author_role: string
     activity_type?: string
+    ounces?: number
+    diaper_type?: string
+    bath_mood?: string
   } | null
 }
 
@@ -112,7 +115,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
   const dateTime = formatDateTime(record.timestamp)
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Детали записи" size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} size="sm">
       <div className="space-y-4">
         {/* Заголовок с иконкой */}
         <div className={`${typeInfo.bgColor} rounded-xl p-4 border border-gray-200`}>
@@ -160,6 +163,60 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
             </span>
           </div>
         </div>
+
+        {/* Дополнительная информация в зависимости от типа записи */}
+        {(record.type === 'feeding' && record.ounces) || 
+         (record.type === 'diaper' && record.diaper_type) || 
+         (record.type === 'bath' && record.bath_mood) || 
+         (record.type === 'activity' && record.activity_type) ? (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 space-y-3 border border-blue-100">
+            <h3 className="text-sm font-semibold text-gray-800 mb-2">📊 Детали события</h3>
+            
+            {record.type === 'feeding' && record.ounces && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Количество унций:</span>
+                <span className="text-sm text-blue-600 font-semibold bg-white px-2 py-1 rounded-full border border-blue-200">
+                  🍼 {record.ounces} унций
+                </span>
+              </div>
+            )}
+            
+            {record.type === 'diaper' && record.diaper_type && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Тип смены:</span>
+                <span className={`text-sm font-semibold px-2 py-1 rounded-full border ${
+                  record.diaper_type === 'Покакал' 
+                    ? 'text-orange-600 bg-orange-50 border-orange-200' 
+                    : 'text-blue-600 bg-blue-50 border-blue-200'
+                }`}>
+                  {record.diaper_type === 'Покакал' ? '💩 Покакал' : '💧 Просто'}
+                </span>
+              </div>
+            )}
+            
+            {record.type === 'bath' && record.bath_mood && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Настроение:</span>
+                <span className={`text-sm font-semibold px-2 py-1 rounded-full border ${
+                  record.bath_mood === 'Кричал' 
+                    ? 'text-red-600 bg-red-50 border-red-200' 
+                    : 'text-green-600 bg-green-50 border-green-200'
+                }`}>
+                  {record.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'}
+                </span>
+              </div>
+            )}
+            
+            {record.type === 'activity' && record.activity_type && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Тип активности:</span>
+                <span className="text-sm text-purple-600 font-semibold bg-white px-2 py-1 rounded-full border border-purple-200">
+                  🎯 {record.activity_type}
+                </span>
+              </div>
+            )}
+          </div>
+        ) : null}
 
         {/* Информация об авторе */}
         <div className="bg-gray-50 rounded-xl p-4 space-y-2">

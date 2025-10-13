@@ -15,10 +15,12 @@ import TetrisPage from './TetrisPage'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, Activity, Tip } from '../services/dataService'
 import { achievementService, NewAchievement } from '../services/achievementService'
+import AchievementHistoryChecker from '../components/AchievementHistoryChecker'
 import { AchievementModal } from '../components/AchievementModal'
 import { AchievementNotification } from '../components/AchievementNotification'
 import RecordDetailModal from '../components/RecordDetailModal'
-// import { TestComponent } from '../components/TestComponent'
+import HistoryFilters from '../components/HistoryFilters'
+import EventGroup from '../components/EventGroup'
 
 type DashboardSection = 'dashboard' | 'history' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath'
@@ -92,6 +94,7 @@ export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<DashboardSection>('dashboard')
   const [data, setData] = useState<DashboardData | null>(null)
   const [historyData, setHistoryData] = useState<HistoryData | null>(null)
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [totalCounts, setTotalCounts] = useState<TotalCounts | null>(null)
   const [settings, setSettings] = useState<SettingsState>({
     birthDate: '2024-01-01',
@@ -117,7 +120,12 @@ export default function Dashboard() {
     author_name: string
     author_role: string
     activity_type?: string
+    ounces?: number
+    diaper_type?: string
+    bath_mood?: string
   } | null>(null)
+  const [historyFilter, setHistoryFilter] = useState<string>('all')
+  const [groupByDate, setGroupByDate] = useState<boolean>(true)
 
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
@@ -180,6 +188,7 @@ export default function Dashboard() {
     }
 
     try {
+      setHistoryLoading(true)
       const [feedings, diapers, baths, activities, counts] = await Promise.all([
         dataService.getFeedings(50),
         dataService.getDiapers(50),
@@ -198,6 +207,8 @@ export default function Dashboard() {
       setTotalCounts(counts)
     } catch (error) {
       console.error('Error fetching history data:', error)
+    } finally {
+      setHistoryLoading(false)
     }
   }, [member, family])
 
@@ -328,7 +339,10 @@ export default function Dashboard() {
       timestamp: record.timestamp,
       author_name: record.author_name,
       author_role: record.author_role,
-      activity_type: record.activity_type
+      activity_type: record.activity_type,
+      ounces: record.ounces,
+      diaper_type: record.diaper_type,
+      bath_mood: record.bath_mood
     })
     setRecordDetailModalOpen(true)
   }
@@ -352,7 +366,7 @@ export default function Dashboard() {
     try {
       const achievements = await achievementService.checkAndAwardAchievements(
         family.id,
-        member.user_id,
+        Number(member.user_id),
         modalAction,
         {}
       )
@@ -360,6 +374,11 @@ export default function Dashboard() {
       if (achievements.length > 0) {
         setNewAchievements(achievements)
         setShowAchievementNotification(true)
+        
+        // Отправляем пуш-уведомления для каждого достижения
+        for (const achievement of achievements) {
+          await achievementService.sendAchievementNotification(achievement)
+        }
         
         // Автоматически скрываем уведомление через 5 секунд
         setTimeout(() => {
@@ -840,6 +859,11 @@ export default function Dashboard() {
                   >
                     🏆 Открыть достижения
                   </button>
+                  
+                  {/* Компонент проверки истории достижений */}
+                  <div className="mt-3">
+                    <AchievementHistoryChecker />
+                  </div>
                 </div>
               </div>
 
@@ -1372,6 +1396,30 @@ export default function Dashboard() {
                 💡 Нажмите на запись для просмотра деталей
               </p>
 
+
+              {/* Фильтры истории */}
+              <HistoryFilters 
+                selectedFilter={historyFilter} 
+                onFilterChange={setHistoryFilter} 
+              />
+
+              {/* Переключатель группировки */}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-700">Группировка по дням</span>
+                <button
+                  onClick={() => setGroupByDate(!groupByDate)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    groupByDate ? 'bg-blue-600' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      groupByDate ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+
                 <div className="space-y-0.0625">
                 {historyData ? (
                   (() => {
@@ -1381,86 +1429,130 @@ export default function Dashboard() {
                       ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const })),
                       ...(historyData.activities || []).map(item => ({ ...item, type: 'activity' as const }))
                     ]
+                      .filter(item => historyFilter === 'all' || item.type === historyFilter)
                       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                       .slice(0, MAX_HISTORY_EVENTS)
 
-                    return allEvents.map((item, index) => {
-                      const getTypeInfo = (type: typeof item.type) => {
-                        switch (type) {
-                          case 'feeding':
-                              return { 
-                                icon: <img src="/icons/feeding.png" alt="Кормление" className="w-6 h-6 object-contain" />, 
-                                label: 'Кормление', 
-                                color: 'bg-blue-100 text-blue-600',
-                                bgColor: 'bg-blue-50',
-                                description: 'Ребенок покормлен'
-                              }
-                          case 'diaper':
-                              return { 
-                                icon: <img src="/icons/poor.png" alt="Смена подгузника" className="w-6 h-6 object-contain" />, 
-                                label: 'Смена подгузника', 
-                                color: 'bg-green-100 text-green-600',
-                                bgColor: 'bg-green-50',
-                                description: 'Подгузник заменен'
-                              }
-                          case 'bath':
-                              return { 
-                                icon: <img src="/icons/bath.png" alt="Купание" className="w-6 h-6 object-contain" />, 
-                                label: 'Купание', 
-                                color: 'bg-yellow-100 text-yellow-600',
-                                bgColor: 'bg-yellow-50',
-                                description: 'Ребенок искупан'
-                              }
-                          case 'activity':
-                              return { 
-                                icon: <img src="/icons/baby.png" alt="Активность" className="w-6 h-6 object-contain" />, 
-                                label: 'Активность', 
-                                color: 'bg-purple-100 text-purple-600',
-                                bgColor: 'bg-purple-50',
-                                description: (item as any).activity_type || 'Активность записана'
-                              }
-                          default:
-                              return { 
-                                icon: '⭐', 
-                                label: 'Событие', 
-                                color: 'bg-gray-100 text-gray-600',
-                                bgColor: 'bg-gray-50',
-                                description: 'Записано событие'
-                              }
+                    if (groupByDate) {
+                      // Группируем события по дням
+                      const groupedEvents = allEvents.reduce((groups, event) => {
+                        const date = new Date(event.timestamp).toDateString()
+                        if (!groups[date]) {
+                          groups[date] = []
                         }
-                      }
+                        groups[date].push(event)
+                        return groups
+                      }, {} as Record<string, typeof allEvents>)
 
-                      const typeInfo = getTypeInfo(item.type)
-                        const eventDate = new Date(item.timestamp)
-                        const timeAgo = getTimeAgo(item.timestamp)
+                      return Object.entries(groupedEvents)
+                        .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
+                        .map(([date, events]) => (
+                          <EventGroup
+                            key={date}
+                            date={date}
+                            events={events}
+                            onEventClick={handleRecordClick}
+                          />
+                        ))
+                    } else {
+                      // Отображаем события без группировки (как было раньше)
+                      return allEvents.map((item, index) => {
+                        const getTypeInfo = (type: typeof item.type) => {
+                          switch (type) {
+                            case 'feeding':
+                                const feedingItem = item as any
+                                const ouncesText = feedingItem.ounces ? ` • ${feedingItem.ounces} унций` : ''
+                                return { 
+                                  icon: <img src="/icons/feeding.png" alt="Кормление" className="w-6 h-6 object-contain" />, 
+                                  label: 'Кормление', 
+                                  color: 'bg-blue-100 text-blue-600',
+                                  bgColor: 'bg-blue-50',
+                                  description: `Ребенок покормлен${ouncesText}`,
+                                  extraInfo: feedingItem.ounces ? `🍼 ${feedingItem.ounces} унций` : null
+                                }
+                            case 'diaper':
+                                const diaperItem = item as any
+                                const diaperTypeText = diaperItem.diaper_type === 'Покакал' ? ' • Покакал' : ''
+                                return { 
+                                  icon: <img src="/icons/poor.png" alt="Смена подгузника" className="w-6 h-6 object-contain" />, 
+                                  label: 'Смена подгузника', 
+                                  color: 'bg-green-100 text-green-600',
+                                  bgColor: 'bg-green-50',
+                                  description: `Подгузник заменен${diaperTypeText}`,
+                                  extraInfo: diaperItem.diaper_type === 'Покакал' ? '💩 Покакал' : '💧 Просто'
+                                }
+                            case 'bath':
+                                const bathItem = item as any
+                                const moodText = bathItem.bath_mood === 'Кричал' ? ' • Беспокоился' : ''
+                                return { 
+                                  icon: <img src="/icons/bath.png" alt="Купание" className="w-6 h-6 object-contain" />, 
+                                  label: 'Купание', 
+                                  color: 'bg-yellow-100 text-yellow-600',
+                                  bgColor: 'bg-yellow-50',
+                                  description: `Ребенок искупан${moodText}`,
+                                  extraInfo: bathItem.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'
+                                }
+                            case 'activity':
+                                const activityItem = item as any
+                                return { 
+                                  icon: <img src="/icons/activity.png" alt="Активность" className="w-6 h-6 object-contain" />, 
+                                  label: 'Активность', 
+                                  color: 'bg-purple-100 text-purple-600',
+                                  bgColor: 'bg-purple-50',
+                                  description: activityItem.activity_type || 'Активность записана',
+                                  extraInfo: null // Убираем дублирование - тип активности уже в описании
+                                }
+                            default:
+                                return { 
+                                  icon: '⭐', 
+                                  label: 'Событие', 
+                                  color: 'bg-gray-100 text-gray-600',
+                                  bgColor: 'bg-gray-50',
+                                  description: 'Записано событие',
+                                  extraInfo: null
+                                }
+                          }
+                        }
 
-                      return (
-                          <div 
-                            key={`${item.type}-${item.id}-${index}`} 
-                            className={`flex items-center space-x-0.125 p-0.125 rounded-lg ${typeInfo.bgColor} border border-gray-100 iphone14-card cursor-pointer hover:shadow-md transition-all duration-200`}
-                            onClick={() => handleRecordClick(item)}
-                          >
-                            <div className="w-8 h-8 flex items-center justify-center">
-                              {typeInfo.icon}
+                        const typeInfo = getTypeInfo(item.type)
+                          const eventDate = new Date(item.timestamp)
+                          const timeAgo = getTimeAgo(item.timestamp)
+
+                        return (
+                            <div 
+                              key={`${item.type}-${item.id}-${index}`} 
+                              className={`flex items-center space-x-0.125 p-0.125 rounded-lg ${typeInfo.bgColor} border border-gray-100 iphone14-card cursor-pointer hover:shadow-md transition-all duration-200`}
+                              onClick={() => handleRecordClick(item)}
+                            >
+                              <div className="w-8 h-8 flex items-center justify-center">
+                                {typeInfo.icon}
+                              </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                  <h3 className="text-xs font-semibold text-gray-900">{typeInfo.label}</h3>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs font-medium text-gray-500">{timeAgo}</span>
+                                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                    </svg>
+                                  </div>
+                              </div>
+                                <p className="text-xs text-gray-600 mt-0.5">{typeInfo.description}</p>
+                                {typeInfo.extraInfo && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <span className="text-xs font-medium text-gray-700 bg-white px-1.5 py-0.5 rounded-full border border-gray-200">
+                                      {typeInfo.extraInfo}
+                                    </span>
+                                  </div>
+                                )}
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                  📅 {eventDate.toLocaleDateString('ru-RU')} в {formatTime(eventDate)}
+                                </p>
                             </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-xs font-semibold text-gray-900">{typeInfo.label}</h3>
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs font-medium text-gray-500">{timeAgo}</span>
-                                  <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                  </svg>
-                                </div>
-                            </div>
-                              <p className="text-xs text-gray-600 mt-0.5">{typeInfo.description}</p>
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                📅 {eventDate.toLocaleDateString('ru-RU')} в {formatTime(eventDate)}
-                              </p>
                           </div>
-                        </div>
-                      )
-                    })
+                        )
+                      })
+                    }
                   })()
                 ) : (
                   <div className="text-center py-8 text-gray-400">
@@ -1498,7 +1590,7 @@ export default function Dashboard() {
           isOpen={achievementModalOpen}
           onClose={() => setAchievementModalOpen(false)}
           familyId={family?.id || 0}
-          userId={member?.user_id || 0}
+          userId={Number(member?.user_id) || 0}
         />
 
         {/* Модальное окно деталей записи */}

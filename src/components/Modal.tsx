@@ -3,12 +3,11 @@ import { ReactNode, useEffect } from 'react'
 interface ModalProps {
   isOpen: boolean
   onClose: () => void
-  title: string
   children: ReactNode
   size?: 'sm' | 'md' | 'lg'
 }
 
-export default function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
+export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -53,18 +52,15 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
       {/* Modal */}
       <div className={`modal-content relative w-full ${sizeClasses[size]} sm:mt-0 mt-10`}>
         <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-bounce-in">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 p-5 sm:p-6">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-            <button
-              onClick={onClose}
-              className="rounded-xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 rounded-xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
           {/* Content */}
           <div className="flex-1 overflow-hidden p-5 sm:p-6 sm:overflow-y-auto">

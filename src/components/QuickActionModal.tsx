@@ -87,28 +87,28 @@ const activityTypes = [
   {
     id: 'Прогулка',
     label: 'Прогулка',
-    icon: '🚶',
+    icon: '/icons/walking.png',
     description: 'Прогулка на свежем воздухе',
     color: 'from-green-400 to-emerald-500'
   },
   {
     id: 'Выкладывание на живот',
     label: 'Выкладывание на живот',
-    icon: '🦋',
+    icon: '/icons/belly.png',
     description: 'Развитие мышц спины и шеи',
     color: 'from-blue-400 to-cyan-500'
   },
   {
     id: 'Массаж',
     label: 'Массаж',
-    icon: '🤲',
+    icon: '/icons/massage.png',
     description: 'Расслабляющий массаж для малыша',
     color: 'from-purple-400 to-pink-500'
   },
   {
     id: 'Танцы на руках',
     label: 'Танцы на руках',
-    icon: '💃',
+    icon: '/icons/dance.png',
     description: 'Веселые танцы с малышом',
     color: 'from-orange-400 to-red-500'
   }
@@ -120,6 +120,15 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedActivity, setSelectedActivity] = useState<string>('Прогулка')
+  
+  // Новые состояния для дополнительных опций
+  const [diaperType, setDiaperType] = useState<string>('Просто')
+  const [bathMood, setBathMood] = useState<string>('Спокойное')
+  const [feedingOunces, setFeedingOunces] = useState<number>(() => {
+    // Загружаем сохраненное значение из localStorage
+    const saved = localStorage.getItem('lastFeedingOunces')
+    return saved ? parseFloat(saved) : 0
+  })
 
   useEffect(() => {
     if (isOpen) {
@@ -130,6 +139,10 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       if (actionType === 'activity') {
         setSelectedActivity('Прогулка')
       }
+      // Сброс дополнительных опций (кроме унций)
+      setDiaperType('Просто')
+      setBathMood('Спокойное')
+      // feedingOunces не сбрасываем - сохраняем предыдущее значение
     }
   }, [isOpen, actionType])
 
@@ -178,6 +191,12 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     return diff === Math.abs(minutes * 60000)
   }
 
+  const handleFeedingOuncesChange = (value: number) => {
+    setFeedingOunces(value)
+    // Сохраняем значение в localStorage
+    localStorage.setItem('lastFeedingOunces', value.toString())
+  }
+
   const config = actionConfig[actionType]
 
   const formattedPreview = useMemo(() => {
@@ -218,13 +237,13 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     try {
       switch (actionType) {
         case 'feeding':
-          await dataService.addFeeding(timestamp)
+          await dataService.addFeeding(timestamp, feedingOunces > 0 ? feedingOunces : undefined)
           break
         case 'diaper':
-          await dataService.addDiaper(timestamp)
+          await dataService.addDiaper(timestamp, diaperType)
           break
         case 'bath':
-          await dataService.addBath(timestamp)
+          await dataService.addBath(timestamp, bathMood)
           break
         case 'activity':
           await dataService.addActivity(selectedActivity)
@@ -249,7 +268,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={config.title} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} size="sm">
       <div className={`space-y-4 ${actionType === 'activity' ? 'sm:space-y-4' : 'sm:space-y-6'}`}>
         {/* Изображение только для кормления, подгузника и купания */}
         {actionType !== 'activity' && (
@@ -283,7 +302,11 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     }`}
                   >
                     <div className="flex flex-col items-center space-y-1">
-                      <span className="text-2xl">{activity.icon}</span>
+                      <img 
+                        src={activity.icon} 
+                        alt={activity.label} 
+                        className="w-8 h-8 object-contain"
+                      />
                       <span className="text-xs font-medium text-center leading-tight">
                         {activity.label}
                       </span>
@@ -304,28 +327,169 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             </div>
           )}
 
+          {/* Опции для смены подгузника */}
+          {actionType === 'diaper' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Тип смены подгузника</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDiaperType('Просто')}
+                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                    diaperType === 'Просто'
+                      ? 'border-green-500 bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-1">
+                    <img 
+                      src="/icons/common.png" 
+                      alt="Просто" 
+                      className="w-8 h-8 object-contain"
+                    />
+                    <span className="text-xs font-medium">Просто</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDiaperType('Покакал')}
+                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                    diaperType === 'Покакал'
+                      ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-1">
+                    <img 
+                      src="/icons/poor.png" 
+                      alt="Покакал" 
+                      className="w-8 h-8 object-contain"
+                    />
+                    <span className="text-xs font-medium">Покакал</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Опции для купания */}
+          {actionType === 'bath' && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Настроение во время купания</label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setBathMood('Спокойное')}
+                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                    bathMood === 'Спокойное'
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-1">
+                    <img 
+                      src="/icons/still.png" 
+                      alt="Спокойное" 
+                      className="w-8 h-8 object-contain"
+                    />
+                    <span className="text-xs font-medium text-center">Спокойное</span>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBathMood('Беспокоился')}
+                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                    bathMood === 'Беспокоился'
+                      ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-yellow-500 text-white shadow-lg'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center space-y-1">
+                    <img 
+                      src="/icons/angry.png" 
+                      alt="Беспокоился" 
+                      className="w-8 h-8 object-contain"
+                    />
+                    <span className="text-xs font-medium">Беспокоился</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Ползунок для кормления */}
+          {actionType === 'feeding' && (
+            <div className="space-y-2">
+              <div className="text-center">
+                <span className="text-lg font-semibold text-blue-600">
+                  {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
+                </span>
+              </div>
+              <div className="slider-wrapper">
+                <div className="slider-track-container">
+                  <div className="slider-track">
+                    <div 
+                      className="slider-progress feeding-progress"
+                      style={{ width: `${(feedingOunces / 8) * 100}%` }}
+                    ></div>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="8"
+                    step="0.5"
+                    value={feedingOunces}
+                    onChange={(e) => handleFeedingOuncesChange(parseFloat(e.target.value))}
+                    className="modern-slider feeding-slider"
+                  />
+                </div>
+                
+                <div className="slider-labels">
+                  <div className="slider-label" onClick={() => handleFeedingOuncesChange(0)}>
+                    <span className="label-value">0</span>
+                    <span className="label-text">унц</span>
+                  </div>
+                  <div className="slider-label" onClick={() => handleFeedingOuncesChange(2)}>
+                    <span className="label-value">2</span>
+                    <span className="label-text">унц</span>
+                  </div>
+                  <div className="slider-label" onClick={() => handleFeedingOuncesChange(4)}>
+                    <span className="label-value">4</span>
+                    <span className="label-text">унц</span>
+                  </div>
+                  <div className="slider-label" onClick={() => handleFeedingOuncesChange(6)}>
+                    <span className="label-value">6</span>
+                    <span className="label-text">унц</span>
+                  </div>
+                  <div className="slider-label" onClick={() => handleFeedingOuncesChange(8)}>
+                    <span className="label-value">8</span>
+                    <span className="label-text">унц</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Поля даты и времени - адаптивный макет */}
           <div className="space-y-3">
-            {/* Поле даты - компактное, меньше */}
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-2 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer">
-              <div className="space-y-1">
-                <label className="text-[9px] font-medium uppercase tracking-wide text-gray-500">Дата</label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="date"
-                    value={datePart}
-                    onChange={(event) => handleDateChange(event.target.value)}
-                    className="flex-1 bg-transparent text-xs font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
-                    style={{
-                      colorScheme: 'light',
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'textfield'
-                    }}
-                  />
-                  <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
+            {/* Поле даты - максимально компактное */}
+            <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer">
+              <div className="flex items-center gap-1">
+                <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
+                <input
+                  type="date"
+                  value={datePart}
+                  onChange={(event) => handleDateChange(event.target.value)}
+                  className="flex-1 bg-transparent text-[9px] font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
+                  style={{
+                    colorScheme: 'light',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'textfield'
+                  }}
+                />
+                <svg className="w-2 h-2 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
               </div>
             </div>
             

@@ -365,6 +365,100 @@ class AchievementService {
       return {};
     }
   }
+
+  /**
+   * Проверяет историю семьи и выдает недостающие достижения
+   */
+  async checkFamilyHistoryAndAwardAchievements(familyId: number): Promise<NewAchievement[]> {
+    try {
+      const { data, error } = await supabase.rpc('check_family_history_and_award_achievements', {
+        family_id_param: familyId
+      });
+
+      if (error) {
+        console.error('Error checking family history:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error in checkFamilyHistoryAndAwardAchievements:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Получает уведомления о достижениях для пользователя
+   */
+  async getAchievementNotifications(familyId: number, userId: number, limit: number = 10): Promise<UserAchievement[]> {
+    try {
+      const { data, error } = await supabase.rpc('get_achievement_notifications', {
+        family_id_param: familyId,
+        user_id_param: userId,
+        limit_count: limit
+      });
+
+      if (error) {
+        console.error('Error fetching achievement notifications:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error in getAchievementNotifications:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Отправляет уведомление о достижении
+   */
+  async sendAchievementNotification(achievement: NewAchievement) {
+    try {
+      // Проверяем поддержку уведомлений
+      if ('Notification' in window && Notification.permission === 'granted') {
+        const notification = new Notification(`🎉 ${achievement.achievement_name}`, {
+          body: `Получено достижение! ${achievement.points} очков, ${achievement.coins_reward} монет`,
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/icon-96x96.png',
+          tag: 'achievement',
+          requireInteraction: true,
+          data: {
+            achievementId: achievement.achievement_id,
+            points: achievement.points,
+            coins: achievement.coins_reward
+          }
+        });
+
+        // Автоматически закрываем уведомление через 5 секунд
+        setTimeout(() => {
+          notification.close();
+        }, 5000);
+
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error sending achievement notification:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Запрашивает разрешение на уведомления
+   */
+  async requestNotificationPermission(): Promise<boolean> {
+    try {
+      if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+        return permission === 'granted';
+      }
+      return false;
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      return false;
+    }
+  }
 }
 
 export const achievementService = new AchievementService();
