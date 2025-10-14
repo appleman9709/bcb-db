@@ -10,7 +10,7 @@ interface CardProps {
 
 export default function Card({ children, className = '', onClick, variant = 'default', style }: CardProps) {
   const baseClasses = [
-    'rounded-xl sm:rounded-2xl',
+    'rounded-3xl sm:rounded-3xl',
     'p-3 sm:p-4 lg:p-6',
     'shadow-lg',
     'transition-shadow',

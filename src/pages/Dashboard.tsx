@@ -13,7 +13,7 @@ import BackgroundElements from '../components/BackgroundElements'
 import TamagotchiPage from './TamagotchiPage'
 import TetrisPage from './TetrisPage'
 import { useAuth } from '../contexts/AuthContext'
-import { dataService, Feeding, Diaper, Bath, Activity, Tip } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, Activity, Tip, SleepSession } from '../services/dataService'
 import { achievementService, NewAchievement } from '../services/achievementService'
 import AchievementHistoryChecker from '../components/AchievementHistoryChecker'
 import { AchievementModal } from '../components/AchievementModal'
@@ -38,6 +38,7 @@ interface HistoryData {
   diapers: Diaper[]
   baths: Bath[]
   activities: Activity[]
+  sleepSessions: SleepSession[]
 }
 
 interface TotalCounts {
@@ -52,6 +53,8 @@ interface SettingsState {
   feedingInterval: number
   diaperInterval: number
   bathInterval: number
+  sleepMonitoringEnabled: boolean
+  wakeOnActivityEnabled: boolean
 }
 
 const MAX_HISTORY_EVENTS = 20
@@ -100,7 +103,9 @@ export default function Dashboard() {
     birthDate: '2024-01-01',
     feedingInterval: 3,
     diaperInterval: 2,
-    bathInterval: 1
+    bathInterval: 1,
+    sleepMonitoringEnabled: true,
+    wakeOnActivityEnabled: true
   })
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -172,7 +177,9 @@ export default function Dashboard() {
           birthDate: settingsFromDb.baby_birth_date || settingsFromDb.birth_date || prev.birthDate,
           feedingInterval: settingsFromDb.feed_interval ?? prev.feedingInterval,
           diaperInterval: settingsFromDb.diaper_interval ?? prev.diaperInterval,
-          bathInterval: settingsFromDb.bath_reminder_period ?? prev.bathInterval
+          bathInterval: settingsFromDb.bath_reminder_period ?? prev.bathInterval,
+          sleepMonitoringEnabled: settingsFromDb.sleep_monitoring_enabled ?? prev.sleepMonitoringEnabled,
+          wakeOnActivityEnabled: settingsFromDb.wake_on_activity_enabled ?? prev.wakeOnActivityEnabled
         }))
       }
     } catch (error) {
@@ -189,11 +196,12 @@ export default function Dashboard() {
 
     try {
       setHistoryLoading(true)
-      const [feedings, diapers, baths, activities, counts] = await Promise.all([
+      const [feedings, diapers, baths, activities, sleepSessions, counts] = await Promise.all([
         dataService.getFeedings(50),
         dataService.getDiapers(50),
         dataService.getBaths(50),
         dataService.getActivities(50),
+        dataService.getSleepSessions(7),
         dataService.getTotalCounts()
       ])
 
@@ -201,7 +209,8 @@ export default function Dashboard() {
         feedings,
         diapers,
         baths,
-        activities
+        activities,
+        sleepSessions
       })
 
       setTotalCounts(counts)
@@ -426,7 +435,9 @@ export default function Dashboard() {
         diaper_interval: settings.diaperInterval,
         bath_reminder_period: settings.bathInterval,
         baby_birth_date: settings.birthDate,
-        baby_age_months: calculateAgeInMonths(settings.birthDate)
+        baby_age_months: calculateAgeInMonths(settings.birthDate),
+        sleep_monitoring_enabled: settings.sleepMonitoringEnabled,
+        wake_on_activity_enabled: settings.wakeOnActivityEnabled
       })
 
       if (updatedSettings) {
@@ -800,9 +811,9 @@ export default function Dashboard() {
           opacity: pullDistance > 20 ? Math.min(1, (pullDistance - 20) / 40) : 0
         }}
       >
-        <div className="bg-white rounded-full p-3 shadow-lg border border-gray-200">
+        <div className="bg-white rounded-3xl p-3 shadow-lg border border-gray-200">
           {isRefreshing ? (
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-3xl animate-spin"></div>
           ) : (
             <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-200 ${
               pullDistance >= PULL_REFRESH_THRESHOLD ? 'rotate-180' : ''
@@ -842,7 +853,7 @@ export default function Dashboard() {
         </div>
 
               {/* Достижения */}
-              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 flex items-center justify-center text-sm">
                     🏆
@@ -855,7 +866,7 @@ export default function Dashboard() {
                   </p>
                   <button
                     onClick={() => setAchievementModalOpen(true)}
-                    className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold py-2 px-4 rounded-3xl shadow-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-200 text-sm flex items-center justify-center gap-2"
                   >
                     🏆 Открыть достижения
                   </button>
@@ -868,7 +879,7 @@ export default function Dashboard() {
               </div>
 
               {/* Профиль малыша */}
-              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 flex items-center justify-center text-sm">
                     👶
@@ -885,7 +896,7 @@ export default function Dashboard() {
                         type="date"
                         value={settings.birthDate}
                         onChange={(event) => handleSettingChange('birthDate', event.target.value)}
-                        className="w-full"
+                        className="w-full text-center"
                         // iOS специфичные атрибуты
                         inputMode="numeric"
                         autoComplete="bday"
@@ -906,7 +917,7 @@ export default function Dashboard() {
           </div>
 
               {/* Напоминания */}
-              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 flex items-center justify-center text-sm">
                     ⏰
@@ -1098,9 +1109,91 @@ export default function Dashboard() {
                 </div>
             </div>
 
+              {/* Синхронизация сна */}
+              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 flex items-center justify-center text-sm">
+                    😴
+                  </div>
+                  <h2 className="text-base font-semibold text-gray-900">Синхронизация сна</h2>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-gray-900">Семейная синхронизация</p>
+                      <p className="text-xs text-gray-500">Сон малыша будет синхронизирован между всеми членами семьи</p>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        id="sleepMonitoring"
+                        checked={settings.sleepMonitoringEnabled}
+                        onChange={(event) => handleSettingChange('sleepMonitoringEnabled', event.target.checked)}
+                        className="sr-only"
+                      />
+                      <label
+                        htmlFor="sleepMonitoring"
+                        className={`toggle-switch ${settings.sleepMonitoringEnabled ? 'active' : ''}`}
+                      >
+                        <div className="toggle-thumb"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div className={`px-2 py-1 rounded-3xl text-xs font-medium ${
+                    settings.sleepMonitoringEnabled 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {settings.sleepMonitoringEnabled ? '✅ Синхронизация включена' : '❌ Синхронизация отключена'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Пробуждение после активности */}
+              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 flex items-center justify-center text-sm">
+                    🌅
+                  </div>
+                  <h2 className="text-base font-semibold text-gray-900">Пробуждение после активности</h2>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-gray-900">Автоматическое пробуждение</p>
+                      <p className="text-xs text-gray-500">Малыш будет просыпаться при записи любой активности</p>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        id="wakeOnActivity"
+                        checked={settings.wakeOnActivityEnabled}
+                        onChange={(event) => handleSettingChange('wakeOnActivityEnabled', event.target.checked)}
+                        className="sr-only"
+                      />
+                      <label
+                        htmlFor="wakeOnActivity"
+                        className={`toggle-switch ${settings.wakeOnActivityEnabled ? 'active' : ''}`}
+                      >
+                        <div className="toggle-thumb"></div>
+                      </label>
+                    </div>
+                  </div>
+                  <div className={`px-2 py-1 rounded-3xl text-xs font-medium ${
+                    settings.wakeOnActivityEnabled 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {settings.wakeOnActivityEnabled 
+                      ? '✅ Малыш будет просыпаться при записи активности' 
+                      : '❌ Автоматическое пробуждение отключено'}
+                  </div>
+                </div>
+              </div>
+
               {/* Уведомления */}
               {isNotificationSupported && (
-                <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 flex items-center justify-center text-sm">
                       🔔
@@ -1113,7 +1206,7 @@ export default function Dashboard() {
                         <p className="text-xs font-medium text-gray-900">Push-уведомления</p>
                         <p className="text-xs text-gray-500">Получайте напоминания о кормлении и смене подгузника</p>
                       </div>
-                      <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      <div className={`px-2 py-0.5 rounded-3xl text-xs font-medium ${
                         notificationPermission === 'granted' 
                           ? 'bg-green-100 text-green-700' 
                           : 'bg-red-100 text-red-700'
@@ -1124,7 +1217,7 @@ export default function Dashboard() {
                     {notificationPermission !== 'granted' && (
                       <button
                         onClick={requestNotificationPermission}
-                        className="w-full bg-blue-500 text-white font-medium py-1.5 px-3 rounded-lg hover:bg-blue-600 transition-colors text-xs"
+                        className="w-full bg-blue-500 text-white font-medium py-1.5 px-3 rounded-3xl hover:bg-blue-600 transition-colors text-xs"
                       >
                         Включить уведомления
                       </button>
@@ -1134,7 +1227,7 @@ export default function Dashboard() {
               )}
 
               {/* Информация о семье */}
-              <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 iphone14-card">
+              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 flex items-center justify-center text-sm">
                     👥
@@ -1142,14 +1235,14 @@ export default function Dashboard() {
                   <h2 className="text-base font-semibold text-gray-900">Информация о семье</h2>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-3xl">
                     <div>
                       <p className="text-xs font-medium text-gray-900">Семья</p>
                       <p className="text-xs text-gray-500">Название вашей семьи</p>
                     </div>
                     <span className="text-xs font-medium text-gray-700">{family?.name ?? 'Family'}</span>
                   </div>
-                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center p-2 bg-gray-50 rounded-3xl">
                     <div>
                       <p className="text-xs font-medium text-gray-900">Ваше имя</p>
                       <p className="text-xs text-gray-500">Как вас называть в приложении</p>
@@ -1158,7 +1251,7 @@ export default function Dashboard() {
                   </div>
                   <button
                     onClick={signOut}
-                    className="w-full mt-2 px-3 py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-xs"
+                    className="w-full mt-2 px-3 py-1.5 bg-red-500 text-white rounded-3xl hover:bg-red-600 transition-colors font-medium text-xs"
                   >
                     🚪 Выйти из аккаунта
                   </button>
@@ -1168,7 +1261,7 @@ export default function Dashboard() {
               {/* Сохранение */}
               <button
                 onClick={handleSaveSettings}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 text-sm"
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-3xl shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 text-sm"
               >
                 💾 Сохранить все изменения
               </button>
@@ -1197,7 +1290,7 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <button
                     onClick={() => handleQuickAction('feeding')}
-                  className="w-full bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 iphone14-quick-action"
+                  className="w-full bg-white rounded-3xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 iphone14-quick-action"
                 >
                   <div className="w-12 h-12 flex items-center justify-center">
                     <img src="/icons/feeding.png" alt="Кормление" className="w-10 h-10 object-contain" />
@@ -1207,9 +1300,9 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-500 mt-0.5">
                       {data?.lastFeeding ? `${formatTime(new Date(data.lastFeeding.timestamp))}` : "Еще не кормили"}
                     </p>
-                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
                       <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
+                        className={`h-2 rounded-3xl transition-all duration-300 ${
                           data?.lastFeeding && (Date.now() - new Date(data.lastFeeding.timestamp).getTime()) >= (settings.feedingInterval * 60 * 60 * 1000)
                             ? 'bg-red-500' 
                             : 'bg-blue-400'
@@ -1241,7 +1334,7 @@ export default function Dashboard() {
 
                 <button
                     onClick={() => handleQuickAction('diaper')}
-                  className="w-full bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-all duration-200 iphone14-quick-action"
+                  className="w-full bg-white rounded-3xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-all duration-200 iphone14-quick-action"
                 >
                   <div className="w-12 h-12 flex items-center justify-center">
                     <img src="/icons/poor.png" alt="Смена подгузника" className="w-10 h-10 object-contain" />
@@ -1251,9 +1344,9 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-500 mt-0.5">
                       {data?.lastDiaper ? `${formatTime(new Date(data.lastDiaper.timestamp))}` : "Еще не меняли"}
                     </p>
-                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
                       <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
+                        className={`h-2 rounded-3xl transition-all duration-300 ${
                           data?.lastDiaper && (Date.now() - new Date(data.lastDiaper.timestamp).getTime()) >= (settings.diaperInterval * 60 * 60 * 1000)
                             ? 'bg-red-500' 
                             : 'bg-green-400'
@@ -1285,7 +1378,7 @@ export default function Dashboard() {
 
                 <button
                     onClick={() => handleQuickAction('bath')}
-                  className="w-full bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200 transition-all duration-200 iphone14-quick-action"
+                  className="w-full bg-white rounded-3xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200 transition-all duration-200 iphone14-quick-action"
                 >
                   <div className="w-12 h-12 flex items-center justify-center">
                     <img src="/icons/bath.png" alt="Купание" className="w-10 h-10 object-contain" />
@@ -1295,9 +1388,9 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-500 mt-0.5">
                       {data?.lastBath ? `${formatTime(new Date(data.lastBath.timestamp))}` : "Еще не купали"}
                     </p>
-                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
                       <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
+                        className={`h-2 rounded-3xl transition-all duration-300 ${
                           data?.lastBath && (Date.now() - new Date(data.lastBath.timestamp).getTime()) >= (settings.bathInterval * 24 * 60 * 60 * 1000)
                             ? 'bg-red-500' 
                             : 'bg-orange-400'
@@ -1330,7 +1423,7 @@ export default function Dashboard() {
 
               {/* Совет дня */}
               {data?.dailyTip && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3 shadow-sm border border-blue-100 iphone14-tip">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-3 shadow-sm border border-blue-100 iphone14-tip">
                   <div className="flex items-start gap-2">
                     <div className="w-8 h-8 flex items-center justify-center iphone14-tip-icon">
                       <img src="/icons/sovet.png" alt="Совет" className="w-8 h-8 object-contain" />
@@ -1339,8 +1432,8 @@ export default function Dashboard() {
                       <h3 className="text-base font-semibold text-gray-900 mb-1">Совет дня</h3>
                       <p className="text-xs text-gray-700 mb-1">{data.dailyTip.content}</p>
                       <div className="flex flex-wrap gap-1 text-xs text-gray-500">
-                        <span className="bg-white px-1.5 py-0.5 rounded-full">📂 {data.dailyTip.category}</span>
-                        <span className="bg-white px-1.5 py-0.5 rounded-full">👶 {data.dailyTip.age_months} мес.</span>
+                        <span className="bg-white px-1.5 py-0.5 rounded-3xl">📂 {data.dailyTip.category}</span>
+                        <span className="bg-white px-1.5 py-0.5 rounded-3xl">👶 {data.dailyTip.age_months} мес.</span>
                       </div>
                     </div>
                   </div>
@@ -1358,25 +1451,25 @@ export default function Dashboard() {
             </div>
 
               {/* Общая статистика */}
-              <div className="bg-white rounded-xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
+              <div className="bg-white rounded-3xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
                 <h2 className="text-xs font-semibold text-gray-900 mb-0.5">📊 Общая статистика</h2>
                 <div className="grid grid-cols-2 gap-0.5">
-                  <div className="text-center p-0.125 bg-blue-50 rounded-lg">
+                  <div className="text-center p-0.125 bg-blue-50 rounded-3xl">
                     <div className="text-xs font-bold text-blue-500 mb-0.5">{totalCounts?.feedings || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Кормлений</div>
                     <div className="text-xs text-gray-500">{settings.feedingInterval}ч</div>
                   </div>
-                  <div className="text-center p-0.125 bg-green-50 rounded-lg">
+                  <div className="text-center p-0.125 bg-green-50 rounded-3xl">
                     <div className="text-xs font-bold text-green-500 mb-0.5">{totalCounts?.diapers || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Подгузников</div>
                     <div className="text-xs text-gray-500">{settings.diaperInterval}ч</div>
                   </div>
-                  <div className="text-center p-0.125 bg-yellow-50 rounded-lg">
+                  <div className="text-center p-0.125 bg-yellow-50 rounded-3xl">
                     <div className="text-xs font-bold text-yellow-500 mb-0.5">{totalCounts?.baths || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Купаний</div>
                     <div className="text-xs text-gray-500">{settings.bathInterval}д</div>
                   </div>
-                  <div className="text-center p-0.125 bg-purple-50 rounded-lg">
+                  <div className="text-center p-0.125 bg-purple-50 rounded-3xl">
                     <div className="text-xs font-bold text-purple-500 mb-0.5">{totalCounts?.activities || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Активностей</div>
                     <div className="text-xs text-gray-500">🎮</div>
@@ -1385,7 +1478,7 @@ export default function Dashboard() {
             </div>
 
               {/* Последние события */}
-              <div className="bg-white rounded-xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
+              <div className="bg-white rounded-3xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center justify-between mb-0.5">
                   <h2 className="text-xs font-semibold text-gray-900">🕒 Последние события</h2>
                   <span className="text-xs text-gray-500">
@@ -1408,12 +1501,12 @@ export default function Dashboard() {
                 <span className="text-sm font-medium text-gray-700">Группировка по дням</span>
                 <button
                   onClick={() => setGroupByDate(!groupByDate)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  className={`relative inline-flex h-6 w-11 items-center rounded-3xl transition-colors ${
                     groupByDate ? 'bg-blue-600' : 'bg-gray-200'
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-4 w-4 transform rounded-3xl bg-white transition-transform ${
                       groupByDate ? 'translate-x-6' : 'translate-x-1'
                     }`}
                   />
@@ -1427,7 +1520,8 @@ export default function Dashboard() {
                       ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' as const })),
                       ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
                       ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const })),
-                      ...(historyData.activities || []).map(item => ({ ...item, type: 'activity' as const }))
+                      ...(historyData.activities || []).map(item => ({ ...item, type: 'activity' as const })),
+                      ...(historyData.sleepSessions || []).map(item => ({ ...item, type: 'sleep' as const, timestamp: item.start_time }))
                     ]
                       .filter(item => historyFilter === 'all' || item.type === historyFilter)
                       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
@@ -1521,7 +1615,7 @@ export default function Dashboard() {
                         return (
                             <div 
                               key={`${item.type}-${item.id}-${index}`} 
-                              className={`flex items-center space-x-0.125 p-0.125 rounded-lg ${typeInfo.bgColor} border border-gray-100 iphone14-card cursor-pointer hover:shadow-md transition-all duration-200`}
+                              className={`flex items-center space-x-0.125 p-0.125 rounded-3xl ${typeInfo.bgColor} border border-gray-100 iphone14-card cursor-pointer hover:shadow-md transition-all duration-200`}
                               onClick={() => handleRecordClick(item)}
                             >
                               <div className="w-8 h-8 flex items-center justify-center">
@@ -1540,7 +1634,7 @@ export default function Dashboard() {
                                 <p className="text-xs text-gray-600 mt-0.5">{typeInfo.description}</p>
                                 {typeInfo.extraInfo && (
                                   <div className="flex items-center gap-1 mt-1">
-                                    <span className="text-xs font-medium text-gray-700 bg-white px-1.5 py-0.5 rounded-full border border-gray-200">
+                                    <span className="text-xs font-medium text-gray-700 bg-white px-1.5 py-0.5 rounded-3xl border border-gray-200">
                                       {typeInfo.extraInfo}
                                     </span>
                                   </div>

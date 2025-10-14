@@ -61,7 +61,7 @@ const AchievementHistoryChecker: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div className="rounded-3xl">
       <h3 className="text-sm font-semibold mb-3">Проверка достижений</h3>
       
       <div className="space-y-3">
@@ -75,13 +75,13 @@ const AchievementHistoryChecker: React.FC = () => {
         </Button>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-2">
+          <div className="bg-red-50 border border-red-200 rounded-3xl p-2">
             <p className="text-red-700 text-xs">{error}</p>
           </div>
         )}
 
         {results.length > 0 && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="bg-green-50 border border-green-200 rounded-3xl p-3">
             <h4 className="font-semibold text-green-800 mb-2 text-xs">
               Выдано достижений: {results.length}
             </h4>

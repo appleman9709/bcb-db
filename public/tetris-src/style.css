@@ -89,7 +89,7 @@ body {
     background: #31C48D;
     color: white;
     padding: 4px 8px;
-    border-radius: 12px;
+    border-radius: 24px;
     font-size: 12px;
     font-weight: 600;
     animation: comboBounce 200ms ease-out;
@@ -130,7 +130,6 @@ body {
 #gameCanvas {
     width: 324px;
     height: 324px;
-    border-radius: 8px;
     background: #FAF6EF;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
     touch-action: none;
@@ -158,7 +157,7 @@ body {
 /* Карточки-слоты для фигур */
 [id^="slot"] {
     background: transparent;
-    border-radius: 18px;
+    border-radius: 24px;
     min-height: 80px;
     min-width: 80px;
     max-width: 140px;
@@ -235,7 +234,7 @@ body {
 }
 
 .piece-canvas {
-    border-radius: 8px;
+    border-radius: 24px;
     transition: filter 120ms ease;
     flex-shrink: 0;
     object-fit: contain;
@@ -257,7 +256,7 @@ body {
     color: white;
     border: none;
     padding: 12px 24px;
-    border-radius: 20px;
+    border-radius: 24px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
@@ -353,7 +352,7 @@ body {
     color: white;
     border: none;
     padding: 15px 30px;
-    border-radius: 20px;
+    border-radius: 24px;
     font-size: 16px;
     cursor: pointer;
     transition: all 120ms ease;
@@ -422,7 +421,7 @@ body {
     
     .game-board {
         padding: 12px;
-        border-radius: 20px;
+        border-radius: 24px;
     }
     
     .pieces-container {
@@ -434,14 +433,14 @@ body {
         min-width: 70px;
         max-width: 120px;
         max-height: 120px;
-        border-radius: 16px;
+        border-radius: 24px;
     }
     
     .piece-item {
         min-height: 72px;
         min-width: 72px;
         padding: 12px;
-        border-radius: 16px;
+        border-radius: 24px;
     }
     
     .piece-canvas {
@@ -465,7 +464,7 @@ body {
         min-width: 80px;
         max-width: 140px;
         max-height: 140px;
-        border-radius: 20px;
+        border-radius: 24px;
     }
     
     .piece-item {
@@ -543,7 +542,7 @@ body, html {
     font-weight: 500;
     padding: 20px;
     background: #F9FAFB;
-    border-radius: 16px;
+    border-radius: 24px;
     border: 1px solid #E5E7EB;
 }
 
@@ -552,7 +551,7 @@ body, html {
     color: white;
     border: none;
     padding: 15px 30px;
-    border-radius: 20px;
+    border-radius: 24px;
     font-size: 16px;
     cursor: pointer;
     transition: all 120ms ease;

@@ -1041,7 +1041,7 @@ class MobileSudokuTetris {
             background: rgba(0, 0, 0, 0.8);
             color: white;
             padding: 20px 30px;
-            border-radius: 16px;
+            border-radius: 24px;
             z-index: 2000;
             font-size: 16px;
             font-weight: 500;

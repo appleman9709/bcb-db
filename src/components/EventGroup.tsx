@@ -69,6 +69,17 @@ const getTypeInfo = (type: string, item: any) => {
         description: item.activity_type || 'Активность записана',
         extraInfo: null // Убираем дублирование - тип активности уже в описании
       }
+    case 'sleep':
+      const duration = item.duration_minutes
+      const durationText = duration ? formatDuration(duration) : 'В процессе'
+      return { 
+        icon: <img src="/icons/sleep.png" alt="Сон" className="w-5 h-5 object-contain" />, 
+        label: 'Сон', 
+        color: 'bg-indigo-100 text-indigo-600',
+        bgColor: 'bg-indigo-50',
+        description: `Ребенок спал ${durationText}`,
+        extraInfo: duration ? `😴 ${durationText}` : '😴 В процессе'
+      }
     default:
       return { 
         icon: '⭐', 
@@ -109,8 +120,30 @@ const getTimeAgo = (timestamp: string) => {
   return `${diffInDays} дн назад`
 }
 
+const formatDuration = (minutes: number) => {
+  if (minutes < 60) {
+    return `${minutes} мин`
+  }
+  
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  
+  if (remainingMinutes === 0) {
+    return `${hours} ч`
+  }
+  
+  return `${hours} ч ${remainingMinutes} мин`
+}
+
 export default function EventGroup({ date, events, onEventClick }: EventGroupProps) {
   const groupDate = formatGroupDate(date)
+  
+  // Подсчитываем общее время сна за день
+  const totalSleepMinutes = events
+    .filter(event => event.type === 'sleep' && event.duration_minutes)
+    .reduce((total, event) => total + event.duration_minutes, 0)
+  
+  const totalSleepText = totalSleepMinutes > 0 ? ` • 😴 ${formatDuration(totalSleepMinutes)}` : ''
   
   return (
     <div className="mb-4">
@@ -119,8 +152,8 @@ export default function EventGroup({ date, events, onEventClick }: EventGroupPro
         <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
           <span className="text-lg">📅</span>
           {groupDate}
-          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            {events.length} событий
+          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-3xl">
+            {events.length} событий{totalSleepText}
           </span>
         </h3>
       </div>
@@ -135,7 +168,7 @@ export default function EventGroup({ date, events, onEventClick }: EventGroupPro
           return (
             <div 
               key={`${item.type}-${item.id}-${index}`} 
-              className={`flex items-center space-x-3 p-3 rounded-lg ${typeInfo.bgColor} border border-gray-100 cursor-pointer hover:shadow-md transition-all duration-200`}
+              className={`flex items-center space-x-3 p-3 rounded-3xl ${typeInfo.bgColor} border border-gray-100 cursor-pointer hover:shadow-md transition-all duration-200`}
               onClick={() => onEventClick(item)}
             >
               <div className="w-8 h-8 flex items-center justify-center">
@@ -157,7 +190,7 @@ export default function EventGroup({ date, events, onEventClick }: EventGroupPro
                 
                 {typeInfo.extraInfo && (
                   <div className="flex items-center gap-1 mt-1">
-                    <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">
+                    <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-3xl border border-gray-200">
                       {typeInfo.extraInfo}
                     </span>
                   </div>

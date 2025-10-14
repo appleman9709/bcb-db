@@ -10,7 +10,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
       {/* Меню */}
       <button
         onClick={onMenuClick}
-        className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+        className="p-1.5 rounded-3xl hover:bg-gray-100 transition-colors"
         aria-label="Открыть меню"
       >
         <svg 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { dataService, Feeding, Diaper, Bath, ParentCoins } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession } from '../services/dataService'
 import QuickActionModal from '../components/QuickActionModal'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
@@ -11,12 +11,16 @@ interface TamagotchiData {
   lastDiaper: Diaper | null
   lastBath: Bath | null
   parentCoins: ParentCoins | null
+  currentSleepSession: SleepSession | null
+  familySleepStatus: { isSleeping: boolean; sleepSession: SleepSession | null }
 }
 
 interface SettingsState {
   feedingInterval: number
   diaperInterval: number
   bathInterval: number
+  sleepMonitoringEnabled: boolean
+  wakeOnActivityEnabled: boolean
 }
 
 export default function TamagotchiPage() {
@@ -26,16 +30,20 @@ export default function TamagotchiPage() {
   const [settings, setSettings] = useState<SettingsState>({
     feedingInterval: 3,
     diaperInterval: 2,
-    bathInterval: 1
+    bathInterval: 1,
+    sleepMonitoringEnabled: true,
+    wakeOnActivityEnabled: true
   })
   const [loading, setLoading] = useState(true)
   const [babyState, setBabyState] = useState<BabyState>('ok')
   const [modalOpen, setModalOpen] = useState(false)
   const [modalAction, setModalAction] = useState<QuickActionType>('feeding')
   const [score, setScore] = useState(0)
+  const [justWokeUp, setJustWokeUp] = useState(false)
   const [scoreAnimation, setScoreAnimation] = useState(false)
-  const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string, type: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins'}>>([])
+  const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string, type: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins'}>>([])
   const [coinSpawnInterval, setCoinSpawnInterval] = useState<NodeJS.Timeout | null>(null)
+  const [isSleepMode, setIsSleepMode] = useState(false)
   
   // Отдельные счетчики для каждого типа монеток
   const [feedingCoins, setFeedingCoins] = useState(0)
@@ -43,6 +51,7 @@ export default function TamagotchiPage() {
   const [bathCoins, setBathCoins] = useState(0)
   const [activityCoins, setActivityCoins] = useState(0)
   const [momCoins, setMomCoins] = useState(0)
+  const [sleepCoins, setSleepCoins] = useState(0)
 
   const { member, family } = useAuth()
 
@@ -53,19 +62,27 @@ export default function TamagotchiPage() {
 
     try {
       setLoading(true)
-      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, parentCoins] = await Promise.all([
+      
+      // Сохраняем предыдущее состояние сна
+      const wasSleeping = isSleepMode
+      
+      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, parentCoins, currentSleepSession, familySleepStatus] = await Promise.all([
         dataService.getLastFeeding(),
         dataService.getLastDiaper(),
         dataService.getLastBath(),
         dataService.getSettings(),
-        dataService.getParentCoins()
+        dataService.getParentCoins(),
+        dataService.getCurrentSleepSession(),
+        dataService.getFamilySleepStatus()
       ])
 
       setData({
         lastFeeding,
         lastDiaper,
         lastBath,
-        parentCoins
+        parentCoins,
+        currentSleepSession,
+        familySleepStatus
       })
 
       if (settingsFromDb) {
@@ -73,15 +90,31 @@ export default function TamagotchiPage() {
           ...prev,
           feedingInterval: settingsFromDb.feed_interval ?? prev.feedingInterval,
           diaperInterval: settingsFromDb.diaper_interval ?? prev.diaperInterval,
-          bathInterval: settingsFromDb.bath_reminder_period ?? prev.bathInterval
+          bathInterval: settingsFromDb.bath_reminder_period ?? prev.bathInterval,
+          sleepMonitoringEnabled: settingsFromDb.sleep_monitoring_enabled ?? prev.sleepMonitoringEnabled,
+          wakeOnActivityEnabled: settingsFromDb.wake_on_activity_enabled ?? prev.wakeOnActivityEnabled
         }))
       }
+
+      // Обновляем состояние сна
+      const isCurrentlySleeping = familySleepStatus?.isSleeping ?? false
+      setIsSleepMode(isCurrentlySleeping)
+      
+      // Если малыш был в режиме сна и теперь не спит, показываем сообщение о пробуждении
+      if (wasSleeping && !isCurrentlySleeping && settings.wakeOnActivityEnabled) {
+        setJustWokeUp(true)
+        // Скрываем сообщение через 5 секунд
+        setTimeout(() => {
+          setJustWokeUp(false)
+        }, 5000)
+      }
+      
     } catch (error) {
       console.error('Error fetching tamagotchi data:', error)
     } finally {
       setLoading(false)
     }
-  }, [member, family])
+  }, [member, family, isSleepMode, settings.wakeOnActivityEnabled])
 
   // Функция для определения состояния малыша
   const calculateBabyState = useCallback((): BabyState => {
@@ -119,6 +152,13 @@ export default function TamagotchiPage() {
     return () => clearInterval(interval)
   }, [calculateBabyState])
 
+  // Синхронизируем локальное состояние сна с данными из БД
+  useEffect(() => {
+    if (data?.familySleepStatus) {
+      setIsSleepMode(data.familySleepStatus.isSleeping)
+    }
+  }, [data?.familySleepStatus])
+
   useEffect(() => {
     if (!member || !family) {
       return
@@ -152,7 +192,7 @@ export default function TamagotchiPage() {
         clearTimeout(coinSpawnInterval)
       }
     }
-  }, [babyState]) // Перезапускаем при изменении состояния малыша
+  }, [babyState, isSleepMode]) // Перезапускаем при изменении состояния малыша или режима сна
 
   // Синхронизируем локальное состояние монеток с данными из БД
   useEffect(() => {
@@ -162,11 +202,17 @@ export default function TamagotchiPage() {
       setBathCoins(data.parentCoins.bath_coins)
       setActivityCoins(data.parentCoins.activity_coins || 0)
       setMomCoins(data.parentCoins.mom_coins)
+      setSleepCoins(data.parentCoins.sleep_coins || 0)
       setScore(data.parentCoins.total_score)
     }
   }, [data?.parentCoins])
 
   const getGifSource = (state: BabyState): string => {
+    // Если включен режим сна, показываем видео сна
+    if (isSleepMode) {
+      return '/icons/sleep.MP4'
+    }
+    
     switch (state) {
       case 'ok':
         return '/icons/ok.gif'
@@ -183,7 +229,61 @@ export default function TamagotchiPage() {
     }
   }
 
+  const toggleSleepMode = async () => {
+    try {
+      if (isSleepMode) {
+        // Завершаем сессию сна
+        const endedSession = await dataService.endSleepSession()
+        if (endedSession) {
+          console.log('🌙 Sleep session ended:', endedSession)
+          // Добавляем монетки за сон
+          await dataService.addCoins('sleep_coins', 1)
+        }
+      } else {
+        // Начинаем сессию сна
+        const startedSession = await dataService.startSleepSession()
+        if (startedSession) {
+          console.log('🌙 Sleep session started:', startedSession)
+        }
+      }
+      
+      // Обновляем данные
+      await fetchData()
+    } catch (error) {
+      console.error('Error toggling sleep mode:', error)
+    }
+  }
+
   const getStateDescription = (state: BabyState): string => {
+    // Если малыш только что проснулся, показываем специальное сообщение
+    if (justWokeUp) {
+      return "🌅 Малыш проснулся после активности!"
+    }
+    
+    // Если включен режим сна, показываем специальное сообщение
+    if (isSleepMode && data?.familySleepStatus?.sleepSession) {
+      const sleepSession = data.familySleepStatus.sleepSession
+      const startTime = new Date(sleepSession.start_time)
+      const durationMinutes = Math.floor((Date.now() - startTime.getTime()) / (1000 * 60))
+      const hours = Math.floor(durationMinutes / 60)
+      const minutes = durationMinutes % 60
+      
+      let durationText = ''
+      if (hours > 0) {
+        durationText = `${hours}ч ${minutes}м`
+      } else {
+        durationText = `${minutes} минут`
+      }
+      
+      if (settings.sleepMonitoringEnabled) {
+        return `😴 Малыш спит уже ${durationText} (включил: ${sleepSession.author_name})`
+      } else {
+        return `😴 Малыш спит уже ${durationText}`
+      }
+    } else if (isSleepMode) {
+      return "😴 Малыш спит сладким сном..."
+    }
+    
     return getStatePhrase(state, score)
   }
 
@@ -281,7 +381,14 @@ export default function TamagotchiPage() {
   }
 
   // Функция для получения иконки монетки в зависимости от состояния
-  const getCoinIcon = (state: BabyState): string => {
+  const getCoinIcon = useCallback((state: BabyState): string => {
+    // Если включен режим сна, всегда показываем иконку сна
+    if (isSleepMode) {
+      console.log('🌙 getCoinIcon: Sleep mode ON, returning sleep.png')
+      return '/icons/sleep.png'
+    }
+    
+    console.log('🌙 getCoinIcon: Sleep mode OFF, state:', state)
     switch (state) {
       case 'feeding':
         return '/icons/feeding.png'
@@ -290,15 +397,25 @@ export default function TamagotchiPage() {
       case 'dirty':
         return '/icons/sponge.png'
       case 'all-in':
-        return '/icons/mom.png' // Для состояния "все сразу" используем стандартную иконку
+        // Для состояния "all-in" случайно выбираем между feeding и poor
+        return Math.random() < 0.5 ? '/icons/feeding.png' : '/icons/poor.png'
       case 'ok':
+        return '/icons/mom.png'
       default:
+        // Для неизвестных состояний возвращаем mom.png как fallback
         return '/icons/mom.png'
     }
-  }
+  }, [isSleepMode])
 
   // Функция для получения типа монетки в зависимости от состояния
-  const getCoinType = (state: BabyState): 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' => {
+  const getCoinType = useCallback((state: BabyState): 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins' => {
+    // Если включен режим сна, всегда показываем монетки сна
+    if (isSleepMode) {
+      console.log('🌙 getCoinType: Sleep mode ON, returning sleep_coins')
+      return 'sleep_coins'
+    }
+    
+    console.log('🌙 getCoinType: Sleep mode OFF, state:', state)
     switch (state) {
       case 'feeding':
         return 'feeding_coins'
@@ -307,11 +424,15 @@ export default function TamagotchiPage() {
       case 'dirty':
         return 'bath_coins'
       case 'all-in':
+        // Для состояния "all-in" случайно выбираем между feeding и poor
+        return Math.random() < 0.5 ? 'feeding_coins' : 'diaper_coins'
       case 'ok':
+        return 'mom_coins'
       default:
+        // Для неизвестных состояний возвращаем mom_coins как fallback
         return 'mom_coins'
     }
-  }
+  }, [isSleepMode])
 
   // Функция для создания случайной позиции монетки
   const getRandomCoinPosition = () => {
@@ -342,16 +463,14 @@ export default function TamagotchiPage() {
       
       const position = getRandomCoinPosition()
       
-      // Для состояния "all-in" случайно выбираем между feeding и poor
-      let coinType, coinIcon
-      if (babyState === 'all-in') {
-        const isFeeding = Math.random() < 0.5
-        coinType = isFeeding ? 'feeding_coins' : 'diaper_coins'
-        coinIcon = isFeeding ? '/icons/feeding.png' : '/icons/poor.png'
-      } else {
-        coinType = getCoinType(babyState)
-        coinIcon = getCoinIcon(babyState)
-      }
+      // Определяем тип и иконку монетки
+      console.log('🌙 spawnCoin called with:', { babyState, isSleepMode })
+      const coinType = getCoinType(babyState)
+      const coinIcon = getCoinIcon(babyState)
+      
+      // Отладочная информация
+      console.log('🌙 Final coin data:', { coinType, coinIcon, isSleepMode })
+      console.log('🌙 Expected: sleep_coins + sleep.png when sleep mode is ON')
       
       const newCoin = {
         id: Date.now() + Math.random(),
@@ -400,6 +519,7 @@ export default function TamagotchiPage() {
         setBathCoins(updatedCoins.bath_coins)
         setActivityCoins(updatedCoins.activity_coins || 0)
         setMomCoins(updatedCoins.mom_coins)
+        setSleepCoins(updatedCoins.sleep_coins || 0)
         setScore(updatedCoins.total_score)
         
         // Обновляем данные в состоянии
@@ -428,6 +548,9 @@ export default function TamagotchiPage() {
         case 'mom_coins':
           setMomCoins(prev => prev + 1)
           break
+        case 'sleep_coins':
+          setSleepCoins(prev => prev + 1)
+          break
       }
     }
     
@@ -447,7 +570,7 @@ export default function TamagotchiPage() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-3xl animate-spin mx-auto mb-2"></div>
           <p className="text-sm text-gray-600">Загружаем малыша...</p>
         </div>
       </div>
@@ -483,7 +606,7 @@ export default function TamagotchiPage() {
         <div className="flex justify-center gap-1 flex-wrap items-center">
           {/* Стопка кормления */}
           {feedingCoins > 0 && (
-            <div className="flex items-center gap-1 bg-pink-100 px-1.5 py-0.5 rounded-full">
+            <div className="flex items-center gap-1 bg-pink-100 px-1.5 py-0.5 rounded-3xl">
               <img src="/icons/feeding.png" alt="Кормление" className="w-3 h-3" />
               <span className="text-xs font-bold text-pink-800">{feedingCoins}</span>
             </div>
@@ -491,7 +614,7 @@ export default function TamagotchiPage() {
           
           {/* Стопка подгузников */}
           {diaperCoins > 0 && (
-            <div className="flex items-center gap-1 bg-yellow-100 px-1.5 py-0.5 rounded-full">
+            <div className="flex items-center gap-1 bg-yellow-100 px-1.5 py-0.5 rounded-3xl">
               <img src="/icons/poor.png" alt="Подгузник" className="w-3 h-3" />
               <span className="text-xs font-bold text-yellow-800">{diaperCoins}</span>
             </div>
@@ -499,7 +622,7 @@ export default function TamagotchiPage() {
           
           {/* Стопка купания */}
           {bathCoins > 0 && (
-            <div className="flex items-center gap-1 bg-purple-100 px-1.5 py-0.5 rounded-full">
+            <div className="flex items-center gap-1 bg-purple-100 px-1.5 py-0.5 rounded-3xl">
               <img src="/icons/sponge.png" alt="Купание" className="w-3 h-3" />
               <span className="text-xs font-bold text-purple-800">{bathCoins}</span>
             </div>
@@ -507,7 +630,7 @@ export default function TamagotchiPage() {
           
           {/* Стопка активности */}
           {activityCoins > 0 && (
-            <div className="flex items-center gap-1 bg-indigo-100 px-1.5 py-0.5 rounded-full">
+            <div className="flex items-center gap-1 bg-indigo-100 px-1.5 py-0.5 rounded-3xl">
               <img src="/icons/baby.png" alt="Активность" className="w-3 h-3" />
               <span className="text-xs font-bold text-indigo-800">{activityCoins}</span>
             </div>
@@ -515,14 +638,22 @@ export default function TamagotchiPage() {
           
           {/* Стопка обычных монеток */}
           {momCoins > 0 && (
-            <div className="flex items-center gap-1 bg-green-100 px-1.5 py-0.5 rounded-full">
+            <div className="flex items-center gap-1 bg-green-100 px-1.5 py-0.5 rounded-3xl">
               <img src="/icons/mom.png" alt="Монетка" className="w-3 h-3" />
               <span className="text-xs font-bold text-green-800">{momCoins}</span>
             </div>
           )}
           
+          {/* Стопка монеток сна */}
+          {sleepCoins > 0 && (
+            <div className="flex items-center gap-1 bg-indigo-100 px-1.5 py-0.5 rounded-3xl">
+              <img src="/icons/sleep.png" alt="Сон" className="w-3 h-3" />
+              <span className="text-xs font-bold text-indigo-800">{sleepCoins}</span>
+            </div>
+          )}
+          
           {/* Общий счетчик очков */}
-          <div className={`inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full transition-all duration-300 ${
+          <div className={`inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-3xl transition-all duration-300 ${
             scoreAnimation ? 'score-animation bg-gray-200 shadow-lg' : 'scale-100'
           }`}>
             <span className="text-xs font-bold text-gray-800">⭐</span>
@@ -533,36 +664,45 @@ export default function TamagotchiPage() {
         </div>
       </div>
 
-      {/* GIF малыша - адаптивное */}
+      {/* GIF/Video малыша - адаптивное */}
       <div className="tamagotchi-video-container">
         <div className="relative inline-block">
-          <img
-            key={babyState} // Принудительно перезагружаем GIF при смене состояния
-            src={getGifSource(babyState)}
-            alt={`Малыш в состоянии ${babyState}`}
-            className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-lg cursor-pointer"
-          />
+          {isSleepMode ? (
+            <video
+              key="sleep-video"
+              src={getGifSource(babyState)}
+              className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
+              autoPlay
+              muted
+              playsInline
+            />
+          ) : (
+            <img
+              key={babyState} // Принудительно перезагружаем GIF при смене состояния
+              src={getGifSource(babyState)}
+              alt={`Малыш в состоянии ${babyState}`}
+              className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
+            />
+          )}
           
-          {/* Индикатор состояния */}
-          <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg">
-            {babyState === 'ok' && <span className="bg-green-500 w-full h-full rounded-full flex items-center justify-center">😊</span>}
-            {babyState === 'feeding' && (
-              <div className="bg-blue-500 w-full h-full rounded-full flex items-center justify-center">
-                <img src="/icons/feeding.png" alt="Кормление" className="w-5 h-5 object-contain" />
+
+          {/* Тумблер режима сна - увеличенный */}
+          <div className="absolute -top-3 left-2">
+            <button
+              onClick={toggleSleepMode}
+              className={`sleep-toggle ${isSleepMode ? 'active' : 'inactive'}`}
+              aria-label={isSleepMode ? 'Выключить режим сна' : 'Включить режим сна'}
+            >
+              <div className="sleep-toggle-thumb">
+                {isSleepMode ? (
+                  <span className="text-lg">😴</span>
+                ) : (
+                  <span className="text-lg">👁️</span>
+                )}
               </div>
-            )}
-            {babyState === 'all-in' && <span className="bg-red-500 w-full h-full rounded-full flex items-center justify-center">😰</span>}
-            {babyState === 'poo' && (
-              <div className="bg-yellow-500 w-full h-full rounded-full flex items-center justify-center">
-                <img src="/icons/poor.png" alt="Подгузник" className="w-5 h-5 object-contain" />
-              </div>
-            )}
-            {babyState === 'dirty' && (
-              <div className="bg-purple-500 w-full h-full rounded-full flex items-center justify-center">
-                <img src="/icons/sponge.png" alt="Купание" className="w-5 h-5 object-contain" />
-              </div>
-            )}
+            </button>
           </div>
+
         </div>
         
         <p className="text-xs font-medium text-gray-700 mt-2">
@@ -571,14 +711,14 @@ export default function TamagotchiPage() {
       </div>
 
       {/* Лоток с предметами - компактный */}
-      <div className="tamagotchi-inventory bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className="tamagotchi-inventory bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-gray-100">
         <h2 className="text-xs font-semibold text-gray-900 mb-2 text-center">🛠️ Инвентарь</h2>
         
         <div className="grid grid-cols-4 gap-2">
           {/* Подгузник */}
           <div 
             onClick={() => handleItemClick('diaper')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-3xl hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/diaper.png" 
@@ -590,7 +730,7 @@ export default function TamagotchiPage() {
           {/* Бутылочка */}
           <div 
             onClick={() => handleItemClick('feeding')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-3xl hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/feeding.png" 
@@ -602,7 +742,7 @@ export default function TamagotchiPage() {
           {/* Губка */}
           <div 
             onClick={() => handleItemClick('bath')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-3xl hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/sponge.png" 
@@ -614,7 +754,7 @@ export default function TamagotchiPage() {
           {/* Активность */}
           <div 
             onClick={() => handleItemClick('activity')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            className="flex flex-col items-center p-2 bg-gray-50 rounded-3xl hover:bg-gray-100 transition-colors cursor-pointer"
           >
             <img 
               src="/icons/activity.png" 

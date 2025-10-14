@@ -25,7 +25,7 @@ export default function ActivityCard({ icon, title, subtitle, progress, value, c
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
       {/* Иконка */}
-      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center text-white text-xl shadow-sm`}>
+      <div className={`w-12 h-12 rounded-3xl bg-gradient-to-br ${colorClasses[color]} flex items-center justify-center text-white text-xl shadow-sm`}>
         {icon}
       </div>
       

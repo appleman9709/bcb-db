@@ -12,7 +12,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
         {/* Дом */}
         <button
           onClick={() => onTabChange('home')}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors iphone14-nav-button ${
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-3xl transition-colors iphone14-nav-button ${
             activeTab === 'home' 
               ? 'text-blue-500 bg-blue-50' 
               : 'text-gray-400 hover:text-gray-600'
@@ -37,7 +37,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
         {/* История */}
         <button
           onClick={() => onTabChange('history')}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors iphone14-nav-button ${
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-3xl transition-colors iphone14-nav-button ${
             activeTab === 'history' 
               ? 'text-blue-500 bg-blue-50' 
               : 'text-gray-400 hover:text-gray-600'
@@ -65,7 +65,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
         {/* Тамагочи */}
         <button
           onClick={() => onTabChange('tamagotchi')}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors iphone14-nav-button ${
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-3xl transition-colors iphone14-nav-button ${
             activeTab === 'tamagotchi' 
               ? 'text-blue-500 bg-blue-50' 
               : 'text-gray-400 hover:text-gray-600'
@@ -91,7 +91,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
         {/* Тетрис */}
         <button
           onClick={() => onTabChange('tetris')}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors iphone14-nav-button ${
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-3xl transition-colors iphone14-nav-button ${
             activeTab === 'tetris' 
               ? 'text-blue-500 bg-blue-50' 
               : 'text-gray-400 hover:text-gray-600'
@@ -119,7 +119,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
         {/* Настройки */}
         <button
           onClick={() => onTabChange('settings')}
-          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-lg transition-colors iphone14-nav-button ${
+          className={`flex flex-col items-center gap-0.5 p-1.5 rounded-3xl transition-colors iphone14-nav-button ${
             activeTab === 'settings' 
               ? 'text-blue-500 bg-blue-50' 
               : 'text-gray-400 hover:text-gray-600'

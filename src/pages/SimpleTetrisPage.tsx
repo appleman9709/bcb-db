@@ -623,13 +623,13 @@ export default function SimpleTetrisPage() {
               </div>
               <button
                 onClick={() => setShowLeaderboard(true)}
-                className="px-3 py-1.5 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium"
+                className="px-3 py-1.5 bg-yellow-500 text-white rounded-3xl hover:bg-yellow-600 transition-colors text-sm font-medium"
               >
                 🏆 Рекорды
               </button>
               <button
                 onClick={handleNewGame}
-                className="px-3 py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                className="px-3 py-1.5 bg-blue-500 text-white rounded-3xl hover:bg-blue-600 transition-colors text-sm font-medium"
               >
                 Новая игра
               </button>
@@ -662,7 +662,7 @@ export default function SimpleTetrisPage() {
         {/* Игровая область */}
         <div className="flex-1 p-4 flex flex-col items-center gap-4">
           {/* Игровое поле */}
-          <div className="bg-white rounded-xl p-4 shadow-lg">
+          <div className="bg-white rounded-3xl p-4 shadow-lg">
             <canvas
               ref={canvasRef}
               onClick={handleCanvasClick}
@@ -672,13 +672,13 @@ export default function SimpleTetrisPage() {
           </div>
 
           {/* Лоток с фигурами */}
-          <div className="bg-white rounded-xl p-4 shadow-lg">
+          <div className="bg-white rounded-3xl p-4 shadow-lg">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 text-center">Фигуры для размещения</h3>
             <div className="flex gap-4 justify-center">
               {gameState.availablePieces.map((piece, index) => (
                 <div
                   key={piece.id}
-                  className={`w-16 h-16 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors ${
+                  className={`w-16 h-16 border-2 border-dashed border-gray-300 rounded-3xl flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors ${
                     draggedPiece?.id === piece.id ? 'border-blue-500 bg-blue-50' : ''
                   }`}
                   onMouseDown={(e) => handlePieceMouseDown(piece, e)}
@@ -711,7 +711,7 @@ export default function SimpleTetrisPage() {
       {/* Модальное окно окончания игры */}
       {gameOver && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full mx-4">
             <div className="text-center">
               <div className="text-6xl mb-4">🎉</div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Игра окончена!</h2>
@@ -732,7 +732,7 @@ export default function SimpleTetrisPage() {
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={handleNewGame}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                  className="px-6 py-3 bg-blue-500 text-white rounded-3xl hover:bg-blue-600 transition-colors font-medium"
                 >
                   Играть снова
                 </button>
@@ -741,7 +741,7 @@ export default function SimpleTetrisPage() {
                     setGameOver(false)
                     setShowLeaderboard(true)
                   }}
-                  className="px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors font-medium"
+                  className="px-6 py-3 bg-yellow-500 text-white rounded-3xl hover:bg-yellow-600 transition-colors font-medium"
                 >
                   Посмотреть рекорды
                 </button>

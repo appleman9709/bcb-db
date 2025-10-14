@@ -133,7 +133,7 @@ const AchievementGrid: React.FC<AchievementGridProps> = ({ familyId, userId }) =
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-3xl h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -142,13 +142,13 @@ const AchievementGrid: React.FC<AchievementGridProps> = ({ familyId, userId }) =
     <div className="space-y-4">
       {/* Статистика */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-lg p-3 text-center border border-gray-200">
+        <div className="bg-white rounded-3xl p-3 text-center border border-gray-200">
           <div className="text-lg font-bold text-blue-600">
             {userAchievements.length}
           </div>
           <div className="text-xs text-gray-600">Получено</div>
         </div>
-        <div className="bg-white rounded-lg p-3 text-center border border-gray-200">
+        <div className="bg-white rounded-3xl p-3 text-center border border-gray-200">
           <div className="text-lg font-bold text-gray-600">
             {achievements.length - userAchievements.length}
           </div>
@@ -162,7 +162,7 @@ const AchievementGrid: React.FC<AchievementGridProps> = ({ familyId, userId }) =
           <div
             key={achievement.id}
             className={`
-              relative p-2 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105
+              relative p-2 rounded-3xl border-2 cursor-pointer transition-all duration-200 hover:scale-105
               ${getRarityBackgroundColor(achievement.rarity, achievement.isEarned)}
               ${getRarityBorderColor(achievement.rarity, achievement.isEarned)}
               ${achievement.isEarned ? 'shadow-md' : 'shadow-sm'}
@@ -179,7 +179,7 @@ const AchievementGrid: React.FC<AchievementGridProps> = ({ familyId, userId }) =
             {/* Индикатор редкости */}
             <div className="absolute top-1 right-1">
               <div className={`
-                w-2 h-2 rounded-full
+                w-2 h-2 rounded-3xl
                 ${achievement.isEarned ? getRarityColor(achievement.rarity, true) : 'bg-gray-300'}
               `}></div>
             </div>
@@ -207,7 +207,7 @@ const AchievementGrid: React.FC<AchievementGridProps> = ({ familyId, userId }) =
       {/* Модальное окно с деталями достижения */}
       {selectedAchievement && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-sm w-full p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-bold text-gray-800">Детали достижения</h3>
               <button
@@ -269,7 +269,7 @@ const AchievementGrid: React.FC<AchievementGridProps> = ({ familyId, userId }) =
             <div className="mt-4 pt-3 border-t border-gray-200">
               <button
                 onClick={() => setSelectedAchievement(null)}
-                className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors"
+                className="w-full bg-blue-500 text-white py-2 px-4 rounded-3xl hover:bg-blue-600 transition-colors"
               >
                 Закрыть
               </button>

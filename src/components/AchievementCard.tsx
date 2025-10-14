@@ -31,7 +31,7 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
   const progressPercentage = maxProgress > 0 ? (progress / maxProgress) * 100 : 0;
 
   return (
-    <div className={`rounded-lg border-2 p-4 ${rarityColors[achievement.rarity as keyof typeof rarityColors] || rarityColors.common}`}>
+    <div className={`rounded-3xl border-2 p-4 ${rarityColors[achievement.rarity as keyof typeof rarityColors] || rarityColors.common}`}>
       <div className="flex items-start space-x-3">
         <div className="text-2xl">{achievement.icon}</div>
         <div className="flex-1">
@@ -40,11 +40,11 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
               {achievement.achievement_name}
             </h3>
             <div className="flex items-center space-x-2">
-              <span className="text-xs bg-white px-2 py-1 rounded-full">
+              <span className="text-xs bg-white px-2 py-1 rounded-3xl">
                 {achievement.points} очков
               </span>
               {achievement.coins_reward > 0 && (
-                <span className="text-xs bg-yellow-200 px-2 py-1 rounded-full">
+                <span className="text-xs bg-yellow-200 px-2 py-1 rounded-3xl">
                   {achievement.coins_reward} монет
                 </span>
               )}
@@ -59,9 +59,9 @@ const AchievementCard: React.FC<AchievementCardProps> = ({
                 <span>Прогресс</span>
                 <span>{progress}/{maxProgress}</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="w-full bg-gray-200 rounded-3xl h-2">
                 <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                  className="bg-blue-500 h-2 rounded-3xl transition-all duration-300"
                   style={{ width: `${Math.min(progressPercentage, 100)}%` }}
                 />
               </div>

@@ -203,7 +203,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      border-radius: 8px;
+      border-radius: 24px;
       border: 1px solid #d1d5db;
     }
     
@@ -317,7 +317,7 @@
   input[type="range"]::-webkit-slider-track {
     background: #d1d5db !important; /* Более темный серый для лучшей видимости */
     height: 24px !important; /* Увеличена высота с 16px до 24px */
-    border-radius: 12px !important; /* Увеличен радиус с 10px до 12px */
+    border-radius: 24px !important; /* Увеличен радиус с 10px до 12px */
     border: 3px solid #374151 !important; /* Более темная граница для контраста */
     box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important; /* Усилены тени */
     opacity: 1 !important; /* Принудительная видимость */
@@ -326,7 +326,7 @@
   input[type="range"]::-moz-range-track {
     background: #d1d5db !important; /* Более темный серый для лучшей видимости */
     height: 24px !important; /* Увеличена высота с 16px до 24px */
-    border-radius: 12px !important; /* Увеличен радиус с 10px до 12px */
+    border-radius: 24px !important; /* Увеличен радиус с 10px до 12px */
     border: 3px solid #374151 !important; /* Более темная граница для контраста */
     box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important; /* Усилены тени */
     opacity: 1 !important; /* Принудительная видимость */
@@ -482,7 +482,7 @@
   .slider-container input[type="range"]::-webkit-slider-track {
     background: #d1d5db !important; /* Более темный серый для лучшей видимости */
     height: 24px !important;
-    border-radius: 12px !important;
+    border-radius: 24px !important;
     border: 3px solid #374151 !important; /* Более темная граница для контраста */
     box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important; /* Усилены тени */
     opacity: 1 !important; /* Принудительная видимость */
@@ -504,7 +504,7 @@
   .slider-container input[type="range"]::-moz-range-track {
     background: #d1d5db !important; /* Более темный серый для лучшей видимости */
     height: 24px !important;
-    border-radius: 12px !important;
+    border-radius: 24px !important;
     border: 3px solid #374151 !important; /* Более темная граница для контраста */
     box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important; /* Усилены тени */
     opacity: 1 !important; /* Принудительная видимость */
@@ -526,7 +526,7 @@
   .slider-container .bath-slider::-webkit-slider-track {
     background: #d1d5db !important;
     height: 24px !important;
-    border-radius: 12px !important;
+    border-radius: 24px !important;
     border: 3px solid #374151 !important;
     box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important;
     opacity: 1 !important;
@@ -539,7 +539,7 @@
   .slider-container .bath-slider::-moz-range-track {
     background: #d1d5db !important;
     height: 24px !important;
-    border-radius: 12px !important;
+    border-radius: 24px !important;
     border: 3px solid #374151 !important;
     box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3), 0 3px 6px rgba(0, 0, 0, 0.2) !important;
     opacity: 1 !important;
@@ -551,16 +551,9 @@
   
   /* Карточка слайдера */
   .modern-slider-card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
+    border-radius: 24px;
     padding: 20px;
     margin-bottom: 16px;
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.1),
-      0 2px 8px rgba(0, 0, 0, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -583,10 +576,6 @@
   
   .modern-slider-card:hover {
     transform: translateY(-2px);
-    box-shadow: 
-      0 12px 40px rgba(0, 0, 0, 0.15),
-      0 4px 12px rgba(0, 0, 0, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
   
   .modern-slider-card:hover::before {
@@ -608,7 +597,7 @@
     align-items: center;
     justify-content: center;
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
-    border-radius: 16px;
+    border-radius: 24px;
     font-size: 24px;
     border: 1px solid rgba(59, 130, 246, 0.2);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
@@ -640,7 +629,7 @@
     gap: 2px;
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
     border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 12px;
+    border-radius: 24px;
     padding: 8px 12px;
     box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
   }
@@ -676,14 +665,14 @@
     right: 0;
     height: 8px;
     background: linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 100%);
-    border-radius: 4px;
+    border-radius: 24px;
     transform: translateY(-50%);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
   .slider-progress {
     height: 100%;
-    border-radius: 4px;
+    border-radius: 24px;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -737,7 +726,7 @@
   .modern-slider::-webkit-slider-track {
     background: transparent !important;
     height: 8px !important;
-    border-radius: 4px !important;
+    border-radius: 24px !important;
     border: none !important;
     box-shadow: none !important;
   }
@@ -755,14 +744,14 @@
       0 2px 4px rgba(0, 0, 0, 0.1),
       0 0 0 2px rgba(59, 130, 246, 0.2) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    margin-top: -12px !important;
+    transform: translateY(25%) !important;
     position: relative;
   }
   
   .modern-slider::-moz-range-track {
     background: transparent !important;
     height: 8px !important;
-    border-radius: 4px !important;
+    border-radius: 24px !important;
     border: none !important;
     box-shadow: none !important;
   }
@@ -870,7 +859,7 @@
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 4px;
-    border-radius: 8px;
+    border-radius: 24px;
   }
   
   .slider-label:hover {
@@ -913,7 +902,7 @@
     .modern-slider-card {
       padding: 16px;
       margin-bottom: 12px;
-      border-radius: 16px;
+      border-radius: 24px;
     }
     
     .slider-header {
@@ -925,7 +914,7 @@
       width: 40px;
       height: 40px;
       font-size: 20px;
-      border-radius: 12px;
+      border-radius: 24px;
     }
     
     .slider-title {
@@ -995,7 +984,7 @@
       left: -8px;
       right: -8px;
       bottom: -8px;
-      border-radius: 12px;
+      border-radius: 24px;
     }
   }
   
@@ -1168,11 +1157,7 @@
   
   /* Эффект свечения для активных слайдеров */
   .modern-slider-card:focus-within {
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.1),
-      0 2px 8px rgba(0, 0, 0, 0.05),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8),
-      0 0 0 2px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
   }
   
   .modern-slider-card:focus-within::before {
@@ -1186,7 +1171,6 @@
   
   .modern-slider-card:focus-within .slider-value-badge {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
   }
   
   /* Эффект волны для ползунка */
@@ -1380,7 +1364,7 @@
   .slider-container {
     position: relative;
     padding: 8px; /* Уменьшен padding с 12px до 8px */
-    border-radius: 12px; /* Уменьшен радиус с 20px до 12px */
+    border-radius: 24px; /* Уменьшен радиус с 20px до 12px */
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%); /* Более тонкий фон */
     backdrop-filter: blur(4px); /* Уменьшен blur с 8px до 4px */
     border: 1px solid rgba(255, 255, 255, 0.2); /* Уменьшена толщина границы с 2px до 1px */
@@ -1631,7 +1615,7 @@
   font-size: 16px; /* Предотвращает зум на iOS */
   
   /* iOS специфичные стили */
-  border-radius: 12px;
+  border-radius: 24px;
   border: 1px solid #d1d5db;
   background-color: #ffffff;
   color: #374151;
@@ -1698,7 +1682,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border-radius: 12px;
+  border-radius: 24px;
   border: 2px solid transparent;
   transition: all 0.2s ease;
 }
@@ -1751,7 +1735,7 @@
     min-height: 48px;
     padding: 12px 14px;
     font-size: 16px;
-    border-radius: 10px;
+    border-radius: 24px;
   }
   
   .date-input-container input[type="date"]::-webkit-calendar-picker-indicator {
@@ -1761,7 +1745,7 @@
   }
   
   .date-input-container .focus-ring {
-    border-radius: 10px;
+    border-radius: 24px;
   }
 }
 
@@ -1946,6 +1930,106 @@
   flex-direction: column;
 }
 
+/* Стили для тумблера режима сна - увеличенный размер */
+.sleep-toggle {
+  position: relative;
+  width: 80px;
+  height: 40px;
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.sleep-toggle:focus {
+  ring: 2px;
+  ring-color: rgba(59, 130, 246, 0.5);
+  ring-offset: 2px;
+}
+
+.sleep-toggle.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.sleep-toggle.inactive {
+  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.sleep-toggle-thumb {
+  position: absolute;
+  top: 4px;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sleep-toggle.active .sleep-toggle-thumb {
+  transform: translateX(40px);
+  background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.sleep-toggle.inactive .sleep-toggle-thumb {
+  transform: translateX(4px);
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.sleep-toggle:hover .sleep-toggle-thumb {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.sleep-toggle:active .sleep-toggle-thumb {
+  transform: scale(0.95);
+}
+
+.sleep-toggle.active:active .sleep-toggle-thumb {
+  transform: translateX(40px) scale(0.95);
+}
+
+.sleep-toggle.inactive:active .sleep-toggle-thumb {
+  transform: translateX(4px) scale(0.95);
+}
+
+/* Анимация пульсации для активного тумблера */
+@keyframes sleepTogglePulse {
+  0%, 100% {
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.7);
+  }
+}
+
+.sleep-toggle.active {
+  animation: sleepTogglePulse 2s ease-in-out infinite;
+}
+
+/* Эффект свечения при hover */
+.sleep-toggle:hover {
+  transform: scale(1.05);
+}
+
+.sleep-toggle.active:hover {
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.6);
+}
+
+.sleep-toggle.inactive:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
 .tamagotchi-content {
   flex: 1;
   overflow: hidden;
@@ -2022,7 +2106,7 @@
   
   input[type="date"]::-webkit-calendar-picker-indicator:hover {
     background: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
+    border-radius: 24px;
   }
   
   /* Колесико выбора времени */
@@ -2045,7 +2129,7 @@
   
   input[type="time"]::-webkit-calendar-picker-indicator:hover {
     background: rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
+    border-radius: 24px;
   }
   
   /* Firefox стили */
@@ -2069,6 +2153,42 @@
       font-size: 16px; /* Предотвращает зум на iOS */
       min-height: 44px; /* Минимальный размер для удобного тапа */
     }
+  }
+
+  /* Toggle switch styles */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+    background-color: #e5e7eb;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .toggle-switch.active {
+    background-color: #10b981;
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .toggle-switch.active .toggle-thumb {
+    transform: translateX(22px);
+  }
+
+  .toggle-switch:hover .toggle-thumb {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   }
 }
 

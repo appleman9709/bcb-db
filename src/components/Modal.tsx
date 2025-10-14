@@ -51,11 +51,11 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
       
       {/* Modal */}
       <div className={`modal-content relative w-full ${sizeClasses[size]} sm:mt-0 mt-10`}>
-        <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-bounce-in">
+        <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-bounce-in">
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 rounded-xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
+            className="absolute top-4 right-4 z-10 rounded-3xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -79,7 +79,7 @@ export default function AuthPage() {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-sky-500/10 to-purple-500/10" aria-hidden="true" />
 
         <div className="relative space-y-2">
-          <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em]">
+          <div className="inline-flex items-center gap-3 rounded-3xl border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em]">
             BabyCare
           </div>
 
@@ -100,14 +100,14 @@ export default function AuthPage() {
                 type="text"
                 value={familyName}
                 onChange={(event) => setFamilyName(event.target.value)}
-                className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-slate-300/50 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-300/60"
+                className="w-full rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-slate-300/50 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-300/60"
                 placeholder="Например: семья Ивановых"
                 autoFocus
               />
             </div>
 
             {error && (
-              <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              <div className="rounded-3xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                 {error}
               </div>
             )}
@@ -115,7 +115,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30 transition hover:shadow-sky-500/50 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30 transition hover:shadow-sky-500/50 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {submitting ? 'Поиск...' : 'Найти'}
             </button>
@@ -130,7 +130,7 @@ export default function AuthPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              <div className="rounded-3xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                 {error}
               </div>
             )}
@@ -144,7 +144,7 @@ export default function AuthPage() {
                       key={`${memberOption.user_id}-${memberOption.role}`}
                       type="button"
                       onClick={() => handleSelectMember(memberOption)}
-                      className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-left transition hover:border-sky-400/50 hover:bg-white/15"
+                      className="flex items-center justify-between rounded-3xl border border-white/15 bg-white/10 px-4 py-3 text-left transition hover:border-sky-400/50 hover:bg-white/15"
                     >
                       <span className="text-sm font-semibold text-white">{memberOption.role ?? 'Участник семьи'}</span>
                       {memberOption.name && (
@@ -155,7 +155,7 @@ export default function AuthPage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-yellow-400/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
+              <div className="rounded-3xl border border-yellow-400/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-100">
                 В этой семье пока нет участников. Войдите как гость.
               </div>
             )}
@@ -164,14 +164,14 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={goBack}
-                className="flex-1 rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40"
+                className="flex-1 rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40"
               >
                 Назад
               </button>
               <button
                 type="button"
                 onClick={handleGuestEntry}
-                className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-500/50"
+                className="flex-1 rounded-3xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-500/50"
               >
                 Войти как гость
               </button>

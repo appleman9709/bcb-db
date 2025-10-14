@@ -295,7 +295,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     key={activity.id}
                     type="button"
                     onClick={() => setSelectedActivity(activity.id)}
-                    className={`relative p-3 rounded-xl border-2 transition-all duration-200 ${
+                    className={`relative p-3 rounded-3xl border-2 transition-all duration-200 ${
                       selectedActivity === activity.id
                         ? `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg`
                         : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -335,7 +335,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 <button
                   type="button"
                   onClick={() => setDiaperType('Просто')}
-                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                  className={`p-3 rounded-3xl border-2 transition-all duration-200 ${
                     diaperType === 'Просто'
                       ? 'border-green-500 bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg'
                       : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -353,7 +353,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 <button
                   type="button"
                   onClick={() => setDiaperType('Покакал')}
-                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                  className={`p-3 rounded-3xl border-2 transition-all duration-200 ${
                     diaperType === 'Покакал'
                       ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg'
                       : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -380,7 +380,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 <button
                   type="button"
                   onClick={() => setBathMood('Спокойное')}
-                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                  className={`p-3 rounded-3xl border-2 transition-all duration-200 ${
                     bathMood === 'Спокойное'
                       ? 'border-blue-500 bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg'
                       : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -398,7 +398,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 <button
                   type="button"
                   onClick={() => setBathMood('Беспокоился')}
-                  className={`p-3 rounded-xl border-2 transition-all duration-200 ${
+                  className={`p-3 rounded-3xl border-2 transition-all duration-200 ${
                     bathMood === 'Беспокоился'
                       ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-yellow-500 text-white shadow-lg'
                       : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
@@ -494,7 +494,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             </div>
             
             {/* Поле времени - основной, больше */}
-            <div className="rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-3 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div className="rounded-3xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-3 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
               <div className="space-y-1">
                 <label className="text-[10px] font-medium uppercase tracking-wide text-blue-600">Время</label>
                 <div className="flex items-center gap-2">
@@ -527,7 +527,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                   key={option.label}
                   type="button"
                   onClick={() => applyQuickOffset(option.minutes)}
-                  className={`rounded-lg px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
+                  className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
                     active
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -540,7 +540,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           </div>
 
           {/* Компактный предварительный просмотр */}
-          <div className="rounded-lg bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
+          <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
             <span className="font-medium text-gray-900">{formattedPreview}</span>
           </div>
 

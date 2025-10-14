@@ -41,7 +41,7 @@ const AchievementNotification: React.FC<AchievementNotificationProps> = ({
     <div className={`fixed top-4 right-4 z-50 transform transition-all duration-300 ${
       isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
     }`}>
-      <div className={`max-w-sm rounded-lg border-2 p-4 shadow-lg ${rarityStyles[achievement.rarity as keyof typeof rarityStyles] || rarityStyles.common}`}>
+      <div className={`max-w-sm rounded-3xl border-2 p-4 shadow-lg ${rarityStyles[achievement.rarity as keyof typeof rarityStyles] || rarityStyles.common}`}>
         <div className="flex items-start space-x-3">
           <div className="text-3xl">
             {rarityIcons[achievement.rarity as keyof typeof rarityIcons] || rarityIcons.common}
@@ -62,11 +62,11 @@ const AchievementNotification: React.FC<AchievementNotificationProps> = ({
               {achievement.achievement_name}
             </h4>
             <div className="flex items-center space-x-2 mt-2">
-              <span className="text-xs bg-white px-2 py-1 rounded-full">
+              <span className="text-xs bg-white px-2 py-1 rounded-3xl">
                 +{achievement.points} очков
               </span>
               {achievement.coins_reward > 0 && (
-                <span className="text-xs bg-yellow-200 px-2 py-1 rounded-full">
+                <span className="text-xs bg-yellow-200 px-2 py-1 rounded-3xl">
                   +{achievement.coins_reward} монет
                 </span>
               )}

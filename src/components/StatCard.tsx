@@ -71,7 +71,7 @@ export default function StatCard({ title, value, icon, color = 'blue', subtitle,
 
   const iconClassName = [
     'w-12 h-12 sm:w-14 sm:h-14',
-    'rounded-xl',
+    'rounded-3xl',
     'bg-gradient-to-r',
     colorClasses[color],
     'flex items-center justify-center text-white text-lg sm:text-xl shadow-lg'

@@ -118,9 +118,9 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
     <Modal isOpen={isOpen} onClose={onClose} size="sm">
       <div className="space-y-4">
         {/* Заголовок с иконкой */}
-        <div className={`${typeInfo.bgColor} rounded-xl p-4 border border-gray-200`}>
+        <div className={`${typeInfo.bgColor} rounded-3xl p-4 border border-gray-200`}>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 flex items-center justify-center bg-white rounded-full shadow-sm">
+            <div className="w-12 h-12 flex items-center justify-center bg-white rounded-3xl shadow-sm">
               <img 
                 src={typeInfo.icon} 
                 alt={typeInfo.title} 
@@ -141,7 +141,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
         </div>
 
         {/* Информация о времени */}
-        <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+        <div className="bg-gray-50 rounded-3xl p-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Дата и время:</span>
             <span className="text-sm text-gray-900 font-semibold">
@@ -169,13 +169,13 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
          (record.type === 'diaper' && record.diaper_type) || 
          (record.type === 'bath' && record.bath_mood) || 
          (record.type === 'activity' && record.activity_type) ? (
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 space-y-3 border border-blue-100">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-4 space-y-3 border border-blue-100">
             <h3 className="text-sm font-semibold text-gray-800 mb-2">📊 Детали события</h3>
             
             {record.type === 'feeding' && record.ounces && (
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Количество унций:</span>
-                <span className="text-sm text-blue-600 font-semibold bg-white px-2 py-1 rounded-full border border-blue-200">
+                <span className="text-sm text-blue-600 font-semibold bg-white px-2 py-1 rounded-3xl border border-blue-200">
                   🍼 {record.ounces} унций
                 </span>
               </div>
@@ -184,7 +184,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
             {record.type === 'diaper' && record.diaper_type && (
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Тип смены:</span>
-                <span className={`text-sm font-semibold px-2 py-1 rounded-full border ${
+                <span className={`text-sm font-semibold px-2 py-1 rounded-3xl border ${
                   record.diaper_type === 'Покакал' 
                     ? 'text-orange-600 bg-orange-50 border-orange-200' 
                     : 'text-blue-600 bg-blue-50 border-blue-200'
@@ -197,7 +197,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
             {record.type === 'bath' && record.bath_mood && (
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Настроение:</span>
-                <span className={`text-sm font-semibold px-2 py-1 rounded-full border ${
+                <span className={`text-sm font-semibold px-2 py-1 rounded-3xl border ${
                   record.bath_mood === 'Кричал' 
                     ? 'text-red-600 bg-red-50 border-red-200' 
                     : 'text-green-600 bg-green-50 border-green-200'
@@ -210,7 +210,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
             {record.type === 'activity' && record.activity_type && (
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Тип активности:</span>
-                <span className="text-sm text-purple-600 font-semibold bg-white px-2 py-1 rounded-full border border-purple-200">
+                <span className="text-sm text-purple-600 font-semibold bg-white px-2 py-1 rounded-3xl border border-purple-200">
                   🎯 {record.activity_type}
                 </span>
               </div>
@@ -219,7 +219,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
         ) : null}
 
         {/* Информация об авторе */}
-        <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+        <div className="bg-gray-50 rounded-3xl p-4 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Записал(а):</span>
             <span className="text-sm text-gray-900 font-medium">
@@ -236,7 +236,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
         </div>
 
         {/* Описание */}
-        <div className="bg-gray-50 rounded-xl p-4">
+        <div className="bg-gray-50 rounded-3xl p-4">
           <p className="text-sm text-gray-700">
             {typeInfo.description}
           </p>

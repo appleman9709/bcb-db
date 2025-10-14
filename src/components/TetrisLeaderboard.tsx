@@ -86,9 +86,9 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+        <div className="bg-white rounded-3xl p-6 max-w-md w-full mx-4">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-3xl h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
             <p className="text-gray-600">Загрузка рекордов...</p>
           </div>
         </div>
@@ -98,11 +98,11 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl max-w-lg w-full mx-4 max-h-[80vh] flex flex-col relative">
+      <div className="bg-white rounded-3xl max-w-lg w-full mx-4 max-h-[80vh] flex flex-col relative">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 rounded-xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
+          className="absolute top-4 right-4 z-10 rounded-3xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -144,7 +144,7 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
                   <p className="text-sm">Сыграйте в тетрис, чтобы установить первый рекорд!</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg border border-gray-200">
+                <div className="bg-white rounded-3xl border border-gray-200">
                   <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
                     <h3 className="font-semibold text-gray-800">🏆 Топ рекордов семьи</h3>
                   </div>
@@ -163,7 +163,7 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
                   <p className="text-sm">Сыграйте в тетрис, чтобы установить свой первый рекорд!</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg border border-gray-200">
+                <div className="bg-white rounded-3xl border border-gray-200">
                   <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
                     <h3 className="font-semibold text-gray-800">👤 Ваши рекорды</h3>
                   </div>

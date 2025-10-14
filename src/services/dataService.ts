@@ -58,6 +58,18 @@ export interface Activity {
   created_at: string
 }
 
+export interface SleepSession {
+  id: number
+  family_id: number
+  author_id: string
+  start_time: string
+  end_time?: string
+  duration_minutes?: number
+  author_role: string
+  author_name: string
+  created_at: string
+}
+
 export interface Settings {
   family_id: number
   feed_interval: number
@@ -72,6 +84,7 @@ export interface Settings {
   activity_reminder_enabled: boolean
   activity_reminder_interval: number
   sleep_monitoring_enabled: boolean
+  wake_on_activity_enabled: boolean
   baby_age_months: number
   baby_birth_date?: string
   birth_date?: string
@@ -96,6 +109,7 @@ export interface ParentCoins {
   bath_coins: number
   activity_coins: number
   mom_coins: number
+  sleep_coins: number
   total_score: number
   created_at: string
   updated_at: string
@@ -525,6 +539,176 @@ class DataService {
     return true
   }
 
+  // Sleep operations
+  async getSleepSessions(limit: number = 10): Promise<SleepSession[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('sleep_sessions')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('start_time', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching sleep sessions', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  async getCurrentSleepSession(): Promise<SleepSession | null> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('sleep_sessions')
+      .select('*')
+      .eq('family_id', familyId)
+      .is('end_time', null)
+      .order('start_time', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null
+      }
+
+      console.error('Error fetching current sleep session', error)
+      return null
+    }
+
+    return data
+  }
+
+  async startSleepSession(): Promise<SleepSession | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName, authorRole } = this.requireAuthor()
+
+    // Проверяем, есть ли уже активная сессия сна
+    const currentSession = await this.getCurrentSleepSession()
+    if (currentSession) {
+      console.log('Sleep session already active')
+      return currentSession
+    }
+
+    const { data, error } = await supabase
+      .from('sleep_sessions')
+      .insert({
+        family_id: familyId,
+        author_id: authorId,
+        start_time: new Date().toISOString(),
+        author_role: authorRole,
+        author_name: authorName
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error starting sleep session', error)
+      return null
+    }
+
+    return data
+  }
+
+  async endSleepSession(): Promise<SleepSession | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    // Находим активную сессию сна
+    const currentSession = await this.getCurrentSleepSession()
+    if (!currentSession) {
+      console.log('No active sleep session to end')
+      return null
+    }
+
+    const endTime = new Date()
+    const startTime = new Date(currentSession.start_time)
+    const durationMinutes = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60))
+
+    const { data, error } = await supabase
+      .from('sleep_sessions')
+      .update({
+        end_time: endTime.toISOString(),
+        duration_minutes: durationMinutes
+      })
+      .eq('id', currentSession.id)
+      .eq('family_id', familyId)
+      .eq('author_id', authorId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error ending sleep session', error)
+      return null
+    }
+
+    return data
+  }
+
+  async deleteSleepSession(id: number): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    const { error } = await supabase
+      .from('sleep_sessions')
+      .delete()
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .eq('author_id', authorId)
+
+    if (error) {
+      console.error('Error deleting sleep session', error)
+      return false
+    }
+
+    return true
+  }
+
+  async getFamilySleepStatus(): Promise<{ isSleeping: boolean; sleepSession: SleepSession | null }> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('sleep_sessions')
+      .select('*')
+      .eq('family_id', familyId)
+      .is('end_time', null)
+      .order('start_time', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return { isSleeping: false, sleepSession: null }
+      }
+
+      console.error('Error fetching family sleep status', error)
+      return { isSleeping: false, sleepSession: null }
+    }
+
+    return { isSleeping: true, sleepSession: data }
+  }
+
+  async getSleepSessions(days: number = 7): Promise<SleepSession[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('sleep_sessions')
+      .select('*')
+      .eq('family_id', familyId)
+      .gte('start_time', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+      .order('start_time', { ascending: false })
+
+    if (error) {
+      console.error('Error getting sleep sessions', error)
+      return []
+    }
+
+    return data || []
+  }
+
   // Tips operations
   async getTips(ageMonths?: number): Promise<Tip[]> {
     let query = supabase
@@ -703,6 +887,7 @@ class DataService {
     bath_coins?: number
     activity_coins?: number
     mom_coins?: number
+    sleep_coins?: number
     total_score?: number
   }): Promise<ParentCoins | null> {
     const familyId = this.requireFamilyId()
@@ -719,6 +904,7 @@ class DataService {
       bath_coins: coins.bath_coins ?? currentCoins?.bath_coins ?? 0,
       activity_coins: coins.activity_coins ?? currentCoins?.activity_coins ?? 0,
       mom_coins: coins.mom_coins ?? currentCoins?.mom_coins ?? 0,
+      sleep_coins: coins.sleep_coins ?? currentCoins?.sleep_coins ?? 0,
       total_score: coins.total_score ?? currentCoins?.total_score ?? 0
     }
 
@@ -742,7 +928,7 @@ class DataService {
     return data
   }
 
-  async addCoins(coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins', amount: number = 1): Promise<ParentCoins | null> {
+  async addCoins(coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins', amount: number = 1): Promise<ParentCoins | null> {
     console.log(`DataService: Adding ${amount} ${coinType} coins`)
     const currentCoins = await this.getParentCoins()
     console.log('DataService: Current coins:', currentCoins)
@@ -755,6 +941,7 @@ class DataService {
         bath_coins: coinType === 'bath_coins' ? amount : 0,
         activity_coins: coinType === 'activity_coins' ? amount : 0,
         mom_coins: coinType === 'mom_coins' ? amount : 0,
+        sleep_coins: coinType === 'sleep_coins' ? amount : 0,
         total_score: amount * 1 // Каждая монетка дает 1 очко
       }
       console.log('DataService: Creating new coins record:', newCoins)
@@ -768,6 +955,7 @@ class DataService {
       bath_coins: coinType === 'bath_coins' ? currentCoins.bath_coins + amount : currentCoins.bath_coins,
       activity_coins: coinType === 'activity_coins' ? (currentCoins.activity_coins || 0) + amount : (currentCoins.activity_coins || 0),
       mom_coins: coinType === 'mom_coins' ? currentCoins.mom_coins + amount : currentCoins.mom_coins,
+      sleep_coins: coinType === 'sleep_coins' ? (currentCoins.sleep_coins || 0) + amount : (currentCoins.sleep_coins || 0),
       total_score: currentCoins.total_score + (amount * 1)
     }
     console.log('DataService: Updating coins record:', updatedCoins)
