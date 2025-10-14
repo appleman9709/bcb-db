@@ -44,8 +44,6 @@ export default function TamagotchiPage() {
   const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string, type: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins'}>>([])
   const [coinSpawnInterval, setCoinSpawnInterval] = useState<NodeJS.Timeout | null>(null)
   const [isSleepMode, setIsSleepMode] = useState(false)
-  const [hasPlayedSleepVideo, setHasPlayedSleepVideo] = useState(false)
-  const [shouldPlayLastSecond, setShouldPlayLastSecond] = useState(false)
   
   // Отдельные счетчики для каждого типа монеток
   const [feedingCoins, setFeedingCoins] = useState(0)
@@ -68,15 +66,14 @@ export default function TamagotchiPage() {
       // Сохраняем предыдущее состояние сна
       const wasSleeping = isSleepMode
       
-      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, parentCoins, currentSleepSession, familySleepStatus, videoPlayedState] = await Promise.all([
+      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, parentCoins, currentSleepSession, familySleepStatus] = await Promise.all([
         dataService.getLastFeeding(),
         dataService.getLastDiaper(),
         dataService.getLastBath(),
         dataService.getSettings(),
         dataService.getParentCoins(),
         dataService.getCurrentSleepSession(),
-        dataService.getFamilySleepStatus(),
-        dataService.getSleepVideoPlayedState()
+        dataService.getFamilySleepStatus()
       ])
 
       setData({
@@ -102,13 +99,6 @@ export default function TamagotchiPage() {
       // Обновляем состояние сна
       const isCurrentlySleeping = familySleepStatus?.isSleeping ?? false
       setIsSleepMode(isCurrentlySleeping)
-      
-      // Обновляем состояние воспроизведения видео из БД
-      console.log('🌙 Video played state from DB:', videoPlayedState)
-      setHasPlayedSleepVideo(videoPlayedState)
-      
-      // Не воспроизводим видео при загрузке страницы - только при нажатии кнопки
-      setShouldPlayLastSecond(false)
       
       // Если малыш был в режиме сна и теперь не спит, показываем сообщение о пробуждении
       if (wasSleeping && !isCurrentlySleeping && settings.wakeOnActivityEnabled) {
@@ -168,20 +158,6 @@ export default function TamagotchiPage() {
       setIsSleepMode(data.familySleepStatus.isSleeping)
     }
   }, [data?.familySleepStatus])
-
-  // Резервное решение с localStorage для состояния видео
-  useEffect(() => {
-    if (data?.currentSleepSession?.id) {
-      const sessionId = data.currentSleepSession.id
-      const played = localStorage.getItem(`sleep_video_played_${sessionId}`) === 'true'
-      console.log('🌙 localStorage video state:', played, 'for session:', sessionId)
-      setHasPlayedSleepVideo(played)
-    } else {
-      setHasPlayedSleepVideo(false)
-    }
-    // Не воспроизводим видео при загрузке - только при нажатии кнопки
-    setShouldPlayLastSecond(false)
-  }, [data?.currentSleepSession?.id])
 
   useEffect(() => {
     if (!member || !family) {
@@ -269,9 +245,6 @@ export default function TamagotchiPage() {
         if (startedSession) {
           console.log('🌙 Sleep session started:', startedSession)
         }
-        // Сбрасываем состояние видео для новой сессии сна
-        setHasPlayedSleepVideo(false)
-        setShouldPlayLastSecond(false)
       }
       
       // Обновляем данные
@@ -699,27 +672,10 @@ export default function TamagotchiPage() {
               key="sleep-video"
               src={getGifSource(babyState)}
               className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
-              autoPlay={!hasPlayedSleepVideo}
+              autoPlay
               muted
               playsInline
-              onEnded={() => {
-                console.log('🌙 Video ended, marking as played')
-                dataService.markSleepVideoAsPlayed()
-                if (data?.currentSleepSession?.id) {
-                  localStorage.setItem(`sleep_video_played_${data.currentSleepSession.id}`, 'true')
-                }
-                setHasPlayedSleepVideo(true)
-              }}
-              onPlay={() => {
-                if (!hasPlayedSleepVideo) {
-                  console.log('🌙 Video started playing, marking as played')
-                  dataService.markSleepVideoAsPlayed()
-                  if (data?.currentSleepSession?.id) {
-                    localStorage.setItem(`sleep_video_played_${data.currentSleepSession.id}`, 'true')
-                  }
-                  setHasPlayedSleepVideo(true)
-                }
-              }}
+              loop={false}
             />
           ) : (
             <img

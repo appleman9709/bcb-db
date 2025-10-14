@@ -94,6 +94,7 @@ CREATE POLICY "Enable all operations for authenticated users" ON achievement_pro
 CREATE POLICY "Enable all operations for authenticated users" ON family_achievement_stats FOR ALL USING (true);
 
 -- Триггер для автоматического обновления updated_at в таблице family_achievement_stats
+DROP TRIGGER IF EXISTS update_family_achievement_stats_updated_at ON family_achievement_stats;
 CREATE TRIGGER update_family_achievement_stats_updated_at 
     BEFORE UPDATE ON family_achievement_stats 
     FOR EACH ROW 
