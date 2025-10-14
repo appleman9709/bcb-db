@@ -270,8 +270,7 @@ class DataService {
       return null
     }
 
-    // Добавляем запись в activities для срабатывания триггера пробуждения
-    await this.addActivity('feeding')
+    // Запись активности для пробуждения обрабатывается на сервере (триггеры БД)
 
     return data
   }
@@ -365,8 +364,7 @@ class DataService {
       return null
     }
 
-    // Добавляем запись в activities для срабатывания триггера пробуждения
-    await this.addActivity('diaper')
+    // Запись активности для пробуждения обрабатывается на сервере (триггеры БД)
 
     return data
   }
@@ -460,8 +458,7 @@ class DataService {
       return null
     }
 
-    // Добавляем запись в activities для срабатывания триггера пробуждения
-    await this.addActivity('bath')
+    // Запись активности для пробуждения обрабатывается на сервере (триггеры БД)
 
     return data
   }

@@ -291,15 +291,16 @@ export default function Dashboard() {
     }
   }
 
-  const handleModalSuccess = () => {
-    fetchData()
+  const handleModalSuccess = async () => {
+    // Обновляем данные и дожидаемся, чтобы последние значения (в т.ч. ounces) были в состоянии
+    await fetchData()
     if (activeTab === 'history') {
-      fetchHistoryData()
+      await fetchHistoryData()
     }
     setModalOpen(false)
     
-    // Проверяем достижения после успешного действия
-    checkAchievements()
+    // Проверяем достижения после успешного действия на основе свежих данных
+    await checkAchievements()
   }
 
   const handleDeleteRecord = async (type: 'feeding' | 'diaper' | 'bath' | 'activity', id: number) => {
@@ -373,11 +374,31 @@ export default function Dashboard() {
     if (!member || !family) return
     
     try {
+      // Подготавливаем данные активности для проверки достижений
+      let activityData = {}
+      
+      if (modalAction === 'feeding' && data?.lastFeeding) {
+        activityData = {
+          ounces: data.lastFeeding.ounces,
+          timestamp: data.lastFeeding.timestamp
+        }
+      } else if (modalAction === 'diaper' && data?.lastDiaper) {
+        activityData = {
+          diaper_type: data.lastDiaper.diaper_type,
+          timestamp: data.lastDiaper.timestamp
+        }
+      } else if (modalAction === 'bath' && data?.lastBath) {
+        activityData = {
+          bath_mood: data.lastBath.bath_mood,
+          timestamp: data.lastBath.timestamp
+        }
+      }
+      
       const achievements = await achievementService.checkAndAwardAchievements(
         family.id,
         Number(member.user_id),
         modalAction,
-        {}
+        activityData
       )
       
       if (achievements.length > 0) {
