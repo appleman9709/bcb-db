@@ -686,20 +686,18 @@ export default function TamagotchiPage() {
           )}
           
 
-          {/* Тумблер режима сна - увеличенный */}
-          <div className="absolute -top-3 left-2">
+          {/* Кнопка режима сна: солнце (не спит) / луна (спит) */}
+          <div className="absolute top-5 left-4">
             <button
               onClick={toggleSleepMode}
-              className={`sleep-toggle ${isSleepMode ? 'active' : 'inactive'}`}
+              className="p-0 rounded-3xl bg-transparent shadow-none border-0 hover:bg-transparent transition"
               aria-label={isSleepMode ? 'Выключить режим сна' : 'Включить режим сна'}
             >
-              <div className="sleep-toggle-thumb">
-                {isSleepMode ? (
-                  <span className="text-lg">😴</span>
-                ) : (
-                  <span className="text-lg">👁️</span>
-                )}
-              </div>
+              <img
+                src={isSleepMode ? '/icons/moon.png' : '/icons/sun.png'}
+                alt={isSleepMode ? 'Спит' : 'Не спит'}
+                className="w-16 h-16 object-contain"
+              />
             </button>
           </div>
 

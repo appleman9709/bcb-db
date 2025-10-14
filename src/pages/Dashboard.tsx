@@ -119,7 +119,7 @@ export default function Dashboard() {
   const [showAchievementNotification, setShowAchievementNotification] = useState(false)
   const [recordDetailModalOpen, setRecordDetailModalOpen] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState<{
-    type: 'feeding' | 'diaper' | 'bath' | 'activity'
+    type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep'
     id: number
     timestamp: string
     author_name: string
@@ -128,6 +128,9 @@ export default function Dashboard() {
     ounces?: number
     diaper_type?: string
     bath_mood?: string
+    start_time?: string
+    end_time?: string
+    duration_minutes?: number
   } | null>(null)
   const [historyFilter, setHistoryFilter] = useState<string>('all')
   const [groupByDate, setGroupByDate] = useState<boolean>(true)
@@ -303,7 +306,7 @@ export default function Dashboard() {
     await checkAchievements()
   }
 
-  const handleDeleteRecord = async (type: 'feeding' | 'diaper' | 'bath' | 'activity', id: number) => {
+  const handleDeleteRecord = async (type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep', id: number) => {
     if (!member || !family) return
 
     try {
@@ -320,6 +323,9 @@ export default function Dashboard() {
           break
         case 'activity':
           success = await dataService.deleteActivity(id)
+          break
+        case 'sleep':
+          success = await dataService.deleteSleepSession(id)
           break
       }
 
@@ -1538,7 +1544,12 @@ export default function Dashboard() {
                       ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
                       ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const })),
                       ...(historyData.activities || []).map(item => ({ ...item, type: 'activity' as const })),
-                      ...(historyData.sleepSessions || []).map(item => ({ ...item, type: 'sleep' as const, timestamp: item.start_time }))
+                      // Для сна используем одну запись с меткой времени окончания, если она есть (иначе начала)
+                      ...((historyData.sleepSessions || []).map(item => ({
+                        ...item,
+                        type: 'sleep' as const,
+                        timestamp: item.end_time ?? item.start_time
+                      })))
                     ]
                       .filter(item => historyFilter === 'all' || item.type === historyFilter)
                       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())

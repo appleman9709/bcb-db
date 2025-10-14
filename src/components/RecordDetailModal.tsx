@@ -7,7 +7,7 @@ interface RecordDetailModalProps {
   onClose: () => void
   onDelete: () => void
   record: {
-    type: 'feeding' | 'diaper' | 'bath' | 'activity'
+  type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep'
     id: number
     timestamp: string
     author_name: string
@@ -16,6 +16,10 @@ interface RecordDetailModalProps {
     ounces?: number
     diaper_type?: string
     bath_mood?: string
+  // sleep-specific
+  start_time?: string
+  end_time?: string
+  duration_minutes?: number
   } | null
 }
 
@@ -56,6 +60,15 @@ const getRecordTypeInfo = (type: string) => {
         color: 'from-purple-500 to-pink-500',
         bgColor: 'bg-purple-50',
         textColor: 'text-purple-700'
+      }
+    case 'sleep':
+      return {
+        title: 'Сон',
+        icon: '/icons/sleep.png',
+        description: 'Запись о сне малыша',
+        color: 'from-indigo-500 to-blue-500',
+        bgColor: 'bg-indigo-50',
+        textColor: 'text-indigo-700'
       }
     default:
       return {

@@ -70,15 +70,37 @@ const getTypeInfo = (type: string, item: any) => {
         extraInfo: null // Убираем дублирование - тип активности уже в описании
       }
     case 'sleep':
-      const duration = item.duration_minutes
-      const durationText = duration ? formatDuration(duration) : 'В процессе'
+      // Берем duration_minutes из БД, а если его нет, считаем по start_time/end_time
+      const hasEnded = Boolean(item.end_time)
+      const computedDuration = (() => {
+        if (typeof item?.duration_minutes === 'number' && item.duration_minutes > 0) return item.duration_minutes as number
+        if (hasEnded && item.start_time && item.end_time) {
+          const start = new Date(item.start_time).getTime()
+          const end = new Date(item.end_time).getTime()
+          if (!Number.isNaN(start) && !Number.isNaN(end) && end > start) {
+            return Math.max(1, Math.floor((end - start) / (1000 * 60)))
+          }
+        }
+        return undefined
+      })()
+      if (hasEnded) {
+        const durationText = typeof computedDuration === 'number' ? formatDuration(computedDuration) : null
+        return {
+          icon: <img src="/icons/sleep.png" alt="Сон" className="w-5 h-5 object-contain" />,
+          label: 'Сон завершён',
+          color: 'bg-indigo-100 text-indigo-600',
+          bgColor: 'bg-indigo-50',
+          description: durationText ? `Малыш проснулся (${durationText})` : 'Малыш проснулся',
+          extraInfo: durationText ? `😴 ${durationText}` : null
+        }
+      }
       return { 
         icon: <img src="/icons/sleep.png" alt="Сон" className="w-5 h-5 object-contain" />, 
-        label: 'Сон', 
+        label: 'Сон начат', 
         color: 'bg-indigo-100 text-indigo-600',
         bgColor: 'bg-indigo-50',
-        description: `Ребенок спал ${durationText}`,
-        extraInfo: duration ? `😴 ${durationText}` : '😴 В процессе'
+        description: 'Малыш уснул',
+        extraInfo: '😴 В процессе'
       }
     default:
       return { 
