@@ -107,13 +107,8 @@ export default function TamagotchiPage() {
       console.log('🌙 Video played state from DB:', videoPlayedState)
       setHasPlayedSleepVideo(videoPlayedState)
       
-      // Если видео уже было воспроизведено и мы в режиме сна, показываем последнюю секунду
-      if (videoPlayedState && isCurrentlySleeping) {
-        setShouldPlayLastSecond(true)
-        console.log('🌙 Will play last second of video')
-      } else {
-        setShouldPlayLastSecond(false)
-      }
+      // Не воспроизводим видео при загрузке страницы - только при нажатии кнопки
+      setShouldPlayLastSecond(false)
       
       // Если малыш был в режиме сна и теперь не спит, показываем сообщение о пробуждении
       if (wasSleeping && !isCurrentlySleeping && settings.wakeOnActivityEnabled) {
@@ -181,19 +176,12 @@ export default function TamagotchiPage() {
       const played = localStorage.getItem(`sleep_video_played_${sessionId}`) === 'true'
       console.log('🌙 localStorage video state:', played, 'for session:', sessionId)
       setHasPlayedSleepVideo(played)
-      
-      // Если видео уже было воспроизведено и мы в режиме сна, показываем последнюю секунду
-      if (played && isSleepMode) {
-        setShouldPlayLastSecond(true)
-        console.log('🌙 Will play last second of video (localStorage)')
-      } else {
-        setShouldPlayLastSecond(false)
-      }
     } else {
       setHasPlayedSleepVideo(false)
-      setShouldPlayLastSecond(false)
     }
-  }, [data?.currentSleepSession?.id, isSleepMode])
+    // Не воспроизводим видео при загрузке - только при нажатии кнопки
+    setShouldPlayLastSecond(false)
+  }, [data?.currentSleepSession?.id])
 
   useEffect(() => {
     if (!member || !family) {
@@ -281,6 +269,9 @@ export default function TamagotchiPage() {
         if (startedSession) {
           console.log('🌙 Sleep session started:', startedSession)
         }
+        // Сбрасываем состояние видео для новой сессии сна
+        setHasPlayedSleepVideo(false)
+        setShouldPlayLastSecond(false)
       }
       
       // Обновляем данные
@@ -708,17 +699,9 @@ export default function TamagotchiPage() {
               key="sleep-video"
               src={getGifSource(babyState)}
               className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
-              autoPlay={!hasPlayedSleepVideo || shouldPlayLastSecond}
+              autoPlay={!hasPlayedSleepVideo}
               muted
               playsInline
-              onLoadedMetadata={(e) => {
-                const video = e.currentTarget
-                if (shouldPlayLastSecond && hasPlayedSleepVideo) {
-                  // Устанавливаем время на последнюю секунду
-                  video.currentTime = Math.max(0, video.duration - 1)
-                  console.log('🌙 Playing last second of video, duration:', video.duration)
-                }
-              }}
               onEnded={() => {
                 console.log('🌙 Video ended, marking as played')
                 dataService.markSleepVideoAsPlayed()
@@ -726,7 +709,6 @@ export default function TamagotchiPage() {
                   localStorage.setItem(`sleep_video_played_${data.currentSleepSession.id}`, 'true')
                 }
                 setHasPlayedSleepVideo(true)
-                setShouldPlayLastSecond(false)
               }}
               onPlay={() => {
                 if (!hasPlayedSleepVideo) {
@@ -736,9 +718,6 @@ export default function TamagotchiPage() {
                     localStorage.setItem(`sleep_video_played_${data.currentSleepSession.id}`, 'true')
                   }
                   setHasPlayedSleepVideo(true)
-                } else if (shouldPlayLastSecond) {
-                  console.log('🌙 Playing last second of video')
-                  setShouldPlayLastSecond(false)
                 }
               }}
             />
