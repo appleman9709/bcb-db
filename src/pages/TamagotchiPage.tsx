@@ -44,6 +44,8 @@ export default function TamagotchiPage() {
   const [coins, setCoins] = useState<Array<{id: number, x: number, y: number, collected: boolean, falling: boolean, icon: string, type: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins'}>>([])
   const [coinSpawnInterval, setCoinSpawnInterval] = useState<NodeJS.Timeout | null>(null)
   const [isSleepMode, setIsSleepMode] = useState(false)
+  const [hasPlayedSleepVideo, setHasPlayedSleepVideo] = useState(false)
+  const [shouldPlayLastSecond, setShouldPlayLastSecond] = useState(false)
   
   // Отдельные счетчики для каждого типа монеток
   const [feedingCoins, setFeedingCoins] = useState(0)
@@ -66,14 +68,15 @@ export default function TamagotchiPage() {
       // Сохраняем предыдущее состояние сна
       const wasSleeping = isSleepMode
       
-      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, parentCoins, currentSleepSession, familySleepStatus] = await Promise.all([
+      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, parentCoins, currentSleepSession, familySleepStatus, videoPlayedState] = await Promise.all([
         dataService.getLastFeeding(),
         dataService.getLastDiaper(),
         dataService.getLastBath(),
         dataService.getSettings(),
         dataService.getParentCoins(),
         dataService.getCurrentSleepSession(),
-        dataService.getFamilySleepStatus()
+        dataService.getFamilySleepStatus(),
+        dataService.getSleepVideoPlayedState()
       ])
 
       setData({
@@ -99,6 +102,18 @@ export default function TamagotchiPage() {
       // Обновляем состояние сна
       const isCurrentlySleeping = familySleepStatus?.isSleeping ?? false
       setIsSleepMode(isCurrentlySleeping)
+      
+      // Обновляем состояние воспроизведения видео из БД
+      console.log('🌙 Video played state from DB:', videoPlayedState)
+      setHasPlayedSleepVideo(videoPlayedState)
+      
+      // Если видео уже было воспроизведено и мы в режиме сна, показываем последнюю секунду
+      if (videoPlayedState && isCurrentlySleeping) {
+        setShouldPlayLastSecond(true)
+        console.log('🌙 Will play last second of video')
+      } else {
+        setShouldPlayLastSecond(false)
+      }
       
       // Если малыш был в режиме сна и теперь не спит, показываем сообщение о пробуждении
       if (wasSleeping && !isCurrentlySleeping && settings.wakeOnActivityEnabled) {
@@ -158,6 +173,27 @@ export default function TamagotchiPage() {
       setIsSleepMode(data.familySleepStatus.isSleeping)
     }
   }, [data?.familySleepStatus])
+
+  // Резервное решение с localStorage для состояния видео
+  useEffect(() => {
+    if (data?.currentSleepSession?.id) {
+      const sessionId = data.currentSleepSession.id
+      const played = localStorage.getItem(`sleep_video_played_${sessionId}`) === 'true'
+      console.log('🌙 localStorage video state:', played, 'for session:', sessionId)
+      setHasPlayedSleepVideo(played)
+      
+      // Если видео уже было воспроизведено и мы в режиме сна, показываем последнюю секунду
+      if (played && isSleepMode) {
+        setShouldPlayLastSecond(true)
+        console.log('🌙 Will play last second of video (localStorage)')
+      } else {
+        setShouldPlayLastSecond(false)
+      }
+    } else {
+      setHasPlayedSleepVideo(false)
+      setShouldPlayLastSecond(false)
+    }
+  }, [data?.currentSleepSession?.id, isSleepMode])
 
   useEffect(() => {
     if (!member || !family) {
@@ -672,9 +708,39 @@ export default function TamagotchiPage() {
               key="sleep-video"
               src={getGifSource(babyState)}
               className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
-              autoPlay
+              autoPlay={!hasPlayedSleepVideo || shouldPlayLastSecond}
               muted
               playsInline
+              onLoadedMetadata={(e) => {
+                const video = e.currentTarget
+                if (shouldPlayLastSecond && hasPlayedSleepVideo) {
+                  // Устанавливаем время на последнюю секунду
+                  video.currentTime = Math.max(0, video.duration - 1)
+                  console.log('🌙 Playing last second of video, duration:', video.duration)
+                }
+              }}
+              onEnded={() => {
+                console.log('🌙 Video ended, marking as played')
+                dataService.markSleepVideoAsPlayed()
+                if (data?.currentSleepSession?.id) {
+                  localStorage.setItem(`sleep_video_played_${data.currentSleepSession.id}`, 'true')
+                }
+                setHasPlayedSleepVideo(true)
+                setShouldPlayLastSecond(false)
+              }}
+              onPlay={() => {
+                if (!hasPlayedSleepVideo) {
+                  console.log('🌙 Video started playing, marking as played')
+                  dataService.markSleepVideoAsPlayed()
+                  if (data?.currentSleepSession?.id) {
+                    localStorage.setItem(`sleep_video_played_${data.currentSleepSession.id}`, 'true')
+                  }
+                  setHasPlayedSleepVideo(true)
+                } else if (shouldPlayLastSecond) {
+                  console.log('🌙 Playing last second of video')
+                  setShouldPlayLastSecond(false)
+                }
+              }}
             />
           ) : (
             <img

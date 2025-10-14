@@ -68,6 +68,7 @@ export interface SleepSession {
   author_role: string
   author_name: string
   created_at: string
+  video_played?: boolean
 }
 
 export interface Settings {
@@ -697,22 +698,46 @@ class DataService {
     return { isSleeping: true, sleepSession: data }
   }
 
-  async getSleepSessions(days: number = 7): Promise<SleepSession[]> {
+  async markSleepVideoAsPlayed(): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+
+    // Получаем текущую активную сессию сна
+    const currentSession = await this.getCurrentSleepSession()
+    if (!currentSession) {
+      return false
+    }
+
+    const { error } = await supabase
+      .from('sleep_sessions')
+      .update({ video_played: true })
+      .eq('id', currentSession.id)
+
+    if (error) {
+      console.error('Error marking sleep video as played', error)
+      return false
+    }
+
+    return true
+  }
+
+  async getSleepVideoPlayedState(): Promise<boolean> {
     const familyId = this.requireFamilyId()
 
     const { data, error } = await supabase
       .from('sleep_sessions')
-      .select('*')
+      .select('video_played')
       .eq('family_id', familyId)
-      .gte('start_time', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString())
+      .is('end_time', null)
       .order('start_time', { ascending: false })
+      .limit(1)
+      .single()
 
     if (error) {
-      console.error('Error getting sleep sessions', error)
-      return []
+      console.error('Error getting sleep video state', error)
+      return false
     }
 
-    return data || []
+    return data?.video_played || false
   }
 
   // Tips operations
