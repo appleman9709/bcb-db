@@ -270,6 +270,9 @@ class DataService {
       return null
     }
 
+    // Добавляем запись в activities для срабатывания триггера пробуждения
+    await this.addActivity('feeding')
+
     return data
   }
 
@@ -362,6 +365,9 @@ class DataService {
       return null
     }
 
+    // Добавляем запись в activities для срабатывания триггера пробуждения
+    await this.addActivity('diaper')
+
     return data
   }
 
@@ -453,6 +459,9 @@ class DataService {
       console.error('Error adding bath', error)
       return null
     }
+
+    // Добавляем запись в activities для срабатывания триггера пробуждения
+    await this.addActivity('bath')
 
     return data
   }
