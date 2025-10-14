@@ -1447,32 +1447,28 @@ export default function Dashboard() {
             <div className="space-y-0.125">
               <div className="text-center">
                 <h1 className="text-lg font-bold text-gray-900 mb-1">📋 История событий</h1>
-                <p className="text-xs text-gray-600">Подробная статистика и хронология всех записей</p>
+                <p className="text-xs text-gray-600 mb-0.5">Подробная статистика и хронология всех записей</p>
             </div>
 
               {/* Общая статистика */}
               <div className="bg-white rounded-3xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
-                <h2 className="text-xs font-semibold text-gray-900 mb-0.5">📊 Общая статистика</h2>
+                <h2 className="text-xs font-semibold text-gray-900 mt-2 mb-2">📊 Общая статистика</h2>
                 <div className="grid grid-cols-2 gap-0.5">
-                  <div className="text-center p-0.125 bg-blue-50 rounded-3xl">
+                  <div className="text-center p-3 bg-blue-50 rounded-3xl">
                     <div className="text-xs font-bold text-blue-500 mb-0.5">{totalCounts?.feedings || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Кормлений</div>
-                    <div className="text-xs text-gray-500">{settings.feedingInterval}ч</div>
                   </div>
-                  <div className="text-center p-0.125 bg-green-50 rounded-3xl">
+                  <div className="text-center p-3 bg-green-50 rounded-3xl">
                     <div className="text-xs font-bold text-green-500 mb-0.5">{totalCounts?.diapers || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Подгузников</div>
-                    <div className="text-xs text-gray-500">{settings.diaperInterval}ч</div>
                   </div>
-                  <div className="text-center p-0.125 bg-yellow-50 rounded-3xl">
+                  <div className="text-center p-3 bg-yellow-50 rounded-3xl">
                     <div className="text-xs font-bold text-yellow-500 mb-0.5">{totalCounts?.baths || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Купаний</div>
-                    <div className="text-xs text-gray-500">{settings.bathInterval}д</div>
                   </div>
-                  <div className="text-center p-0.125 bg-purple-50 rounded-3xl">
+                  <div className="text-center p-3 bg-purple-50 rounded-3xl">
                     <div className="text-xs font-bold text-purple-500 mb-0.5">{totalCounts?.activities || 0}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Активностей</div>
-                    <div className="text-xs text-gray-500">🎮</div>
                   </div>
                 </div>
             </div>
@@ -1480,7 +1476,7 @@ export default function Dashboard() {
               {/* Последние события */}
               <div className="bg-white rounded-3xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
                 <div className="flex items-center justify-between mb-0.5">
-                  <h2 className="text-xs font-semibold text-gray-900">🕒 Последние события</h2>
+                  <h2 className="text-xs font-semibold text-gray-900 mt-2 mb-2">🕒 Последние события</h2>
                   <span className="text-xs text-gray-500">
                     {latestActivityTimestamp ? `Обновлено ${formatTime(latestActivityTimestamp)}` : 'Загрузка...'}
                   </span>

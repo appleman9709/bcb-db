@@ -111,6 +111,7 @@ body {
     gap: 20px;
     overflow: hidden;
     min-height: 0;
+    background: #F5F3EF; /* Добавляем фон на всю высоту */
 }
 
 /* Секция игрового поля */

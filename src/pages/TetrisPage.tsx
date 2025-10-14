@@ -107,7 +107,7 @@ export default function TetrisPage() {
   }, [family, member])
 
   return (
-    <div className="h-full w-full flex flex-col pb-20">
+    <div className="h-full w-full flex flex-col" style={{ backgroundColor: '#f5f3ef' }}>
       {/* Лучший рекорд семьи */}
       {!loading && familyBestRecord && (
         <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-b border-yellow-200 p-3">
@@ -141,7 +141,7 @@ export default function TetrisPage() {
             left: 0,
             right: 0,
             bottom: '80px', // Оставляем место для панели навигации
-            zIndex: 1000
+            zIndex: 10
           }}
           title="Tetris Game"
         />

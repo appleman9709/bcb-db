@@ -2064,7 +2064,7 @@
 .tamagotchi-inventory {
   flex-shrink: 0;
   padding: 0.5rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 5rem; /* Увеличиваем отступ снизу для новой панели навигации */
 }
 
 /* Адаптивность для очень маленьких экранов */
@@ -2080,7 +2080,7 @@
   
   .tamagotchi-inventory {
     padding: 0.25rem;
-    margin-bottom: 0.25rem;
+    margin-bottom: 4rem; /* Отступ для маленьких экранов */
   }
 }
 
