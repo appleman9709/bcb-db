@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react'
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
 import QuickActionModal from '../components/QuickActionModal'
+import { achievementService, NewAchievement } from '../services/achievementService'
+import { AchievementNotification } from '../components/AchievementNotification'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -13,7 +15,14 @@ interface TamagotchiData {
   parentCoins: ParentCoins | null
   currentSleepSession: SleepSession | null
   familySleepStatus: { isSleeping: boolean; sleepSession: SleepSession | null }
+  inventory: FamilyInventory | null
 }
+
+const DIAPER_ALERT_LEVEL = 5
+const DIAPER_TARGET = 20
+const FORMULA_ALERT_LEVEL = 6
+const FORMULA_TARGET = 24
+// Размер порции теперь хранится в БД
 
 interface SettingsState {
   feedingInterval: number
@@ -52,8 +61,299 @@ export default function TamagotchiPage() {
   const [activityCoins, setActivityCoins] = useState(0)
   const [momCoins, setMomCoins] = useState(0)
   const [sleepCoins, setSleepCoins] = useState(0)
+  const [newAchievements, setNewAchievements] = useState<NewAchievement[]>([])
+  const [showAchievementNotification, setShowAchievementNotification] = useState(false)
+  const [backpackOpen, setBackpackOpen] = useState(false)
+  const [restockDiapersInput, setRestockDiapersInput] = useState('')
+  const [restockGramsInput, setRestockGramsInput] = useState('')
+  const [restockLoading, setRestockLoading] = useState(false)
+  const [restockFeedback, setRestockFeedback] = useState<string | null>(null)
+  const [restockFeedbackTone, setRestockFeedbackTone] = useState<'neutral' | 'success' | 'error'>('neutral')
+  const [portionSizeOunces, setPortionSizeOunces] = useState<number>(1)
+  const [portionSizeOuncesInput, setPortionSizeOuncesInput] = useState<string>('1')
+  const [portionSizeStatus, setPortionSizeStatus] = useState<string | null>(null)
+  const [portionSizeStatusTone, setPortionSizeStatusTone] = useState<'neutral' | 'success' | 'error'>('neutral')
 
   const { member, family } = useAuth()
+
+  // Загружаем размер порции из БД при загрузке данных
+  useEffect(() => {
+    if (data?.inventory?.portion_size_ounces) {
+      const portionSize = data.inventory.portion_size_ounces
+      setPortionSizeOunces(portionSize)
+      setPortionSizeOuncesInput(portionSize.toString())
+    }
+  }, [data?.inventory?.portion_size_ounces])
+
+  const inventoryTotals = useMemo(() => {
+    const rawInventory = data?.inventory
+    const diapers = Math.max(0, rawInventory?.diapers_stock ?? 0)
+    const grams = Math.max(0, rawInventory?.formula_grams ?? 0)
+    
+    // Размер порции в унциях * 4.37 = граммы на порцию
+    const portionSizeInGrams = portionSizeOunces * GRAMS_PER_OUNCE
+    // Количество порций = граммы / (унции * 4.37), округляем до целых
+    const displayPortions = portionSizeInGrams > 0 ? Math.round(grams / portionSizeInGrams) : 0
+    
+    const portionsSource =
+      rawInventory?.formula_portions ?? (grams > 0 ? grams / GRAMS_PER_OUNCE : 0)
+    const rawPortions = Math.round(Math.max(0, portionsSource) * 10) / 10
+
+    return {
+      diapers,
+      grams: Math.round(grams * 10) / 10,
+      portions: displayPortions,
+      rawPortions,
+      portionsSource,
+      portionSize: portionSizeInGrams
+    }
+  }, [data?.inventory, portionSizeOunces])
+
+  // Размер порции теперь сохраняется в БД через updatePortionSize
+
+  const lowOnDiapers = inventoryTotals.diapers <= DIAPER_ALERT_LEVEL
+  const lowOnFormula = inventoryTotals.portions <= FORMULA_ALERT_LEVEL
+
+  const shoppingList = useMemo(() => {
+    const items: Array<{ id: string; label: string; message: string }> = []
+    const DIAPER_ALERT_LEVEL = 5
+    const DIAPER_TARGET = 20
+    const FORMULA_ALERT_LEVEL = 6
+    const FORMULA_TARGET = 24
+
+    const formatAmount = (value: number) =>
+      Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)
+
+    if (inventoryTotals.diapers <= DIAPER_ALERT_LEVEL) {
+      const shortfall = Math.max(0, DIAPER_TARGET - inventoryTotals.diapers)
+      items.push({
+        id: 'diapers',
+        label: 'Подгузники',
+        message: `Осталось ${inventoryTotals.diapers} шт. Желательно докупить ещё ~${shortfall} шт.`
+      })
+    }
+
+    if (inventoryTotals.portions <= FORMULA_ALERT_LEVEL) {
+      const shortfall = Math.max(0, FORMULA_TARGET - inventoryTotals.portions)
+      const gramsNeeded = Math.max(0, Math.round(shortfall * inventoryTotals.portionSize))
+      const ouncesNeeded = Math.round((gramsNeeded / GRAMS_PER_OUNCE) * 10) / 10
+      
+      items.push({
+        id: 'formula',
+        label: 'Смесь',
+        message: `Смеси — ${formatAmount(inventoryTotals.portions)} порций. Добавьте ~${formatAmount(shortfall)} порций (~${gramsNeeded} г / ~${ouncesNeeded} унций).`
+      })
+    }
+
+    return items
+  }, [inventoryTotals.diapers, inventoryTotals.portions, inventoryTotals.portionSize])
+
+  const displayPortionsText = useMemo(() => {
+    const value = inventoryTotals.portions
+    if (!Number.isFinite(value) || value <= 0) {
+      return '0'
+    }
+
+    return Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1)
+  }, [inventoryTotals.portions])
+
+  const restockPortionsPreview = useMemo(() => {
+    const normalized = restockGramsInput.replace(',', '.').trim()
+    if (!normalized) {
+      return 0
+    }
+
+    const numericValue = Number(normalized)
+    if (!Number.isFinite(numericValue) || numericValue <= 0) {
+      return 0
+    }
+
+    // Режим унций: граммы / (унции * 4.37), округляем до целых
+    const portionSizeInGrams = portionSizeOunces * GRAMS_PER_OUNCE
+    return portionSizeInGrams > 0 ? Math.round(numericValue / portionSizeInGrams) : 0
+  }, [restockGramsInput, portionSizeOunces])
+
+  const restockPortionsPreviewText = useMemo(() => {
+    if (!Number.isFinite(restockPortionsPreview) || restockPortionsPreview <= 0) {
+      return ''
+    }
+
+    return Number.isInteger(restockPortionsPreview)
+      ? restockPortionsPreview.toFixed(0)
+      : restockPortionsPreview.toFixed(1)
+  }, [restockPortionsPreview])
+
+  const restockFeedbackClass = useMemo(() => {
+    switch (restockFeedbackTone) {
+      case 'success':
+        return 'text-green-600'
+      case 'error':
+        return 'text-red-600'
+      default:
+        return 'text-gray-600'
+    }
+  }, [restockFeedbackTone])
+
+  const portionSizeStatusClass = useMemo(() => {
+    switch (portionSizeStatusTone) {
+      case 'success':
+        return 'text-green-600'
+      case 'error':
+        return 'text-red-600'
+      default:
+        return 'text-gray-600'
+    }
+  }, [portionSizeStatusTone])
+
+  useEffect(() => {
+    if (!restockFeedback) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setRestockFeedback(null)
+      setRestockFeedbackTone('neutral')
+    }, 4000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [restockFeedback])
+
+  useEffect(() => {
+    if (!portionSizeStatus) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setPortionSizeStatus(null)
+      setPortionSizeStatusTone('neutral')
+    }, 3000)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [portionSizeStatus])
+
+  const handleRestockSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!member || !family) {
+      setRestockFeedback('Нет доступа к семейному рюкзаку.')
+      setRestockFeedbackTone('error')
+      return
+    }
+
+    if (restockLoading) {
+      return
+    }
+
+    const parsedDiapers = Number(restockDiapersInput.replace(',', '.').trim())
+    const parsedGrams = Number(restockGramsInput.replace(',', '.').trim())
+
+    const diapersToAdd = Number.isFinite(parsedDiapers) && parsedDiapers > 0
+      ? Math.round(parsedDiapers)
+      : 0
+    const gramsToAdd = Number.isFinite(parsedGrams) && parsedGrams > 0
+      ? Math.round(parsedGrams * 1000) / 1000
+      : 0
+
+    if (diapersToAdd === 0 && gramsToAdd === 0) {
+      setRestockFeedback('Введите, что хотите добавить.')
+      setRestockFeedbackTone('error')
+      return
+    }
+
+    setRestockLoading(true)
+    setRestockFeedback(null)
+    setRestockFeedbackTone('neutral')
+
+    const payload: { diapers?: number; formulaGrams?: number; portionSizeGrams?: number } = {}
+    if (diapersToAdd > 0) {
+      payload.diapers = diapersToAdd
+    }
+    if (gramsToAdd > 0) {
+      payload.formulaGrams = gramsToAdd
+      // Передаем актуальный размер порции для корректного расчета
+      payload.portionSizeGrams = portionSizeOunces * GRAMS_PER_OUNCE
+    }
+
+    try {
+      await dataService.restockInventory(payload)
+
+      const updatedInventory = await dataService.getFamilyInventory()
+      setData(prev => (prev ? { ...prev, inventory: updatedInventory } : prev))
+
+      setRestockFeedback('Запасы пополнены!')
+      setRestockFeedbackTone('success')
+      if (diapersToAdd > 0) {
+        setRestockDiapersInput('')
+      }
+      if (gramsToAdd > 0) {
+        setRestockGramsInput('')
+      }
+    } catch (error) {
+      console.error('Error restocking inventory:', error)
+      setRestockFeedback('Не получилось обновить запасы. Попробуйте ещё раз.')
+      setRestockFeedbackTone('error')
+    } finally {
+      setRestockLoading(false)
+    }
+  }, [
+    family,
+    member,
+    restockDiapersInput,
+    restockLoading,
+    restockGramsInput,
+    portionSizeOunces
+  ])
+
+  const handleApplyPortionSize = useCallback(async () => {
+    const normalized = portionSizeOuncesInput.replace(',', '.').trim()
+    const parsedValue = Number(normalized)
+
+    if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
+      setPortionSizeStatus('Введите корректный размер порции в унциях.')
+      setPortionSizeStatusTone('error')
+      return
+    }
+
+    const rounded = Math.round(parsedValue * 10) / 10
+
+    if (rounded === portionSizeOunces) {
+      setPortionSizeStatus('Размер порции без изменений.')
+      setPortionSizeStatusTone('neutral')
+      return
+    }
+
+    try {
+      // Сохраняем в БД
+      const updatedInventory = await dataService.updatePortionSize(rounded)
+      
+      if (updatedInventory) {
+        // Обновляем локальное состояние
+        setPortionSizeOunces(rounded)
+        setPortionSizeOuncesInput(rounded.toString())
+        
+        // Обновляем данные в состоянии
+        setData(prev => prev ? { ...prev, inventory: updatedInventory } : null)
+        
+        setPortionSizeStatus(`Размер порции обновлён: ${rounded} унций (${Math.round(rounded * GRAMS_PER_OUNCE * 10) / 10} г).`)
+        setPortionSizeStatusTone('success')
+      } else {
+        setPortionSizeStatus('Ошибка при сохранении размера порции.')
+        setPortionSizeStatusTone('error')
+      }
+    } catch (error) {
+      console.error('Error updating portion size:', error)
+      setPortionSizeStatus('Ошибка при сохранении размера порции.')
+      setPortionSizeStatusTone('error')
+    }
+  }, [portionSizeOuncesInput, portionSizeOunces])
+
+  const toggleBackpack = useCallback(() => {
+    setBackpackOpen(prev => !prev)
+  }, [])
 
   const fetchData = useCallback(async () => {
     if (!member || !family) {
@@ -66,14 +366,24 @@ export default function TamagotchiPage() {
       // Сохраняем предыдущее состояние сна
       const wasSleeping = isSleepMode
       
-      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, parentCoins, currentSleepSession, familySleepStatus] = await Promise.all([
+      const [
+        lastFeeding,
+        lastDiaper,
+        lastBath,
+        settingsFromDb,
+        parentCoins,
+        currentSleepSession,
+        familySleepStatus,
+        inventory
+      ] = await Promise.all([
         dataService.getLastFeeding(),
         dataService.getLastDiaper(),
         dataService.getLastBath(),
         dataService.getSettings(),
         dataService.getParentCoins(),
         dataService.getCurrentSleepSession(),
-        dataService.getFamilySleepStatus()
+        dataService.getFamilySleepStatus(),
+        dataService.getFamilyInventory()
       ])
 
       setData({
@@ -82,7 +392,8 @@ export default function TamagotchiPage() {
         lastBath,
         parentCoins,
         currentSleepSession,
-        familySleepStatus
+        familySleepStatus,
+        inventory: inventory ?? null
       })
 
       if (settingsFromDb) {
@@ -229,8 +540,49 @@ export default function TamagotchiPage() {
     }
   }
 
+  const handleSleepAchievements = useCallback(async (session: SleepSession) => {
+    if (!member || !family) {
+      return
+    }
+
+    try {
+      const timestamp = session.end_time ?? session.start_time
+      const userId = Number(member.user_id)
+      if (!Number.isFinite(userId)) {
+        return
+      }
+
+      const achievements = await achievementService.checkAndAwardAchievements(
+        family.id,
+        userId,
+        'sleep',
+        { timestamp }
+      )
+
+      if (achievements.length > 0) {
+        setNewAchievements(achievements)
+        setShowAchievementNotification(true)
+
+        for (const achievement of achievements) {
+          await achievementService.sendAchievementNotification(achievement)
+        }
+
+        setTimeout(() => {
+          setShowAchievementNotification(false)
+        }, 5000)
+      }
+    } catch (error) {
+      console.error('Error awarding sleep achievements:', error)
+    }
+  }, [family, member])
+
   const toggleSleepMode = async () => {
     try {
+      // Немедленно обновляем локальное состояние
+      const newSleepMode = !isSleepMode
+      setIsSleepMode(newSleepMode)
+      console.log('🌙 toggleSleepMode: immediately setting isSleepMode to:', newSleepMode)
+      
       if (isSleepMode) {
         // Завершаем сессию сна
         const endedSession = await dataService.endSleepSession()
@@ -238,12 +590,14 @@ export default function TamagotchiPage() {
           console.log('🌙 Sleep session ended:', endedSession)
           // Добавляем монетки за сон
           await dataService.addCoins('sleep_coins', 1)
+          await handleSleepAchievements(endedSession)
         }
       } else {
         // Начинаем сессию сна
         const startedSession = await dataService.startSleepSession()
         if (startedSession) {
           console.log('🌙 Sleep session started:', startedSession)
+          await handleSleepAchievements(startedSession)
         }
       }
       
@@ -251,6 +605,8 @@ export default function TamagotchiPage() {
       await fetchData()
     } catch (error) {
       console.error('Error toggling sleep mode:', error)
+      // В случае ошибки возвращаем состояние обратно
+      setIsSleepMode(isSleepMode)
     }
   }
 
@@ -292,8 +648,9 @@ export default function TamagotchiPage() {
     setModalOpen(true)
   }
 
-  const handleModalSuccess = () => {
-    fetchData() // Обновляем данные после успешного действия
+  const handleModalSuccess = async () => {
+    // Обновляем данные после успешного действия
+    await fetchData()
     setModalOpen(false)
   }
 
@@ -381,9 +738,9 @@ export default function TamagotchiPage() {
   }
 
   // Функция для получения иконки монетки в зависимости от состояния
-  const getCoinIcon = useCallback((state: BabyState): string => {
+  const getCoinIcon = useCallback((state: BabyState, sleepMode: boolean = false): string => {
     // Если включен режим сна, всегда показываем иконку сна
-    if (isSleepMode) {
+    if (sleepMode) {
       console.log('🌙 getCoinIcon: Sleep mode ON, returning sleep.png')
       return '/icons/sleep.png'
     }
@@ -405,12 +762,12 @@ export default function TamagotchiPage() {
         // Для неизвестных состояний возвращаем mom.png как fallback
         return '/icons/mom.png'
     }
-  }, [isSleepMode])
+  }, [])
 
   // Функция для получения типа монетки в зависимости от состояния
-  const getCoinType = useCallback((state: BabyState): 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins' => {
+  const getCoinType = useCallback((state: BabyState, sleepMode: boolean = false): 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins' => {
     // Если включен режим сна, всегда показываем монетки сна
-    if (isSleepMode) {
+    if (sleepMode) {
       console.log('🌙 getCoinType: Sleep mode ON, returning sleep_coins')
       return 'sleep_coins'
     }
@@ -432,7 +789,7 @@ export default function TamagotchiPage() {
         // Для неизвестных состояний возвращаем mom_coins как fallback
         return 'mom_coins'
     }
-  }, [isSleepMode])
+  }, [])
 
   // Функция для создания случайной позиции монетки
   const getRandomCoinPosition = () => {
@@ -463,14 +820,29 @@ export default function TamagotchiPage() {
       
       const position = getRandomCoinPosition()
       
-      // Определяем тип и иконку монетки
+      // Определяем тип и иконку монетки на основе текущего состояния
       console.log('🌙 spawnCoin called with:', { babyState, isSleepMode })
-      const coinType = getCoinType(babyState)
-      const coinIcon = getCoinIcon(babyState)
+      console.log('🌙 isSleepMode type:', typeof isSleepMode, 'value:', isSleepMode)
+      
+      // Если малыш спит, всегда показываем монетки сна
+      let coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins'
+      let coinIcon: string
+      
+      if (isSleepMode) {
+        coinType = 'sleep_coins'
+        coinIcon = '/icons/sleep.png'
+        console.log('🌙 Sleep mode detected - using sleep coins')
+      } else {
+        coinType = getCoinType(babyState, false)
+        coinIcon = getCoinIcon(babyState, false)
+        console.log('🌙 Normal mode - using state-based coins:', { babyState, coinType, coinIcon })
+      }
       
       // Отладочная информация
       console.log('🌙 Final coin data:', { coinType, coinIcon, isSleepMode })
       console.log('🌙 Expected: sleep_coins + sleep.png when sleep mode is ON')
+      console.log('🌙 getCoinType result:', getCoinType(babyState, false))
+      console.log('🌙 getCoinIcon result:', getCoinIcon(babyState, false))
       
       const newCoin = {
         id: Date.now() + Math.random(),
@@ -579,6 +951,7 @@ export default function TamagotchiPage() {
 
   return (
     <div className="tamagotchi-container relative">
+
       {/* Монетки для сбора - позиционированы относительно всего контейнера */}
       {coins.map(coin => (
         <div
@@ -702,6 +1075,168 @@ export default function TamagotchiPage() {
             </button>
           </div>
 
+          {/* Кнопка рюкзака в нижнем правом углу */}
+          <div className="absolute bottom-4 right-4 z-40 flex flex-col items-end gap-2">
+            <button
+              type="button"
+              onClick={toggleBackpack}
+              className="relative p-1 bg-transparent hover:bg-white/20 rounded-3xl transition-colors"
+              aria-label={backpackOpen ? 'Закрыть рюкзак' : 'Открыть рюкзак'}
+            >
+              <img 
+                src="/icons/bag.png" 
+                alt="Рюкзак" 
+                className="w-12 h-12 object-contain"
+              />
+              {shoppingList.length > 0 && (
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] rounded-full bg-red-100 text-red-600 font-semibold">
+                  {shoppingList.length}
+                </span>
+              )}
+            </button>
+
+            {backpackOpen && (
+              <div className="w-72 max-w-[85vw] bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-gray-200 p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900">🎒 Семейный рюкзак</h3>
+                    <p className="text-[11px] text-gray-500">Отслеживайте запасы и пополняйте их здесь.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setBackpackOpen(false)}
+                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    aria-label="Закрыть рюкзак"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="rounded-2xl bg-gray-50 border border-gray-100 p-3 space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700">Подгузники</span>
+                    <span className={`font-semibold ${lowOnDiapers ? 'text-red-500' : 'text-gray-900'}`}>
+                      {inventoryTotals.diapers} шт
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700">Смесь</span>
+                    <span className={`font-semibold ${lowOnFormula ? 'text-red-500' : 'text-gray-900'}`}>
+                      {displayPortionsText} порций
+                      <span className="text-[10px] text-gray-400 ml-1">
+                        (~{inventoryTotals.grams} г / {portionSizeOunces} унц.)
+                      </span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block text-xs font-semibold text-gray-700" htmlFor="portion-size-ounces">
+                    Размер порции смеси (унции)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="portion-size-ounces"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      placeholder="Например, 5"
+                      value={portionSizeOuncesInput}
+                      onChange={event => setPortionSizeOuncesInput(event.target.value)}
+                      onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleApplyPortionSize(); } }}
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyPortionSize}
+                      className="px-3 py-2 rounded-2xl bg-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
+                    >
+                      Ок
+                    </button>
+                  </div>
+                  {portionSizeStatus && (
+                    <p className={`text-[10px] ${portionSizeStatusClass}`}>
+                      {portionSizeStatus}
+                    </p>
+                  )}
+                </div>
+                <form className="space-y-2.5" onSubmit={handleRestockSubmit}>
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold text-gray-700" htmlFor="restock-diapers">
+                      Добавить подгузники (шт)
+                    </label>
+                    <input
+                      id="restock-diapers"
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      step="1"
+                      placeholder="Например, 10"
+                      value={restockDiapersInput}
+                      onChange={event => setRestockDiapersInput(event.target.value)}
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-xs font-semibold text-gray-700" htmlFor="restock-grams">
+                      Добавить смесь (г)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="restock-grams"
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="Например, 180"
+                        value={restockGramsInput}
+                        onChange={event => setRestockGramsInput(event.target.value)}
+                        className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition"
+                      />
+                      {restockPortionsPreview > 0 && restockPortionsPreviewText && (
+                        <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                          ≈ {restockPortionsPreviewText} порц. ({portionSizeOunces} унц.)
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={restockLoading}
+                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-500 text-white text-xs font-semibold py-2.5 shadow hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {restockLoading ? 'Сохраняем...' : 'Пополнить запасы'}
+                  </button>
+                </form>
+
+                {restockFeedback && (
+                  <div className={`text-[11px] text-center font-medium ${restockFeedbackClass}`} aria-live="polite">
+                    {restockFeedback}
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-gray-100">
+                  <h4 className="text-xs font-semibold text-gray-800 mb-1.5 flex items-center gap-1">
+                    <span role="img" aria-hidden="true">🛒</span>
+                    <span>Список покупок</span>
+                  </h4>
+                  {shoppingList.length > 0 ? (
+                    <ul className="space-y-1">
+                      {shoppingList.map(item => (
+                        <li key={item.id} className="text-[11px] leading-snug text-gray-600">
+                          <span className="font-medium text-gray-800">{item.label}:</span> {item.message}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[11px] text-gray-500">Пока ничего докупать не нужно.</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
         </div>
         
         <p className="text-xs font-medium text-gray-700 mt-2">
@@ -724,6 +1259,9 @@ export default function TamagotchiPage() {
               alt="Подгузник" 
               className="w-10 h-10 object-contain"
             />
+            <span className={`mt-1 text-[10px] font-semibold ${lowOnDiapers ? 'text-red-500' : 'text-gray-600'}`}>
+              {inventoryTotals.diapers} шт
+            </span>
           </div>
 
           {/* Бутылочка */}
@@ -736,6 +1274,9 @@ export default function TamagotchiPage() {
               alt="Бутылочка" 
               className="w-10 h-10 object-contain"
             />
+            <span className={`mt-1 text-[10px] font-semibold ${lowOnFormula ? 'text-red-500' : 'text-gray-600'}`}>
+              {displayPortionsText} порц.
+            </span>
           </div>
 
           {/* Губка */}
@@ -765,6 +1306,13 @@ export default function TamagotchiPage() {
       </div>
 
       {/* Модальное окно для действий */}
+      {showAchievementNotification && newAchievements.length > 0 && (
+        <AchievementNotification
+          achievement={newAchievements[0]}
+          onClose={() => setShowAchievementNotification(false)}
+        />
+      )}
+
       <QuickActionModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -774,3 +1322,4 @@ export default function TamagotchiPage() {
     </div>
   )
 }
+

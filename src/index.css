@@ -2155,6 +2155,304 @@
     }
   }
 
+  /* Apple Liquid Glass Tab Bar Styles */
+  .liquid-glass-tab-bar {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    z-index: 40;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .liquid-glass-tab-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    
+    /* Основной эффект жидкого стекла */
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    
+    /* Слой корректировки под блюром */
+    filter: saturate(1.15) brightness(0.98) contrast(1.08);
+    
+    /* Тонирование */
+    background-image: 
+      linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.12) 100%);
+    
+    /* Внутренний иней (frost) */
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+    
+    /* Обводка */
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    
+    /* Тени от панели */
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.12),
+      0 24px 48px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+    
+    border-radius: 28px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .liquid-glass-tab-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border: none;
+    border-radius: 22px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    overflow: hidden;
+  }
+
+  .liquid-glass-tab-button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 22px;
+    
+    /* Базовый материал кнопки с blur -20% от панели */
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    
+    /* Контур: Inside 1px White 12-16% */
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.12);
+    
+    /* Спекулярный край (Highlight) сверху */
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+      0 6px 12px rgba(0, 0, 0, 0.12);
+    
+    /* Тень */
+    box-shadow: 
+      0 6px 12px rgba(0, 0, 0, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.12);
+    
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .liquid-glass-tab-icon {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0, 0, 0, 0.6);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Активное состояние */
+  .liquid-glass-tab-active::before {
+    background: rgba(59, 130, 246, 0.15);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    
+    /* Усиленный спекулярный эффект */
+    box-shadow: 
+      0 8px 16px rgba(59, 130, 246, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.15),
+      0 0 0 1px rgba(59, 130, 246, 0.3);
+  }
+
+  .liquid-glass-tab-active .liquid-glass-tab-icon {
+    color: #3b82f6;
+    transform: scale(1.05);
+  }
+
+  /* Hover эффекты */
+  .liquid-glass-tab-button:hover::before {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    
+    /* Повышаем контраст (Overlay белого 6-8%) */
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.16),
+      0 0 0 1px rgba(255, 255, 255, 0.15);
+    
+    /* Усиливаем specular */
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.18),
+      0 0 0 1px rgba(255, 255, 255, 0.15);
+  }
+
+  .liquid-glass-tab-button:hover .liquid-glass-tab-icon {
+    color: rgba(0, 0, 0, 0.8);
+    transform: scale(1.08);
+  }
+
+  /* Press эффекты */
+  .liquid-glass-tab-button:active::before {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    
+    /* Максимальный контраст при нажатии */
+    box-shadow: 
+      0 4px 8px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.2);
+    
+    transform: scale(0.95);
+  }
+
+  .liquid-glass-tab-button:active .liquid-glass-tab-icon {
+    transform: scale(0.95);
+  }
+
+  /* Активное состояние с hover */
+  .liquid-glass-tab-active:hover::before {
+    background: rgba(59, 130, 246, 0.2);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    
+    box-shadow: 
+      0 10px 20px rgba(59, 130, 246, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.2),
+      0 0 0 1px rgba(59, 130, 246, 0.4);
+  }
+
+  .liquid-glass-tab-active:hover .liquid-glass-tab-icon {
+    color: #2563eb;
+    transform: scale(1.1);
+  }
+
+  /* Адаптивность для разных размеров экранов */
+  @media (max-width: 640px) {
+    .liquid-glass-tab-bar {
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+    }
+    
+    .liquid-glass-tab-container {
+      gap: 8px;
+      padding: 8px;
+      border-radius: 26px;
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+    }
+    
+    .liquid-glass-tab-button {
+      width: 56px;
+      height: 56px;
+      border-radius: 20px;
+    }
+    
+    .liquid-glass-tab-button::before {
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    
+    /* Уменьшенные иконки для планшетов */
+    .liquid-glass-tab-icon svg {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .liquid-glass-tab-bar {
+      bottom: 8px;
+      left: 8px;
+      right: 8px;
+    }
+    
+    .liquid-glass-tab-container {
+      gap: 6px;
+      padding: 6px;
+      border-radius: 22px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    
+    .liquid-glass-tab-button {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+    }
+    
+    .liquid-glass-tab-button::before {
+      border-radius: 18px;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    
+    /* Еще более маленькие иконки для мобильных */
+    .liquid-glass-tab-icon svg {
+      width: 26px;
+      height: 26px;
+    }
+  }
+
+  /* Оптимизация для touch-устройств */
+  @media (hover: none) and (pointer: coarse) {
+    .liquid-glass-tab-button:hover::before {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.12);
+    }
+    
+    .liquid-glass-tab-button:hover .liquid-glass-tab-icon {
+      color: rgba(0, 0, 0, 0.6);
+      transform: scale(1);
+    }
+    
+    .liquid-glass-tab-button:active::before {
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      transform: scale(0.92);
+    }
+    
+    .liquid-glass-tab-button:active .liquid-glass-tab-icon {
+      transform: scale(0.9);
+    }
+    
+    .liquid-glass-tab-active:hover::before {
+      background: rgba(59, 130, 246, 0.15);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+    }
+    
+    .liquid-glass-tab-active:hover .liquid-glass-tab-icon {
+      color: #3b82f6;
+      transform: scale(1.05);
+    }
+  }
+
   /* Toggle switch styles */
   .toggle-switch {
     position: relative;

@@ -237,7 +237,9 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     try {
       switch (actionType) {
         case 'feeding':
-          await dataService.addFeeding(timestamp, feedingOunces > 0 ? feedingOunces : undefined)
+          // Всегда передаем значение унций, даже если оно 0
+          // dataService.addFeeding теперь обрабатывает случай, когда унции не указаны
+          await dataService.addFeeding(timestamp, feedingOunces)
           break
         case 'diaper':
           await dataService.addDiaper(timestamp, diaperType)
@@ -246,7 +248,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           await dataService.addBath(timestamp, bathMood)
           break
         case 'activity':
-          await dataService.addActivity(selectedActivity)
+          await dataService.addActivity(selectedActivity, timestamp)
           break
         default:
           break

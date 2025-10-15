@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabaseClient'
+﻿import { supabase } from '../lib/supabaseClient'
 
 export interface Family {
   id: number
@@ -115,6 +115,17 @@ export interface ParentCoins {
   updated_at: string
 }
 
+export interface FamilyInventory {
+  family_id: number
+  diapers_stock: number
+  formula_grams: number
+  formula_portions: number
+  portion_size_ounces: number
+  updated_by?: string | number | null
+  created_at?: string
+  updated_at?: string
+}
+
 export interface TetrisRecord {
   id: number
   family_id: number
@@ -133,11 +144,36 @@ export interface TetrisRecordWithRank extends TetrisRecord {
   rank: number
 }
 
+export interface DutySchedule {
+  id?: number
+  family_id: number
+  block_duration_hours: number
+  start_hour_offset: number
+  updated_by?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface DutyAssignment {
+  id?: number
+  family_id: number
+  block_id: string
+  parent_id?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface DutyScheduleWithAssignments extends DutySchedule {
+  assignments: DutyAssignment[]
+}
+
 type AuthorContext = {
   authorId: string
   authorName: string
   authorRole: string
 }
+
+export const GRAMS_PER_OUNCE = 4.37
 
 class DataService {
   private familyId: number | null = null
@@ -198,6 +234,186 @@ class DataService {
       console.error('Family context is not configured', error)
       return null
     }
+  }
+
+  async getFamilyMembers(): Promise<FamilyMember[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('family_members')
+      .select('family_id, user_id, role, name, created_at')
+      .eq('family_id', familyId)
+      .order('created_at', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching family members', error)
+      return []
+    }
+
+    return (data ?? []).map(member => ({
+      ...member,
+      user_id: String(member.user_id)
+    }))
+  }
+
+  // Inventory operations
+  async getFamilyInventory(): Promise<FamilyInventory | null> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('family_inventory')
+      .select('*')
+      .eq('family_id', familyId)
+      .limit(1)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null
+      }
+
+      console.error('Error fetching family inventory', error)
+      return null
+    }
+
+    return data
+  }
+
+  private async upsertFamilyInventory(values: {
+    diapers_stock: number
+    formula_grams: number
+    formula_portions: number
+    portion_size_ounces?: number
+  }): Promise<FamilyInventory | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    const payload = {
+      family_id: familyId,
+      diapers_stock: Math.max(0, Math.round(values.diapers_stock)),
+      formula_grams: Number(values.formula_grams.toFixed(3)),
+      formula_portions: Number(values.formula_portions.toFixed(3)),
+      portion_size_ounces: values.portion_size_ounces ? Number(values.portion_size_ounces.toFixed(1)) : undefined,
+      updated_by: authorId || null
+    }
+
+    const { data, error } = await supabase
+      .from('family_inventory')
+      .upsert(payload, {
+        onConflict: 'family_id'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating family inventory', error)
+      return null
+    }
+
+    return data
+  }
+
+  async adjustFamilyInventory(deltas: {
+    diapersDelta?: number
+    formulaGramsDelta?: number
+    formulaPortionsDelta?: number
+  }): Promise<FamilyInventory | null> {
+    const current = await this.getFamilyInventory()
+
+    const currentDiapers = current?.diapers_stock ?? 0
+    const currentGrams = current?.formula_grams ?? 0
+    const currentPortions =
+      current?.formula_portions ?? (currentGrams > 0 ? currentGrams / GRAMS_PER_OUNCE : 0)
+
+    const nextDiapers = Math.max(0, currentDiapers + (deltas.diapersDelta ?? 0))
+    const nextGrams = Math.max(0, currentGrams + (deltas.formulaGramsDelta ?? 0))
+
+    const portionsDelta =
+      deltas.formulaPortionsDelta !== undefined
+        ? deltas.formulaPortionsDelta
+        : (deltas.formulaGramsDelta ?? 0) / GRAMS_PER_OUNCE
+    const nextPortions = Math.max(0, currentPortions + portionsDelta)
+
+    console.log('Inventory adjustment:', {
+      current: { diapers: currentDiapers, grams: currentGrams, portions: currentPortions },
+      deltas,
+      next: { diapers: nextDiapers, grams: nextGrams, portions: nextPortions }
+    })
+
+    return this.upsertFamilyInventory({
+      diapers_stock: nextDiapers,
+      formula_grams: nextGrams,
+      formula_portions: nextPortions
+    })
+  }
+
+  async restockInventory(options: { diapers?: number; formulaGrams?: number; portionSizeGrams?: number }): Promise<FamilyInventory | null> {
+    const diapersToAdd = options.diapers ?? 0
+    const gramsToAdd = options.formulaGrams ?? 0
+    const portionSizeGrams = options.portionSizeGrams ?? GRAMS_PER_OUNCE
+
+    if (diapersToAdd === 0 && gramsToAdd === 0) {
+      return this.getFamilyInventory()
+    }
+
+    // Получаем текущий инвентарь
+    const currentInventory = await this.getFamilyInventory()
+    if (!currentInventory) {
+      console.error('No family inventory found')
+      return null
+    }
+
+    // Вычисляем новые значения
+    const newDiapers = Math.max(0, currentInventory.diapers_stock + diapersToAdd)
+    const newGrams = Math.max(0, currentInventory.formula_grams + gramsToAdd)
+    const newPortions = newGrams / portionSizeGrams
+
+    // Обновляем инвентарь с новым размером порции
+    return this.upsertFamilyInventory({
+      diapers_stock: newDiapers,
+      formula_grams: newGrams,
+      formula_portions: newPortions,
+      portion_size_ounces: portionSizeGrams / GRAMS_PER_OUNCE
+    })
+  }
+
+  async updatePortionSize(portionSizeOunces: number): Promise<FamilyInventory | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    // Получаем текущий инвентарь
+    const currentInventory = await this.getFamilyInventory()
+    if (!currentInventory) {
+      console.error('No family inventory found')
+      return null
+    }
+
+    // Пересчитываем количество порций с новым размером
+    const newPortions = currentInventory.formula_grams / (portionSizeOunces * GRAMS_PER_OUNCE)
+
+    const payload = {
+      family_id: familyId,
+      diapers_stock: currentInventory.diapers_stock,
+      formula_grams: currentInventory.formula_grams,
+      formula_portions: Number(newPortions.toFixed(3)),
+      portion_size_ounces: Number(portionSizeOunces.toFixed(1)),
+      updated_by: authorId || null
+    }
+
+    const { data, error } = await supabase
+      .from('family_inventory')
+      .upsert(payload, {
+        onConflict: 'family_id'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating portion size', error)
+      return null
+    }
+
+    return data
   }
 
   // Feeding operations
@@ -270,7 +486,20 @@ class DataService {
       return null
     }
 
-    // Запись активности для пробуждения обрабатывается на сервере (триггеры БД)
+    // Всегда списываем смесь при кормлении, даже если унции не указаны
+    // Используем стандартную порцию в 1 унцию, если унции не указаны
+    const consumedOunces = typeof ounces === 'number' && ounces > 0 ? ounces : 1
+    const gramsToSubtract = consumedOunces * GRAMS_PER_OUNCE
+
+    try {
+      await this.adjustFamilyInventory({
+        formulaGramsDelta: -gramsToSubtract,
+        formulaPortionsDelta: -consumedOunces
+      })
+      console.log(`Feeding recorded: ${consumedOunces} ounces (${gramsToSubtract}g) deducted from inventory`)
+    } catch (inventoryError) {
+      console.error('Error updating inventory after feeding', inventoryError)
+    }
 
     return data
   }
@@ -278,6 +507,18 @@ class DataService {
   async deleteFeeding(id: number): Promise<boolean> {
     const familyId = this.requireFamilyId()
     const { authorId } = this.requireAuthor()
+
+    const { data: existingFeeding, error: fetchError } = await supabase
+      .from('feedings')
+      .select('ounces')
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .eq('author_id', authorId)
+      .single()
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error fetching feeding before deletion', fetchError)
+    }
 
     const { error } = await supabase
       .from('feedings')
@@ -289,6 +530,21 @@ class DataService {
     if (error) {
       console.error('Error deleting feeding', error)
       return false
+    }
+
+    const consumedOunces = existingFeeding?.ounces ? Number(existingFeeding.ounces) : 0
+
+    if (consumedOunces > 0) {
+      const gramsToRestore = consumedOunces * GRAMS_PER_OUNCE
+
+      try {
+        await this.adjustFamilyInventory({
+          formulaGramsDelta: gramsToRestore,
+          formulaPortionsDelta: consumedOunces
+        })
+      } catch (inventoryError) {
+        console.error('Error restoring inventory after feeding deletion', inventoryError)
+      }
     }
 
     return true
@@ -336,7 +592,7 @@ class DataService {
     return data
   }
 
-  async addDiaper(timestamp?: string, diaperType?: string): Promise<Diaper | null> {
+    async addDiaper(timestamp?: string, diaperType?: string): Promise<Diaper | null> {
     const familyId = this.requireFamilyId()
     const { authorId, authorName, authorRole } = this.requireAuthor()
 
@@ -354,7 +610,7 @@ class DataService {
         timestamp: eventDate.toISOString(),
         author_role: authorRole,
         author_name: authorName,
-        diaper_type: diaperType || 'Просто'
+        diaper_type: diaperType || '����'
       })
       .select()
       .single()
@@ -364,12 +620,26 @@ class DataService {
       return null
     }
 
-    // Запись активности для пробуждения обрабатывается на сервере (триггеры БД)
+    try {
+      await this.adjustFamilyInventory({
+        diapersDelta: -1
+      })
+      console.log('Diaper change recorded: 1 diaper deducted from inventory')
+    } catch (inventoryError) {
+      console.error('Error updating inventory after diaper change', inventoryError)
+    }
+
+    // Прерываем сон при смене подгузника (если есть активные сессии)
+    try {
+      await this.endAllActiveSleepSessions()
+    } catch (sleepEndError) {
+      console.error('Error ending sleep after diaper change', sleepEndError)
+    }
 
     return data
   }
 
-  async deleteDiaper(id: number): Promise<boolean> {
+    async deleteDiaper(id: number): Promise<boolean> {
     const familyId = this.requireFamilyId()
     const { authorId } = this.requireAuthor()
 
@@ -383,6 +653,14 @@ class DataService {
     if (error) {
       console.error('Error deleting diaper', error)
       return false
+    }
+
+    try {
+      await this.adjustFamilyInventory({
+        diapersDelta: 1
+      })
+    } catch (inventoryError) {
+      console.error('Error restoring inventory after diaper deletion', inventoryError)
     }
 
     return true
@@ -501,16 +779,22 @@ class DataService {
     return data || []
   }
 
-  async addActivity(activityType: string = 'activity'): Promise<Activity | null> {
+  async addActivity(activityType: string = 'activity', timestamp?: string): Promise<Activity | null> {
     const familyId = this.requireFamilyId()
     const { authorId, authorName, authorRole } = this.requireAuthor()
+
+    let eventDate = timestamp ? new Date(timestamp) : new Date()
+
+    if (Number.isNaN(eventDate.getTime())) {
+      eventDate = new Date()
+    }
 
     const { data, error } = await supabase
       .from('activities')
       .insert({
         family_id: familyId,
         author_id: authorId,
-        timestamp: new Date().toISOString(),
+        timestamp: eventDate.toISOString(),
         activity_type: activityType,
         author_role: authorRole,
         author_name: authorName
@@ -652,6 +936,54 @@ class DataService {
     }
 
     return data
+  }
+
+  // Завершить все активные сессии сна семьи, независимо от автора
+  async endAllActiveSleepSessions(): Promise<number> {
+    const familyId = this.requireFamilyId()
+
+    // Получаем все активные сессии (end_time IS NULL)
+    const { data: activeSessions, error: listError } = await supabase
+      .from('sleep_sessions')
+      .select('*')
+      .eq('family_id', familyId)
+      .is('end_time', null)
+      .order('start_time', { ascending: false })
+
+    if (listError) {
+      console.error('Error listing active sleep sessions', listError)
+      return 0
+    }
+
+    const sessions = activeSessions || []
+    if (sessions.length === 0) {
+      return 0
+    }
+
+    const endTime = new Date()
+    let endedCount = 0
+
+    for (const session of sessions) {
+      const startTime = new Date(session.start_time)
+      const durationMinutes = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60))
+
+      const { error: updateError } = await supabase
+        .from('sleep_sessions')
+        .update({
+          end_time: endTime.toISOString(),
+          duration_minutes: durationMinutes
+        })
+        .eq('id', session.id)
+        .eq('family_id', familyId)
+
+      if (!updateError) {
+        endedCount += 1
+      } else {
+        console.error('Error ending sleep session', updateError)
+      }
+    }
+
+    return endedCount
   }
 
   async deleteSleepSession(id: number): Promise<boolean> {
@@ -1074,6 +1406,156 @@ class DataService {
     }
 
     return data && data.length > 0 ? data[0] : null
+  }
+
+  // Duty schedule operations
+  async getDutySchedule(): Promise<DutyScheduleWithAssignments | null> {
+    const familyId = this.requireFamilyId()
+
+    // Получаем основной график
+    const { data: schedule, error: scheduleError } = await supabase
+      .from('duty_schedules')
+      .select('*')
+      .eq('family_id', familyId)
+      .single()
+
+    if (scheduleError) {
+      if (scheduleError.code === 'PGRST116') {
+        return null
+      }
+      console.error('Error fetching duty schedule', scheduleError)
+      return null
+    }
+
+    // Получаем назначения
+    const { data: assignments, error: assignmentsError } = await supabase
+      .from('duty_assignments')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('block_id')
+
+    if (assignmentsError) {
+      console.error('Error fetching duty assignments', assignmentsError)
+      return null
+    }
+
+    return {
+      ...schedule,
+      assignments: assignments || []
+    }
+  }
+
+  async saveDutySchedule(schedule: {
+    block_duration_hours: number
+    start_hour_offset: number
+    assignments: Array<{ block_id: string; parent_id?: string }>
+  }): Promise<DutyScheduleWithAssignments | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
+
+    try {
+      // Сохраняем основной график
+      const { data: scheduleData, error: scheduleError } = await supabase
+        .from('duty_schedules')
+        .upsert({
+          family_id: familyId,
+          block_duration_hours: schedule.block_duration_hours,
+          start_hour_offset: schedule.start_hour_offset,
+          updated_by: authorId
+        }, {
+          onConflict: 'family_id'
+        })
+        .select()
+        .single()
+
+      if (scheduleError) {
+        console.error('Error saving duty schedule', scheduleError)
+        return null
+      }
+
+      // Удаляем старые назначения
+      const { error: deleteError } = await supabase
+        .from('duty_assignments')
+        .delete()
+        .eq('family_id', familyId)
+
+      if (deleteError) {
+        console.error('Error deleting old duty assignments', deleteError)
+        return null
+      }
+
+      // Добавляем новые назначения
+      if (schedule.assignments.length > 0) {
+        const assignmentsData = schedule.assignments.map(assignment => ({
+          family_id: familyId,
+          block_id: assignment.block_id,
+          parent_id: assignment.parent_id || null
+        }))
+
+        const { error: insertError } = await supabase
+          .from('duty_assignments')
+          .insert(assignmentsData)
+
+        if (insertError) {
+          console.error('Error inserting duty assignments', insertError)
+          return null
+        }
+      }
+
+      // Возвращаем обновленный график
+      return await this.getDutySchedule()
+    } catch (error) {
+      console.error('Error saving duty schedule', error)
+      return null
+    }
+  }
+
+  async getCurrentDutyMember(): Promise<FamilyMember | null> {
+    const familyId = this.requireFamilyId()
+    const currentHour = new Date().getHours()
+
+    // Получаем график дежурств
+    const schedule = await this.getDutySchedule()
+    if (!schedule) {
+      return null
+    }
+
+    // Находим назначение для текущего часа
+    const currentAssignment = schedule.assignments.find(assignment => {
+      const blockId = assignment.block_id
+      const [startHourStr, endHourStr] = blockId.split('-')
+      const startHour = parseInt(startHourStr)
+      const endHour = parseInt(endHourStr)
+
+      // Обрабатываем случай, когда блок пересекает полночь
+      if (startHour > endHour) {
+        return currentHour >= startHour || currentHour < endHour
+      } else {
+        return currentHour >= startHour && currentHour < endHour
+      }
+    })
+
+    if (!currentAssignment?.parent_id) {
+      return null
+    }
+
+    // Получаем информацию о члене семьи
+    const { data, error } = await supabase
+      .from('family_members')
+      .select('*')
+      .eq('family_id', familyId)
+      .eq('user_id', currentAssignment.parent_id)
+      .single()
+
+    if (error) {
+      console.error('Error fetching current duty member', error)
+      return null
+    }
+
+    return {
+      ...data,
+      user_id: String(data.user_id)
+    }
   }
 }
 

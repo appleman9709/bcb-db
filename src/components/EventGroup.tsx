@@ -37,7 +37,7 @@ const getTypeInfo = (type: string, item: any) => {
         label: 'Кормление', 
         color: 'bg-blue-100 text-blue-600',
         bgColor: 'bg-blue-50',
-        description: `Ребенок покормлен${ouncesText}`,
+        description: '',
         extraInfo: item.ounces ? `🍼 ${item.ounces} унций` : null
       }
     case 'diaper':
@@ -47,7 +47,7 @@ const getTypeInfo = (type: string, item: any) => {
         label: 'Смена подгузника', 
         color: 'bg-green-100 text-green-600',
         bgColor: 'bg-green-50',
-        description: `Подгузник заменен${diaperTypeText}`,
+        description: '',
         extraInfo: item.diaper_type === 'Покакал' ? '💩 Покакал' : '💧 Просто'
       }
     case 'bath':
@@ -57,7 +57,7 @@ const getTypeInfo = (type: string, item: any) => {
         label: 'Купание', 
         color: 'bg-yellow-100 text-yellow-600',
         bgColor: 'bg-yellow-50',
-        description: `Ребенок искупан${moodText}`,
+        description: '',
         extraInfo: item.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'
       }
     case 'activity':
@@ -66,8 +66,8 @@ const getTypeInfo = (type: string, item: any) => {
         label: 'Активность', 
         color: 'bg-purple-100 text-purple-600',
         bgColor: 'bg-purple-50',
-        description: item.activity_type || 'Активность записана',
-        extraInfo: null // Убираем дублирование - тип активности уже в описании
+        description: '',
+        extraInfo: item.activity_type ? `🎯 ${item.activity_type}` : null
       }
     case 'sleep':
       // Берем duration_minutes из БД, а если его нет, считаем по start_time/end_time
@@ -90,7 +90,7 @@ const getTypeInfo = (type: string, item: any) => {
           label: 'Сон завершён',
           color: 'bg-indigo-100 text-indigo-600',
           bgColor: 'bg-indigo-50',
-          description: durationText ? `Малыш проснулся (${durationText})` : 'Малыш проснулся',
+          description: '',
           extraInfo: durationText ? `😴 ${durationText}` : null
         }
       }
@@ -99,7 +99,7 @@ const getTypeInfo = (type: string, item: any) => {
         label: 'Сон начат', 
         color: 'bg-indigo-100 text-indigo-600',
         bgColor: 'bg-indigo-50',
-        description: 'Малыш уснул',
+        description: '',
         extraInfo: '😴 В процессе'
       }
     default:
@@ -108,7 +108,7 @@ const getTypeInfo = (type: string, item: any) => {
         label: 'Событие', 
         color: 'bg-gray-100 text-gray-600',
         bgColor: 'bg-gray-50',
-        description: 'Записано событие',
+        description: '',
         extraInfo: null
       }
   }
@@ -208,7 +208,9 @@ export default function EventGroup({ date, events, onEventClick }: EventGroupPro
                   </div>
                 </div>
                 
-                <p className="text-xs text-gray-600 mt-1">{typeInfo.description}</p>
+                {typeInfo.description && (
+                  <p className="text-xs text-gray-600 mt-1">{typeInfo.description}</p>
+                )}
                 
                 {typeInfo.extraInfo && (
                   <div className="flex items-center gap-1 mt-1">

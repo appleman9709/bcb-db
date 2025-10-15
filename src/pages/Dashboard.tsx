@@ -13,7 +13,8 @@ import BackgroundElements from '../components/BackgroundElements'
 import TamagotchiPage from './TamagotchiPage'
 import TetrisPage from './TetrisPage'
 import { useAuth } from '../contexts/AuthContext'
-import { dataService, Feeding, Diaper, Bath, Activity, Tip, SleepSession } from '../services/dataService'
+import { dataService } from '../services/dataService'
+import type { Feeding, Diaper, Bath, Activity, Tip, SleepSession, FamilyMember } from '../services/dataService'
 import { achievementService, NewAchievement } from '../services/achievementService'
 import AchievementHistoryChecker from '../components/AchievementHistoryChecker'
 import { AchievementModal } from '../components/AchievementModal'
@@ -21,6 +22,18 @@ import { AchievementNotification } from '../components/AchievementNotification'
 import RecordDetailModal from '../components/RecordDetailModal'
 import HistoryFilters from '../components/HistoryFilters'
 import EventGroup from '../components/EventGroup'
+import DutyScheduleModal from '../components/DutyScheduleModal'
+import {
+  DEFAULT_BLOCK_DURATION,
+  DEFAULT_START_OFFSET,
+  buildDefaultSchedule,
+  buildDisplayName,
+  findAssignmentByBlockId,
+  getDutyBlocks,
+  loadDutyScheduleHybrid,
+  saveDutyScheduleHybrid,
+  type DutySchedule
+} from '../services/dutyScheduleService'
 
 type DashboardSection = 'dashboard' | 'history' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath'
@@ -134,6 +147,11 @@ export default function Dashboard() {
   } | null>(null)
   const [historyFilter, setHistoryFilter] = useState<string>('all')
   const [groupByDate, setGroupByDate] = useState<boolean>(true)
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([])
+  const [dutySchedule, setDutySchedule] = useState<DutySchedule | null>(null)
+  const [dutyModalOpen, setDutyModalOpen] = useState(false)
+  const [currentTime, setCurrentTime] = useState(() => new Date())
+  const [currentDutyMemberFromDB, setCurrentDutyMemberFromDB] = useState<FamilyMember | null>(null)
 
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
@@ -149,6 +167,82 @@ export default function Dashboard() {
 
   const { member, family, signOut } = useAuth()
   const memberDisplayName = member?.name ?? member?.role ?? 'Участник семьи'
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(new Date())
+    }, 60000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [])
+
+  // Загружаем текущего дежурного из БД
+  useEffect(() => {
+    const loadCurrentDutyMember = async () => {
+      if (!family?.id) {
+        setCurrentDutyMemberFromDB(null)
+        return
+      }
+
+      try {
+        const currentDuty = await dataService.getCurrentDutyMember()
+        setCurrentDutyMemberFromDB(currentDuty)
+      } catch (error) {
+        console.error('Error loading current duty member from database', error)
+        setCurrentDutyMemberFromDB(null)
+      }
+    }
+
+    loadCurrentDutyMember()
+
+    // Обновляем каждые 5 минут
+    const intervalId = setInterval(loadCurrentDutyMember, 5 * 60 * 1000)
+
+    return () => clearInterval(intervalId)
+  }, [family?.id])
+
+  useEffect(() => {
+    if (!family?.id) {
+      setFamilyMembers([])
+      setDutySchedule(null)
+      return
+    }
+
+    let isActive = true
+
+    const loadFamilyData = async () => {
+      try {
+        const membersList = await dataService.getFamilyMembers()
+        if (!isActive) {
+          return
+        }
+        setFamilyMembers(membersList)
+        
+        // Загружаем график дежурств с синхронизацией БД
+        const schedule = await loadDutyScheduleHybrid(family.id, membersList)
+        if (!isActive) {
+          return
+        }
+        setDutySchedule(schedule)
+      } catch (error) {
+        console.error('Unable to load family members for duty schedule', error)
+        if (!isActive) {
+          return
+        }
+        setFamilyMembers([])
+        const fallback = buildDefaultSchedule([], DEFAULT_BLOCK_DURATION, DEFAULT_START_OFFSET)
+        setDutySchedule(fallback)
+      }
+    }
+
+    loadFamilyData()
+
+    return () => {
+      isActive = false
+    }
+  }, [family?.id])
 
   const fetchData = useCallback(async () => {
     if (!member || !family) {
@@ -191,6 +285,119 @@ export default function Dashboard() {
       setLoading(false)
     }
   }, [member, family])
+
+  const handleDutyScheduleChange = useCallback(async (nextSchedule: DutySchedule) => {
+    setDutySchedule(nextSchedule)
+
+    if (family?.id) {
+      try {
+        // Сохраняем с синхронизацией БД
+        const success = await saveDutyScheduleHybrid(family.id, nextSchedule)
+        if (!success) {
+          console.warn('Failed to save duty schedule to both database and localStorage')
+        }
+      } catch (error) {
+        console.error('Error saving duty schedule:', error)
+      }
+    }
+  }, [family?.id])
+
+  const currentBlockDuration = dutySchedule?.blockDurationHours ?? DEFAULT_BLOCK_DURATION
+  const currentStartOffset = dutySchedule?.startHourOffset ?? DEFAULT_START_OFFSET
+
+  const dutyBlocks = useMemo(
+    () => getDutyBlocks(currentBlockDuration, currentStartOffset),
+    [currentBlockDuration, currentStartOffset]
+  )
+
+  const dutyRuntime = useMemo(() => {
+    if (dutyBlocks.length === 0) {
+      return { block: null, blockId: '', index: 0, progress: 0 }
+    }
+
+    const hourFraction = currentTime.getHours() + currentTime.getMinutes() / 60
+    let diff = hourFraction - currentStartOffset
+    diff = ((diff % 24) + 24) % 24
+
+    const blockCount = dutyBlocks.length
+    const blockIndex = Math.floor(diff / currentBlockDuration) % blockCount
+    const block = dutyBlocks[blockIndex] ?? null
+    const timeIntoBlock = diff - blockIndex * currentBlockDuration
+    const progress = Math.min(100, Math.max(0, (timeIntoBlock / currentBlockDuration) * 100))
+
+    return { block, blockId: block?.id ?? '', index: blockIndex, progress }
+  }, [currentBlockDuration, currentStartOffset, currentTime, dutyBlocks])
+
+  const currentDutyBlock = dutyRuntime.block
+  const currentDutyBlockId = dutyRuntime.blockId
+
+  const currentDutyAssignment = useMemo(() => {
+    if (!dutySchedule || !currentDutyBlockId) {
+      return null
+    }
+
+    return findAssignmentByBlockId(dutySchedule, currentDutyBlockId) ?? null
+  }, [dutySchedule, currentDutyBlockId])
+
+  const currentDutyMember = useMemo(() => {
+    if (!currentDutyAssignment?.parentId) {
+      return undefined
+    }
+
+    return familyMembers.find(member => String(member.user_id) === currentDutyAssignment.parentId)
+  }, [familyMembers, currentDutyAssignment])
+
+  const nextDutyInfo = useMemo(() => {
+    if (dutyBlocks.length === 0) {
+      return null
+    }
+
+    const nextIndex = (dutyRuntime.index + 1) % dutyBlocks.length
+    const nextBlock = dutyBlocks[nextIndex]
+    if (!nextBlock) {
+      return null
+    }
+
+    if (!dutySchedule) {
+      return { block: nextBlock, member: undefined }
+    }
+
+    const nextAssignment = findAssignmentByBlockId(dutySchedule, nextBlock.id)
+    const member = nextAssignment?.parentId
+      ? familyMembers.find(item => String(item.user_id) === nextAssignment.parentId)
+      : undefined
+
+    return { block: nextBlock, member }
+  }, [dutyBlocks, dutyRuntime.index, dutySchedule, familyMembers])
+
+  const dutyScheduleUpdatedAt = useMemo(() => {
+    return dutySchedule?.updatedAt ? new Date(dutySchedule.updatedAt) : null
+  }, [dutySchedule])
+
+  const currentDutyName = useMemo(() => {
+    // Приоритет: данные из БД, затем локальные данные
+    if (currentDutyMemberFromDB) {
+      return buildDisplayName(currentDutyMemberFromDB)
+    }
+    return buildDisplayName(currentDutyMember)
+  }, [currentDutyMemberFromDB, currentDutyMember])
+  const nextDutyName = useMemo(() => buildDisplayName(nextDutyInfo?.member), [nextDutyInfo])
+
+  const currentDutyProgressDisplay = useMemo(() => {
+    if (!dutyRuntime.block) {
+      return 0
+    }
+
+    return Math.min(100, Math.max(4, dutyRuntime.progress))
+  }, [dutyRuntime.block, dutyRuntime.progress])
+
+  const dutyScheduleForModal = useMemo<DutySchedule>(() => {
+    if (dutySchedule) {
+      return dutySchedule
+    }
+
+    return buildDefaultSchedule(familyMembers, currentBlockDuration, currentStartOffset)
+  }, [dutySchedule, familyMembers, currentBlockDuration, currentStartOffset])
 
   const fetchHistoryData = useCallback(async () => {
     if (!member || !family) {
@@ -1448,8 +1655,7 @@ export default function Dashboard() {
                 </button>
               </div>
 
-              {/* Совет дня */}
-              {data?.dailyTip && (
+{data?.dailyTip && (
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-3 shadow-sm border border-blue-100 iphone14-tip">
                   <div className="flex items-start gap-2">
                     <div className="w-8 h-8 flex items-center justify-center iphone14-tip-icon">
@@ -1476,6 +1682,52 @@ export default function Dashboard() {
                 <h1 className="text-lg font-bold text-gray-900 mb-1">📋 История событий</h1>
                 <p className="text-xs text-gray-600 mb-0.5">Подробная статистика и хронология всех записей</p>
             </div>
+
+              {/* Дежурство */}
+              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Дежурство</p>
+                      {currentDutyMemberFromDB && (
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          <span className="text-[10px] text-green-600 font-medium">Синхронизировано</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-1 text-base font-semibold text-gray-900">{currentDutyName}</p>
+                    <p className="text-xs text-gray-500">
+                      {currentDutyBlock ? `Интервал ${currentDutyBlock.label}` : 'Назначьте ответственного'}
+                    </p>
+                    {currentDutyMemberFromDB && (
+                      <p className="text-[10px] text-green-600 mt-1">
+                        📡 Данные синхронизированы со всеми устройствами
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDutyModalOpen(true)}
+                    className="shrink-0 rounded-3xl bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100"
+                  >
+                    Настроить
+                  </button>
+                </div>
+                <div className="mt-3">
+                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-sky-400 transition-all duration-300"
+                      style={{ width: `${currentDutyProgressDisplay}%` }}
+                    />
+                  </div>
+                </div>
+                {familyMembers.length === 0 && (
+                  <p className="mt-3 text-xs text-gray-500">
+                    Добавьте родителей в семью, чтобы распределять дежурства.
+                  </p>
+                )}
+              </div>
 
               {/* Общая статистика */}
               <div className="bg-white rounded-3xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
@@ -1691,6 +1943,14 @@ export default function Dashboard() {
 
         {activeTab !== 'tetris' && <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />}
               </div>
+
+        <DutyScheduleModal
+          isOpen={dutyModalOpen}
+          onClose={() => setDutyModalOpen(false)}
+          members={familyMembers}
+          schedule={dutyScheduleForModal}
+          onScheduleChange={handleDutyScheduleChange}
+        />
 
         <QuickActionModal
           isOpen={modalOpen}
