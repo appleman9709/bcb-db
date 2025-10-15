@@ -1689,22 +1689,11 @@ export default function Dashboard() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Дежурство</p>
-                      {currentDutyMemberFromDB && (
-                        <div className="flex items-center gap-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-[10px] text-green-600 font-medium">Синхронизировано</span>
-                        </div>
-                      )}
                     </div>
                     <p className="mt-1 text-base font-semibold text-gray-900">{currentDutyName}</p>
                     <p className="text-xs text-gray-500">
                       {currentDutyBlock ? `Интервал ${currentDutyBlock.label}` : 'Назначьте ответственного'}
                     </p>
-                    {currentDutyMemberFromDB && (
-                      <p className="text-[10px] text-green-600 mt-1">
-                        📡 Данные синхронизированы со всеми устройствами
-                      </p>
-                    )}
                   </div>
                   <button
                     type="button"
@@ -1754,11 +1743,8 @@ export default function Dashboard() {
 
               {/* Последние события */}
               <div className="bg-white rounded-3xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
-                <div className="flex items-center justify-between mb-0.5">
+                <div className="mb-0.5">
                   <h2 className="text-xs font-semibold text-gray-900 mt-2 mb-2">🕒 Последние события</h2>
-                  <span className="text-xs text-gray-500">
-                    {latestActivityTimestamp ? `Обновлено ${formatTime(latestActivityTimestamp)}` : 'Загрузка...'}
-                  </span>
               </div>
               <p className="text-xs text-gray-500 mb-0.5 px-0.125">
                 💡 Нажмите на запись для просмотра деталей
