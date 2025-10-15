@@ -1907,7 +1907,7 @@
 
 /* Стили для модального окна - поверх нижней панели */
 .modal-overlay {
-  z-index: 1000 !important;
+  z-index: 9999 !important;
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
@@ -1918,6 +1918,71 @@
 .modal-content {
   max-height: 90vh !important; /* Полная высота экрана */
   max-height: 90dvh !important; /* Dynamic viewport height */
+}
+
+/* Дополнительные стили для модальных окон на мобильных устройствах */
+@media (max-width: 768px) {
+  .modal-overlay {
+    z-index: 9999 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+  }
+  
+  .modal-content {
+    max-height: 85vh !important;
+    max-height: 85dvh !important;
+    margin-bottom: 2rem !important; /* Отступ снизу для нижней панели */
+  }
+}
+
+/* Стили для всех модальных окон - убеждаемся что они поверх нижней панели */
+[role="dialog"],
+.modal-overlay,
+.achievement-modal,
+.record-detail-modal,
+.duty-schedule-modal,
+.quick-action-modal {
+  z-index: 9999 !important;
+}
+
+/* Дополнительные стили для модальных окон на всех устройствах */
+.modal-overlay {
+  /* Убеждаемся что модальное окно покрывает весь экран */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  z-index: 9999 !important;
+}
+
+/* Стили для фона модального окна */
+.modal-overlay > div:first-child {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Специальные стили для модальных окон на очень маленьких экранах */
+@media (max-width: 480px) {
+  .modal-content {
+    max-height: 80vh !important;
+    max-height: 80dvh !important;
+    margin-bottom: 3rem !important; /* Больший отступ для маленьких экранов */
+  }
 }
 
 /* Специальные стили для Тамагочи страницы - предотвращение прокрутки */
@@ -2161,7 +2226,7 @@
     bottom: 40px;
     left: 16px;
     right: 16px;
-    z-index: 40;
+    z-index: 50;
     padding-bottom: env(safe-area-inset-bottom);
     
     /* Прозрачная панель без стилей */

@@ -501,6 +501,20 @@ class DataService {
       console.error('Error updating inventory after feeding', inventoryError)
     }
 
+    // Прерываем сон при кормлении (если есть активные сессии)
+    try {
+      await this.endAllActiveSleepSessions()
+    } catch (sleepEndError) {
+      console.error('Error ending sleep after feeding', sleepEndError)
+    }
+
+    // Добавляем запись в activities для срабатывания триггера пробуждения
+    try {
+      await this.addActivity('feeding')
+    } catch (activityError) {
+      console.error('Error adding feeding activity', activityError)
+    }
+
     return data
   }
 
@@ -736,7 +750,19 @@ class DataService {
       return null
     }
 
-    // Запись активности для пробуждения обрабатывается на сервере (триггеры БД)
+    // Прерываем сон при купании (если есть активные сессии)
+    try {
+      await this.endAllActiveSleepSessions()
+    } catch (sleepEndError) {
+      console.error('Error ending sleep after bath', sleepEndError)
+    }
+
+    // Добавляем запись в activities для срабатывания триггера пробуждения
+    try {
+      await this.addActivity('bath')
+    } catch (activityError) {
+      console.error('Error adding bath activity', activityError)
+    }
 
     return data
   }

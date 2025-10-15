@@ -1781,7 +1781,9 @@ export default function Dashboard() {
                       ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' as const })),
                       ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
                       ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const })),
-                      ...(historyData.activities || []).map(item => ({ ...item, type: 'activity' as const })),
+                      ...(historyData.activities || [])
+                        .filter(item => !['feeding', 'diaper', 'bath'].includes(item.activity_type)) // Исключаем служебные записи из истории
+                        .map(item => ({ ...item, type: 'activity' as const })),
                       // Для сна используем одну запись с меткой времени окончания, если она есть (иначе начала)
                       ...((historyData.sleepSessions || []).map(item => ({
                         ...item,
