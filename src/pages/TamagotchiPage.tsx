@@ -560,8 +560,9 @@ export default function TamagotchiPage() {
 
     try {
       const timestamp = session.end_time ?? session.start_time
-      const userId = Number(member.user_id)
-      if (!Number.isFinite(userId)) {
+      const userId = member.user_id?.toString().trim()
+      if (!userId) {
+        console.warn('[Tamagotchi] Skipping sleep achievement check: missing user_id in member context')
         return
       }
 

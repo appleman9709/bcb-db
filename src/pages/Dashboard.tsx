@@ -585,6 +585,12 @@ export default function Dashboard() {
 
   const checkAchievements = async () => {
     if (!member || !family) return
+
+    const userId = member.user_id?.toString().trim()
+    if (!userId) {
+      console.warn('[Dashboard] Unable to check achievements: missing user_id in member context')
+      return
+    }
     
     try {
       // Подготавливаем данные активности для проверки достижений
@@ -609,7 +615,7 @@ export default function Dashboard() {
       
       const achievements = await achievementService.checkAndAwardAchievements(
         family.id,
-        Number(member.user_id),
+        userId,
         modalAction,
         activityData
       )
@@ -1956,12 +1962,14 @@ export default function Dashboard() {
         )}
 
         {/* Модальное окно достижений */}
-        <AchievementModal
-          isOpen={achievementModalOpen}
-          onClose={() => setAchievementModalOpen(false)}
-          familyId={family?.id || 0}
-          userId={Number(member?.user_id) || 0}
-        />
+        {member?.user_id && (
+          <AchievementModal
+            isOpen={achievementModalOpen}
+            onClose={() => setAchievementModalOpen(false)}
+            familyId={family?.id || 0}
+            userId={member.user_id}
+          />
+        )}
 
         {/* Модальное окно деталей записи */}
         <RecordDetailModal

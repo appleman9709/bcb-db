@@ -3,7 +3,7 @@ import { achievementService, Achievement, UserAchievement } from '../services/ac
 
 interface AchievementGridProps {
   familyId: number;
-  userId: number;
+  userId: string;
 }
 
 interface AchievementWithStatus extends Achievement {
@@ -20,12 +20,25 @@ const AchievementGrid: React.FC<AchievementGridProps> = ({ familyId, userId }) =
   const [selectedAchievement, setSelectedAchievement] = useState<AchievementWithStatus | null>(null);
 
   useEffect(() => {
+    if (!userId) {
+      setAchievements([]);
+      setUserAchievements([]);
+      setLoading(false);
+      return;
+    }
+
     loadAchievements();
   }, [familyId, userId]);
 
   const loadAchievements = async () => {
     setLoading(true);
     try {
+      if (!userId) {
+        setAchievements([]);
+        setUserAchievements([]);
+        return;
+      }
+
       const [allAchievements, earnedAchievements] = await Promise.all([
         achievementService.getAllAchievements(),
         achievementService.getUserAchievements(familyId, userId)

@@ -52,19 +52,38 @@ export interface NewAchievement {
 }
 
 class AchievementService {
+  private normalizeUserId(userId: string | number | null | undefined): string | null {
+    if (typeof userId === 'string') {
+      const trimmed = userId.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    }
+
+    if (typeof userId === 'number' && Number.isFinite(userId)) {
+      return Math.trunc(userId).toString();
+    }
+
+    return null;
+  }
+
   /**
    * Проверяет и выдает достижения после выполнения действия
    */
   async checkAndAwardAchievements(
     familyId: number,
-    userId: number,
+    userId: string | number,
     activityType: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep',
     activityData: any = {}
   ): Promise<NewAchievement[]> {
+    const normalizedUserId = this.normalizeUserId(userId);
+    if (!normalizedUserId) {
+      console.warn('[AchievementService] Skipping checkAndAwardAchievements: empty userId', { familyId, userId });
+      return [];
+    }
+
     try {
       const { data, error } = await supabase.rpc('check_and_award_achievements', {
         family_id_param: familyId,
-        user_id_param: userId,
+        user_id_param: normalizedUserId,
         activity_type: activityType,
         activity_data: activityData
       });
@@ -84,11 +103,17 @@ class AchievementService {
   /**
    * Получает все достижения пользователя
    */
-  async getUserAchievements(familyId: number, userId: number): Promise<UserAchievement[]> {
+  async getUserAchievements(familyId: number, userId: string | number): Promise<UserAchievement[]> {
+    const normalizedUserId = this.normalizeUserId(userId);
+    if (!normalizedUserId) {
+      console.warn('[AchievementService] Skipping getUserAchievements: empty userId', { familyId, userId });
+      return [];
+    }
+
     try {
       const { data, error } = await supabase.rpc('get_user_achievements', {
         family_id_param: familyId,
-        user_id_param: userId
+        user_id_param: normalizedUserId
       });
 
       if (error) {
@@ -157,13 +182,19 @@ class AchievementService {
   /**
    * Получает прогресс достижений пользователя
    */
-  async getUserAchievementProgress(familyId: number, userId: number): Promise<AchievementProgress[]> {
+  async getUserAchievementProgress(familyId: number, userId: string | number): Promise<AchievementProgress[]> {
+    const normalizedUserId = this.normalizeUserId(userId);
+    if (!normalizedUserId) {
+      console.warn('[AchievementService] Skipping getUserAchievementProgress: empty userId', { familyId, userId });
+      return [];
+    }
+
     try {
       const { data, error } = await supabase
         .from('achievement_progress')
         .select('*')
         .eq('family_id', familyId)
-        .eq('user_id', userId);
+        .eq('user_id', normalizedUserId);
 
       if (error) {
         console.error('Error fetching achievement progress:', error);
@@ -228,15 +259,21 @@ class AchievementService {
    */
   async checkSpecificAchievement(
     familyId: number,
-    userId: number,
+    userId: string | number,
     achievementId: number
   ): Promise<boolean> {
+    const normalizedUserId = this.normalizeUserId(userId);
+    if (!normalizedUserId) {
+      console.warn('[AchievementService] Skipping checkSpecificAchievement: empty userId', { familyId, userId, achievementId });
+      return false;
+    }
+
     try {
       const { data, error } = await supabase
         .from('user_achievements')
         .select('id')
         .eq('family_id', familyId)
-        .eq('user_id', userId)
+        .eq('user_id', normalizedUserId)
         .eq('achievement_id', achievementId)
         .single();
 
@@ -325,7 +362,13 @@ class AchievementService {
   /**
    * Получает статистику достижений по типам
    */
-  async getAchievementStatsByType(familyId: number, userId: number) {
+  async getAchievementStatsByType(familyId: number, userId: string | number) {
+    const normalizedUserId = this.normalizeUserId(userId);
+    if (!normalizedUserId) {
+      console.warn('[AchievementService] Skipping getAchievementStatsByType: empty userId', { familyId, userId });
+      return {};
+    }
+
     try {
       const { data, error } = await supabase
         .from('user_achievements')
@@ -337,7 +380,7 @@ class AchievementService {
           )
         `)
         .eq('family_id', familyId)
-        .eq('user_id', userId);
+        .eq('user_id', normalizedUserId);
 
       if (error) {
         console.error('Error fetching achievement stats by type:', error);
@@ -390,11 +433,21 @@ class AchievementService {
   /**
    * Получает уведомления о достижениях для пользователя
    */
-  async getAchievementNotifications(familyId: number, userId: number, limit: number = 10): Promise<UserAchievement[]> {
+  async getAchievementNotifications(
+    familyId: number,
+    userId: string | number,
+    limit: number = 10
+  ): Promise<UserAchievement[]> {
+    const normalizedUserId = this.normalizeUserId(userId);
+    if (!normalizedUserId) {
+      console.warn('[AchievementService] Skipping getAchievementNotifications: empty userId', { familyId, userId });
+      return [];
+    }
+
     try {
       const { data, error } = await supabase.rpc('get_achievement_notifications', {
         family_id_param: familyId,
-        user_id_param: userId,
+        user_id_param: normalizedUserId,
         limit_count: limit
       });
 

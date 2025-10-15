@@ -2689,9 +2689,49 @@
     }
   }
 
-  /* Tamagotchi specific bottom navigation - remove z-index */
+  /* Tamagotchi specific bottom navigation - ensure proper z-index */
   .tamagotchi-container .liquid-glass-tab-bar {
-    z-index: unset;
+    z-index: 50 !important;
+  }
+
+  /* Tamagotchi specific modal styles - ensure modals appear above navigation */
+  .tamagotchi-container .modal-overlay {
+    z-index: 9999 !important;
+  }
+  
+  .tamagotchi-container .modal-content {
+    z-index: 10000 !important;
+  }
+
+  /* Ensure all modals in Tamagotchi context have proper z-index */
+  .tamagotchi-container [role="dialog"],
+  .tamagotchi-container .achievement-modal,
+  .tamagotchi-container .record-detail-modal,
+  .tamagotchi-container .duty-schedule-modal,
+  .tamagotchi-container .quick-action-modal {
+    z-index: 9999 !important;
+  }
+
+  /* Mobile-specific styles for Tamagotchi modals */
+  @media (max-width: 768px) {
+    .tamagotchi-container .modal-overlay {
+      z-index: 9999 !important;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+    }
+    
+    .tamagotchi-container .modal-content {
+      z-index: 10000 !important;
+      max-height: 85vh !important;
+      max-height: 85dvh !important;
+      margin-bottom: 2rem !important;
+    }
   }
 
   /* Toggle switch styles */

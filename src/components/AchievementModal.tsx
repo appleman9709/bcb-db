@@ -5,7 +5,7 @@ interface AchievementModalProps {
   isOpen: boolean;
   onClose: () => void;
   familyId: number;
-  userId: number;
+  userId: string;
 }
 
 const AchievementModal: React.FC<AchievementModalProps> = ({
@@ -14,7 +14,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
   familyId,
   userId
 }) => {
-  if (!isOpen) return null;
+  if (!isOpen || !userId) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000] p-4">
