@@ -160,7 +160,7 @@ export default function DutyScheduleModal({
             return (
               <div
                 key={block.id}
-                className="flex items-center gap-2 p-2.5"
+                className="flex items-center gap-2 p-1.5"
               >
                 <div className="flex flex-1 items-center gap-2 min-w-0">
                   {color ? (
