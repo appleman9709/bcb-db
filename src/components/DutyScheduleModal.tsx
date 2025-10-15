@@ -99,17 +99,12 @@ export default function DutyScheduleModal({
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-semibold text-gray-900">График дежурств</h2>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-[10px] text-green-600 font-medium">Синхронизировано</span>
-            </div>
           </div>
-          <p className="text-xs text-gray-500">
-            Настройте 24‑часовую шкалу, выбирая длительность блоков и ответственных родителей для каждого отрезка.
-          </p>
-          <p className="text-[10px] text-green-600">
-            📡 Изменения автоматически синхронизируются со всеми устройствами семьи
-          </p>
+          <img 
+            src="/icons/profile.png" 
+            alt="Настройка графика дежурств" 
+            className="w-16 h-16 mx-auto"
+          />
         </div>
 
         <div className="grid gap-2 rounded-3xl border border-gray-100 bg-gray-50 p-3">
@@ -152,7 +147,7 @@ export default function DutyScheduleModal({
         </div>
 
 
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {dutyBlocks.map(block => {
             const assignment = findAssignmentByBlockId(schedule, block.id)
             const selectedParent = assignment?.parentId

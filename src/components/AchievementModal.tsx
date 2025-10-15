@@ -17,7 +17,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000] p-4">
       <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden relative">
         {/* Close button */}
         <button

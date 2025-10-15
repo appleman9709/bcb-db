@@ -519,8 +519,21 @@ export default function TamagotchiPage() {
   }, [data?.parentCoins])
 
   const getGifSource = (state: BabyState): string => {
-    // Если включен режим сна, показываем видео сна
+    // Если включен режим сна, проверяем продолжительность сна
     if (isSleepMode) {
+      // Проверяем, есть ли информация о сессии сна
+      if (data?.familySleepStatus?.sleepSession) {
+        const sleepSession = data.familySleepStatus.sleepSession
+        const startTime = new Date(sleepSession.start_time)
+        const durationMinutes = Math.floor((Date.now() - startTime.getTime()) / (1000 * 60))
+        
+        // Если сон длится больше 3 минут, показываем картинку
+        if (durationMinutes > 3) {
+          return '/icons/sleep3min.png'
+        }
+      }
+      
+      // Иначе показываем обычное видео сна
       return '/icons/sleep.MP4'
     }
     
@@ -1040,7 +1053,7 @@ export default function TamagotchiPage() {
       {/* GIF/Video малыша - адаптивное */}
       <div className="tamagotchi-video-container">
         <div className="relative inline-block">
-          {isSleepMode ? (
+          {isSleepMode && getGifSource(babyState).endsWith('.MP4') ? (
             <video
               key="sleep-video"
               src={getGifSource(babyState)}
@@ -1052,7 +1065,7 @@ export default function TamagotchiPage() {
             />
           ) : (
             <img
-              key={babyState} // Принудительно перезагружаем GIF при смене состояния
+              key={isSleepMode ? 'sleep-image' : babyState} // Принудительно перезагружаем при смене состояния
               src={getGifSource(babyState)}
               alt={`Малыш в состоянии ${babyState}`}
               className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
@@ -1076,7 +1089,7 @@ export default function TamagotchiPage() {
           </div>
 
           {/* Кнопка рюкзака в нижнем правом углу */}
-          <div className="absolute bottom-4 right-4 z-40 flex flex-col items-end gap-2">
+          <div className="absolute bottom-4 right-4 z-50 flex flex-col items-end gap-2">
             <button
               type="button"
               onClick={toggleBackpack}
@@ -1086,7 +1099,7 @@ export default function TamagotchiPage() {
               <img 
                 src="/icons/bag.png" 
                 alt="Рюкзак" 
-                className="w-12 h-12 object-contain"
+                className="w-16 h-16 object-contain"
               />
               {shoppingList.length > 0 && (
                 <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] rounded-full bg-red-100 text-red-600 font-semibold">
@@ -1244,63 +1257,65 @@ export default function TamagotchiPage() {
         </p>
       </div>
 
-      {/* Лоток с предметами - компактный */}
-      <div className="tamagotchi-inventory bg-white/80 backdrop-blur-sm rounded-3xl shadow-sm border border-gray-100">
-        <h2 className="text-xs font-semibold text-gray-900 mb-2 text-center">🛠️ Инвентарь</h2>
-        
-        <div className="grid grid-cols-4 gap-2">
+      {/* Лоток с предметами - в стиле liquid glass */}
+      <div className="tamagotchi-inventory-liquid">
+        <div className="tamagotchi-inventory-container">
           {/* Подгузник */}
           <div 
             onClick={() => handleItemClick('diaper')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-3xl hover:bg-gray-100 transition-colors cursor-pointer"
+            className="tamagotchi-inventory-item"
           >
-            <img 
-              src="/icons/diaper.png" 
-              alt="Подгузник" 
-              className="w-10 h-10 object-contain"
-            />
-            <span className={`mt-1 text-[10px] font-semibold ${lowOnDiapers ? 'text-red-500' : 'text-gray-600'}`}>
-              {inventoryTotals.diapers} шт
-            </span>
+            <div className="tamagotchi-inventory-icon">
+              <img 
+                src="/icons/diaper.png" 
+                alt="Подгузник" 
+              />
+            </div>
+            <div className={`tamagotchi-inventory-label ${lowOnDiapers ? 'text-red-500' : ''}`}>
+              {inventoryTotals.diapers}
+            </div>
           </div>
 
           {/* Бутылочка */}
           <div 
             onClick={() => handleItemClick('feeding')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-3xl hover:bg-gray-100 transition-colors cursor-pointer"
+            className="tamagotchi-inventory-item"
           >
-            <img 
-              src="/icons/feeding.png" 
-              alt="Бутылочка" 
-              className="w-10 h-10 object-contain"
-            />
-            <span className={`mt-1 text-[10px] font-semibold ${lowOnFormula ? 'text-red-500' : 'text-gray-600'}`}>
-              {displayPortionsText} порц.
-            </span>
+            <div className="tamagotchi-inventory-icon">
+              <img 
+                src="/icons/feeding.png" 
+                alt="Бутылочка" 
+              />
+            </div>
+            <div className={`tamagotchi-inventory-label ${lowOnFormula ? 'text-red-500' : ''}`}>
+              {displayPortionsText}
+            </div>
           </div>
 
           {/* Губка */}
           <div 
             onClick={() => handleItemClick('bath')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-3xl hover:bg-gray-100 transition-colors cursor-pointer"
+            className="tamagotchi-inventory-item"
           >
-            <img 
-              src="/icons/sponge.png" 
-              alt="Губка" 
-              className="w-10 h-10 object-contain"
-            />
+            <div className="tamagotchi-inventory-icon">
+              <img 
+                src="/icons/sponge.png" 
+                alt="Губка" 
+              />
+            </div>
           </div>
 
           {/* Активность */}
           <div 
             onClick={() => handleItemClick('activity')}
-            className="flex flex-col items-center p-2 bg-gray-50 rounded-3xl hover:bg-gray-100 transition-colors cursor-pointer"
+            className="tamagotchi-inventory-item"
           >
-            <img 
-              src="/icons/activity.png" 
-              alt="Активность" 
-              className="w-10 h-10 object-contain"
-            />
+            <div className="tamagotchi-inventory-icon">
+              <img 
+                src="/icons/activity.png" 
+                alt="Активность" 
+              />
+            </div>
           </div>
         </div>
       </div>
