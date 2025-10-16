@@ -97,9 +97,7 @@ export default function DutyScheduleModal({
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <div className="space-y-3">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-gray-900">График дежурств</h2>
-          </div>
+          <h2 className="text-base font-semibold text-gray-900">График дежурств</h2>
           <img 
             src="/icons/profile.png" 
             alt="Настройка графика дежурств" 
@@ -168,11 +166,9 @@ export default function DutyScheduleModal({
                   ) : (
                     <span className="h-2 w-2 rounded-full bg-gray-300" aria-hidden />
                   )}
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                      {block.label}
-                    </p>
-                  </div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 min-w-0">
+                    {block.label}
+                  </p>
                 </div>
                 <label className="sr-only" htmlFor={`duty-block-${block.id}`}>
                   Дежурный для интервала {block.label}

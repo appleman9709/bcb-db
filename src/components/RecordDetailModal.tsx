@@ -131,25 +131,23 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
     <Modal isOpen={isOpen} onClose={onClose} size="sm">
       <div className="space-y-4">
         {/* Заголовок с иконкой */}
-        <div className={`${typeInfo.bgColor} rounded-3xl p-4 border border-gray-200`}>
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 flex items-center justify-center bg-white rounded-3xl shadow-sm">
-              <img 
-                src={typeInfo.icon} 
-                alt={typeInfo.title} 
-                className="w-8 h-8 object-contain" 
-              />
-            </div>
-            <div className="flex-1">
-              <h2 className={`text-lg font-semibold ${typeInfo.textColor}`}>
-                {typeInfo.title}
-              </h2>
-              {record.type === 'activity' && record.activity_type && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Тип: {record.activity_type}
-                </p>
-              )}
-            </div>
+        <div className={`${typeInfo.bgColor} rounded-3xl p-4 border border-gray-200 flex items-center gap-3`}>
+          <div className="w-12 h-12 flex items-center justify-center bg-white rounded-3xl shadow-sm">
+            <img 
+              src={typeInfo.icon} 
+              alt={typeInfo.title} 
+              className="w-8 h-8 object-contain" 
+            />
+          </div>
+          <div className="flex-1">
+            <h2 className={`text-lg font-semibold ${typeInfo.textColor}`}>
+              {typeInfo.title}
+            </h2>
+            {record.type === 'activity' && record.activity_type && (
+              <p className="text-sm text-gray-600 mt-1">
+                Тип: {record.activity_type}
+              </p>
+            )}
           </div>
         </div>
 
@@ -183,7 +181,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
          (record.type === 'bath' && record.bath_mood) || 
          (record.type === 'activity' && record.activity_type) ? (
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-4 space-y-3 border border-blue-100">
-            <h3 className="text-sm font-semibold text-gray-800 mb-2">📊 Детали события</h3>
+            <h3 className="text-sm font-semibold text-gray-800">📊 Детали события</h3>
             
             {record.type === 'feeding' && record.ounces && (
               <div className="flex items-center justify-between">

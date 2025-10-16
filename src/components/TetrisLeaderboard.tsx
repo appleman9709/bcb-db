@@ -65,9 +65,9 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
   const renderRecordRow = (record: TetrisRecordWithRank, index: number) => (
     <div key={record.id} className="flex items-center justify-between py-3 px-4 border-b border-gray-100 last:border-b-0">
       <div className="flex items-center gap-3">
-        <div className="text-lg font-bold text-gray-700 min-w-[40px]">
+        <span className="text-lg font-bold text-gray-700 min-w-[40px]">
           {getRankIcon(record.rank)}
-        </div>
+        </span>
         <div>
           <div className="font-semibold text-gray-900">{record.player_name}</div>
           <div className="text-sm text-gray-500">{formatDate(record.created_at)}</div>
@@ -148,9 +148,7 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
                   <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
                     <h3 className="font-semibold text-gray-800">🏆 Топ рекордов семьи</h3>
                   </div>
-                  <div>
-                    {familyRecords.map((record, index) => renderRecordRow(record, index))}
-                  </div>
+                  {familyRecords.map((record, index) => renderRecordRow(record, index))}
                 </div>
               )}
             </div>
@@ -167,9 +165,7 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
                   <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
                     <h3 className="font-semibold text-gray-800">👤 Ваши рекорды</h3>
                   </div>
-                  <div>
-                    {userRecords.map((record, index) => renderRecordRow(record, index))}
-                  </div>
+                  {userRecords.map((record, index) => renderRecordRow(record, index))}
                 </div>
               )}
             </div>

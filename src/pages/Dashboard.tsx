@@ -15,10 +15,6 @@ import TetrisPage from './TetrisPage'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService } from '../services/dataService'
 import type { Feeding, Diaper, Bath, Activity, Tip, SleepSession, FamilyMember } from '../services/dataService'
-import { achievementService, NewAchievement } from '../services/achievementService'
-import AchievementHistoryChecker from '../components/AchievementHistoryChecker'
-import { AchievementModal } from '../components/AchievementModal'
-import { AchievementNotification } from '../components/AchievementNotification'
 import RecordDetailModal from '../components/RecordDetailModal'
 import HistoryFilters from '../components/HistoryFilters'
 import EventGroup from '../components/EventGroup'
@@ -38,6 +34,8 @@ import {
 type DashboardSection = 'dashboard' | 'history' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath'
 type ReminderType = 'feeding' | 'diaper'
+
+type QuickActionResult = {}
 
 interface DashboardData {
   lastFeeding: Feeding | null
@@ -127,9 +125,6 @@ export default function Dashboard() {
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [activeTab, setActiveTab] = useState<'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris'>('home')
-  const [achievementModalOpen, setAchievementModalOpen] = useState(false)
-  const [newAchievements, setNewAchievements] = useState<NewAchievement[]>([])
-  const [showAchievementNotification, setShowAchievementNotification] = useState(false)
   const [recordDetailModalOpen, setRecordDetailModalOpen] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState<{
     type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep'
@@ -153,6 +148,9 @@ export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [currentDutyMemberFromDB, setCurrentDutyMemberFromDB] = useState<FamilyMember | null>(null)
 
+  const { member, family, signOut } = useAuth()
+
+
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
   const pullDistanceRef = useRef(0)
@@ -165,7 +163,6 @@ export default function Dashboard() {
   const reminderTimers = useRef<Partial<Record<ReminderType, number>>>({})
   const isNotificationSupported = typeof window !== 'undefined' && 'Notification' in window
 
-  const { member, family, signOut } = useAuth()
   const memberDisplayName = member?.name ?? member?.role ?? 'Участник семьи'
 
   useEffect(() => {
@@ -179,6 +176,7 @@ export default function Dashboard() {
   }, [])
 
   // Загружаем текущего дежурного из БД
+
   useEffect(() => {
     const loadCurrentDutyMember = async () => {
       if (!family?.id) {
@@ -501,20 +499,19 @@ export default function Dashboard() {
     }
   }
 
-  const handleModalSuccess = async () => {
-    // Обновляем данные и дожидаемся, чтобы последние значения (в т.ч. ounces) были в состоянии
+  const handleModalSuccess = async (result?: QuickActionResult) => {
+    // Перезагружаем данные после быстрого действия и обновляем историю при необходимости
     await fetchData()
     if (activeTab === 'history') {
       await fetchHistoryData()
     }
     setModalOpen(false)
-    
-    // Проверяем достижения после успешного действия на основе свежих данных
-    await checkAchievements()
   }
 
   const handleDeleteRecord = async (type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep', id: number) => {
-    if (!member || !family) return
+    if (!member || !family) {
+      return
+    }
 
     try {
       let success = false
@@ -583,61 +580,6 @@ export default function Dashboard() {
     setSelectedRecord(null)
   }
 
-  const checkAchievements = async () => {
-    if (!member || !family) return
-
-    const userId = member.user_id?.toString().trim()
-    if (!userId) {
-      console.warn('[Dashboard] Unable to check achievements: missing user_id in member context')
-      return
-    }
-    
-    try {
-      // Подготавливаем данные активности для проверки достижений
-      let activityData = {}
-      
-      if (modalAction === 'feeding' && data?.lastFeeding) {
-        activityData = {
-          ounces: data.lastFeeding.ounces,
-          timestamp: data.lastFeeding.timestamp
-        }
-      } else if (modalAction === 'diaper' && data?.lastDiaper) {
-        activityData = {
-          diaper_type: data.lastDiaper.diaper_type,
-          timestamp: data.lastDiaper.timestamp
-        }
-      } else if (modalAction === 'bath' && data?.lastBath) {
-        activityData = {
-          bath_mood: data.lastBath.bath_mood,
-          timestamp: data.lastBath.timestamp
-        }
-      }
-      
-      const achievements = await achievementService.checkAndAwardAchievements(
-        family.id,
-        userId,
-        modalAction,
-        activityData
-      )
-      
-      if (achievements.length > 0) {
-        setNewAchievements(achievements)
-        setShowAchievementNotification(true)
-        
-        // Отправляем пуш-уведомления для каждого достижения
-        for (const achievement of achievements) {
-          await achievementService.sendAchievementNotification(achievement)
-        }
-        
-        // Автоматически скрываем уведомление через 5 секунд
-        setTimeout(() => {
-          setShowAchievementNotification(false)
-        }, 5000)
-      }
-    } catch (error) {
-      console.error('Error checking achievements:', error)
-    }
-  }
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true)
@@ -1087,36 +1029,12 @@ export default function Dashboard() {
             <TetrisPage />
           ) : activeTab === 'settings' ? (
             <div className="space-y-3">
+
               <div className="text-center">
                 <h1 className="text-lg font-bold text-gray-900 mb-1">⚙️ Настройки</h1>
                 <p className="text-xs text-gray-600">Персонализируйте приложение под вашего малыша</p>
         </div>
 
-              {/* Достижения */}
-              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 flex items-center justify-center text-sm">
-                    🏆
-                  </div>
-                  <h2 className="text-base font-semibold text-gray-900">Достижения</h2>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-xs text-gray-600 mb-3">
-                    Просматривайте ваши достижения и статистику семьи
-                  </p>
-                  <button
-                    onClick={() => setAchievementModalOpen(true)}
-                    className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold py-2 px-4 rounded-3xl shadow-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-200 text-sm flex items-center justify-center gap-2"
-                  >
-                    🏆 Открыть достижения
-                  </button>
-                  
-                  {/* Компонент проверки истории достижений */}
-                  <div className="mt-3">
-                    <AchievementHistoryChecker />
-                  </div>
-                </div>
-              </div>
 
               {/* Профиль малыша */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
@@ -1946,6 +1864,7 @@ export default function Dashboard() {
           onScheduleChange={handleDutyScheduleChange}
         />
 
+
         <QuickActionModal
           isOpen={modalOpen}
           onClose={() => setModalOpen(false)}
@@ -1953,23 +1872,6 @@ export default function Dashboard() {
           onSuccess={handleModalSuccess}
         />
 
-        {/* Уведомления о достижениях */}
-        {showAchievementNotification && newAchievements.length > 0 && (
-          <AchievementNotification
-            achievement={newAchievements[0]}
-            onClose={() => setShowAchievementNotification(false)}
-          />
-        )}
-
-        {/* Модальное окно достижений */}
-        {member?.user_id && (
-          <AchievementModal
-            isOpen={achievementModalOpen}
-            onClose={() => setAchievementModalOpen(false)}
-            familyId={family?.id || 0}
-            userId={member.user_id}
-          />
-        )}
 
         {/* Модальное окно деталей записи */}
         <RecordDetailModal

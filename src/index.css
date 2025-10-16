@@ -1944,7 +1944,6 @@
 /* Стили для всех модальных окон - убеждаемся что они поверх нижней панели */
 [role="dialog"],
 .modal-overlay,
-.achievement-modal,
 .record-detail-modal,
 .duty-schedule-modal,
 .quick-action-modal {
@@ -2705,7 +2704,6 @@
 
   /* Ensure all modals in Tamagotchi context have proper z-index */
   .tamagotchi-container [role="dialog"],
-  .tamagotchi-container .achievement-modal,
   .tamagotchi-container .record-detail-modal,
   .tamagotchi-container .duty-schedule-modal,
   .tamagotchi-container .quick-action-modal {

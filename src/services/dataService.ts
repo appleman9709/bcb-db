@@ -115,6 +115,7 @@ export interface ParentCoins {
   updated_at: string
 }
 
+
 export interface FamilyInventory {
   family_id: number
   diapers_stock: number
@@ -1055,7 +1056,7 @@ class DataService {
     return { isSleeping: true, sleepSession: data }
   }
 
-  async getSleepSessions(days: number = 7): Promise<SleepSession[]> {
+  async getSleepSessionsWithinDays(days: number = 7): Promise<SleepSession[]> {
     const familyId = this.requireFamilyId()
 
     const { data, error } = await supabase
@@ -1326,6 +1327,7 @@ class DataService {
 
     return await this.updateParentCoins(updatedCoins)
   }
+
 
   // Tetris records operations
   async getFamilyTetrisRecords(limit: number = 10): Promise<TetrisRecordWithRank[]> {

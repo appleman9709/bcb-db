@@ -49,23 +49,21 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
       {/* Background overlay */}
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
       
-      {/* Modal */}
-      <div className={`modal-content relative w-full ${sizeClasses[size]} sm:mt-0 mt-10`}>
-        <div className="flex h-full flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-bounce-in">
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 rounded-3xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+      {/* Modal - объединяем контейнер и содержимое */}
+      <div className={`modal-content relative w-full ${sizeClasses[size]} sm:mt-0 mt-10 flex flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-bounce-in`}>
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 rounded-3xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-          {/* Content */}
-          <div className="flex-1 overflow-hidden p-5 sm:p-6 sm:overflow-y-auto">
-            {children}
-          </div>
+        {/* Content */}
+        <div className="flex-1 overflow-hidden p-5 sm:p-6 sm:overflow-y-auto">
+          {children}
         </div>
       </div>
     </div>

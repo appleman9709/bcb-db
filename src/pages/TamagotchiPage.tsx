@@ -2,8 +2,6 @@
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
 import QuickActionModal from '../components/QuickActionModal'
-import { achievementService, NewAchievement } from '../services/achievementService'
-import { AchievementNotification } from '../components/AchievementNotification'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -61,8 +59,6 @@ export default function TamagotchiPage() {
   const [activityCoins, setActivityCoins] = useState(0)
   const [momCoins, setMomCoins] = useState(0)
   const [sleepCoins, setSleepCoins] = useState(0)
-  const [newAchievements, setNewAchievements] = useState<NewAchievement[]>([])
-  const [showAchievementNotification, setShowAchievementNotification] = useState(false)
   const [backpackOpen, setBackpackOpen] = useState(false)
   const [restockDiapersInput, setRestockDiapersInput] = useState('')
   const [restockGramsInput, setRestockGramsInput] = useState('')
@@ -75,6 +71,7 @@ export default function TamagotchiPage() {
   const [portionSizeStatusTone, setPortionSizeStatusTone] = useState<'neutral' | 'success' | 'error'>('neutral')
 
   const { member, family } = useAuth()
+
 
   // Загружаем размер порции из БД при загрузке данных
   useEffect(() => {
@@ -553,43 +550,6 @@ export default function TamagotchiPage() {
     }
   }
 
-  const handleSleepAchievements = useCallback(async (session: SleepSession) => {
-    if (!member || !family) {
-      return
-    }
-
-    try {
-      const timestamp = session.end_time ?? session.start_time
-      const userId = member.user_id?.toString().trim()
-      if (!userId) {
-        console.warn('[Tamagotchi] Skipping sleep achievement check: missing user_id in member context')
-        return
-      }
-
-      const achievements = await achievementService.checkAndAwardAchievements(
-        family.id,
-        userId,
-        'sleep',
-        { timestamp }
-      )
-
-      if (achievements.length > 0) {
-        setNewAchievements(achievements)
-        setShowAchievementNotification(true)
-
-        for (const achievement of achievements) {
-          await achievementService.sendAchievementNotification(achievement)
-        }
-
-        setTimeout(() => {
-          setShowAchievementNotification(false)
-        }, 5000)
-      }
-    } catch (error) {
-      console.error('Error awarding sleep achievements:', error)
-    }
-  }, [family, member])
-
   const toggleSleepMode = async () => {
     try {
       // Немедленно обновляем локальное состояние
@@ -604,14 +564,12 @@ export default function TamagotchiPage() {
           console.log('🌙 Sleep session ended:', endedSession)
           // Добавляем монетки за сон
           await dataService.addCoins('sleep_coins', 1)
-          await handleSleepAchievements(endedSession)
         }
       } else {
         // Начинаем сессию сна
         const startedSession = await dataService.startSleepSession()
         if (startedSession) {
           console.log('🌙 Sleep session started:', startedSession)
-          await handleSleepAchievements(startedSession)
         }
       }
       
@@ -662,94 +620,93 @@ export default function TamagotchiPage() {
     setModalOpen(true)
   }
 
-  const handleModalSuccess = async () => {
-    // Обновляем данные после успешного действия
+  const handleModalSuccess = async (result?: {}) => {
     await fetchData()
     setModalOpen(false)
   }
-
-  // Функция для получения фразы в зависимости от состояния и очков
   const getStatePhrase = (state: BabyState, currentScore: number): string => {
     const scoreLevel = Math.floor(currentScore / 10)
-    
+
     switch (state) {
-      case 'feeding':
+      case 'feeding': {
         const feedingPhrases = [
-          "Покорми меня, пожалуйста!",
-          "Я очень голодный малыш!",
-          "Мам, где моя бутылочка?",
-          "Время обеда уже пришло!",
-          "Я хочу кушать прямо сейчас!",
-          "Покорми меня, и я буду счастлив!",
-          "Мой животик урчит от голода!",
-          "Пожалуйста, дай мне покушать!",
-          "Я так хочу молочка!",
-          "Кормление - это самое важное!"
+          'Ммм, вот это обед!',
+          'Спасибо, теперь животик счастлив.',
+          'Готов к приключениям после перекуса!',
+          'Это было вкуснее всего на свете!',
+          'Еще ложечку? Не откажусь!',
+          'Теперь можно и поспать.',
+          'Хрум-хрум, силы вернулись!',
+          'Вы лучший шеф на свете.',
+          'Так бы и ел весь день.',
+          'Супер! Животик доволен.'
         ]
         return feedingPhrases[scoreLevel % feedingPhrases.length]
-      
-      case 'poo':
+      }
+      case 'poo': {
         const diaperPhrases = [
-          "Пора сменить подгузник!",
-          "Мне некомфортно в этом подгузнике!",
-          "Мама, помоги мне!",
-          "Я хочу быть чистым малышом!",
-          "Пожалуйста, смени подгузник!",
-          "Мне нужна свежая одежда!",
-          "Я чувствую себя не очень хорошо!",
-          "Помоги мне стать чистым!",
-          "Подгузник нужно поменять!",
-          "Я хочу быть сухим и комфортным!"
+          'Как же приятно быть чистым!',
+          'Новый подгузник — новая жизнь.',
+          'Теперь мне снова комфортно.',
+          'Фух, вот это облегчение.',
+          'Свежесть вернулась!',
+          'Вы спасли меня от неудобств.',
+          'Пахнет как свежий воздух.',
+          'Чистота — залог веселья.',
+          'Теперь можно и играть.',
+          'Спасибо за заботу!'
         ]
         return diaperPhrases[scoreLevel % diaperPhrases.length]
-      
-      case 'dirty':
+      }
+      case 'dirty': {
         const bathPhrases = [
-          "Пора искупать меня!",
-          "Я хочу быть чистым малышом!",
-          "Время водных процедур!",
-          "Мне нужна ванночка!",
-          "Пожалуйста, искупай меня!",
-          "Я люблю купаться!",
-          "Вода - это так весело!",
-          "Помоги мне стать чистым!",
-          "Купание - это здорово!",
-          "Я хочу поплескаться в воде!"
+          'Плеск-плеск! Вода — моя стихия.',
+          'Как приятно быть чистым и бодрым.',
+          'Пузырьки щекочут!',
+          'Это целый спа-салон.',
+          'Готов сиять и пахнуть!',
+          'Освежился и проснулся.',
+          'Как же классно плескаться.',
+          'Я капитан в ванной!',
+          'Теперь я как новенький.',
+          'Люблю водные процедуры!'
         ]
         return bathPhrases[scoreLevel % bathPhrases.length]
-      
-      case 'all-in':
+      }
+      case 'all-in': {
         const allInPhrases = [
-          "Мне нужно и кушать, и сменить подгузник!",
-          "Я очень нуждаюсь в твоей помощи!",
-          "Пожалуйста, позаботься обо мне!",
-          "Мне нужна забота и внимание!",
-          "Я хочу быть счастливым малышом!",
-          "Помоги мне чувствовать себя хорошо!",
-          "Я так нуждаюсь в твоей любви!",
-          "Позаботься обо мне, пожалуйста!",
-          "Мне нужна твоя помощь прямо сейчас!",
-          "Я хочу быть здоровым и счастливым!"
+          'Уф, целая серия забот — спасибо!',
+          'Вот это сервис: и накормлен, и чист!',
+          'Вы супергерой: всё сделали сразу.',
+          'Такой уход заслуживает медали.',
+          'Все дела сделаны — можно отдыхать.',
+          'Меня ухаживали как в санатории!',
+          'Комбо заботы принято, спасибо.',
+          'Так приятно, когда обо мне помнят.',
+          'Идеальный уход за пару минут!',
+          'Я готов сиять — спасибо за комбо.'
         ]
         return allInPhrases[scoreLevel % allInPhrases.length]
-      
+      }
       case 'ok':
-      default:
+      default: {
         const okPhrases = [
-          "Я счастливый малыш!",
-          "Спасибо за заботу!",
-          "Ты лучшая мама на свете!",
-          "Я чувствую себя отлично!",
-          "Мне так хорошо с тобой!",
-          "Ты делаешь меня счастливым!",
-          "Я люблю тебя!",
-          "Ты заботишься обо мне!",
-          "Мне так повезло с тобой!",
-          "Ты мой самый любимый человек!"
+          'Я в полном порядке!',
+          'Все отлично, просто отдыхай рядом.',
+          'Мне хорошо и спокойно.',
+          'Настроение — как ясный день.',
+          'Все под контролем.',
+          'Я готов к новым играм.',
+          'Просто наслаждаюсь моментом.',
+          'У меня всё замечательно.',
+          'Как же классно вместе!',
+          'Пока все супер — спасибо!'
         ]
         return okPhrases[scoreLevel % okPhrases.length]
+      }
     }
   }
+
 
   // Функция для получения иконки монетки в зависимости от состояния
   const getCoinIcon = useCallback((state: BabyState, sleepMode: boolean = false): string => {
@@ -1322,13 +1279,6 @@ export default function TamagotchiPage() {
       </div>
 
       {/* Модальное окно для действий */}
-      {showAchievementNotification && newAchievements.length > 0 && (
-        <AchievementNotification
-          achievement={newAchievements[0]}
-          onClose={() => setShowAchievementNotification(false)}
-        />
-      )}
-
       <QuickActionModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
