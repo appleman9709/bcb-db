@@ -32,7 +32,7 @@ import {
 } from '../services/dutyScheduleService'
 
 type DashboardSection = 'dashboard' | 'history' | 'settings'
-type QuickActionType = 'feeding' | 'diaper' | 'bath'
+type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
 type ReminderType = 'feeding' | 'diaper'
 
 type QuickActionResult = {}
@@ -143,6 +143,10 @@ export default function Dashboard() {
   const [dutyModalOpen, setDutyModalOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [currentDutyMemberFromDB, setCurrentDutyMemberFromDB] = useState<FamilyMember | null>(null)
+  
+  // Tamagotchi modal state
+  const [tamagotchiModalOpen, setTamagotchiModalOpen] = useState(false)
+  const [tamagotchiModalAction, setTamagotchiModalAction] = useState<QuickActionType>('feeding')
 
   const { member, family, signOut } = useAuth()
 
@@ -551,6 +555,18 @@ export default function Dashboard() {
       await fetchHistoryData()
     }
     setModalOpen(false)
+  }
+
+  // Tamagotchi modal handlers
+  const handleTamagotchiModalOpen = (action: QuickActionType) => {
+    setTamagotchiModalAction(action)
+    setTamagotchiModalOpen(true)
+  }
+
+  const handleTamagotchiModalSuccess = async (result?: QuickActionResult) => {
+    // Перезагружаем данные после быстрого действия
+    await fetchData()
+    setTamagotchiModalOpen(false)
   }
 
   const handleDeleteRecord = async (type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep', id: number) => {
@@ -1068,7 +1084,9 @@ export default function Dashboard() {
       <div className="relative z-10 flex flex-col h-full">
         <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content'} ${activeTab === 'settings' || activeTab === 'history' ? 'overflow-y-auto overflow-x-hidden' : ''}`}>
           {activeTab === 'tamagotchi' ? (
-            <TamagotchiPage />
+            <TamagotchiPage 
+              onModalOpen={handleTamagotchiModalOpen}
+            />
           ) : activeTab === 'tetris' ? (
             <TetrisPage />
           ) : activeTab === 'settings' ? (
@@ -1501,9 +1519,9 @@ export default function Dashboard() {
 
 {data?.dailyTip && (
                 <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-2.5 shadow-sm border border-blue-100 iphone14-tip">
-                  <div className="flex items-start gap-2">
-                    <div className="w-8 h-8 flex items-center justify-center iphone14-tip-icon">
-                      <img src="/icons/sovet.png" alt="Совет" className="w-8 h-8 object-contain" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 flex items-center justify-center iphone14-tip-icon">
+                      <img src="/icons/sovet.png" alt="Совет" className="w-10 h-10 object-contain" />
                 </div>
                     <div className="flex-1">
                       <h3 className="text-base font-semibold text-gray-900 mb-1">Совет дня</h3>
@@ -1660,6 +1678,14 @@ export default function Dashboard() {
           onClose={() => setModalOpen(false)}
           actionType={modalAction}
           onSuccess={handleModalSuccess}
+        />
+
+        {/* Tamagotchi QuickActionModal */}
+        <QuickActionModal
+          isOpen={tamagotchiModalOpen}
+          onClose={() => setTamagotchiModalOpen(false)}
+          actionType={tamagotchiModalAction}
+          onSuccess={handleTamagotchiModalSuccess}
         />
 
 

@@ -1,10 +1,13 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
-import QuickActionModal from '../components/QuickActionModal'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
+
+interface TamagotchiPageProps {
+  onModalOpen: (action: QuickActionType) => void
+}
 
 interface TamagotchiData {
   lastFeeding: Feeding | null
@@ -29,7 +32,7 @@ interface SettingsState {
   wakeOnActivityEnabled: boolean
 }
 
-export default function TamagotchiPage() {
+export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   console.log('TamagotchiPage rendered') // Отладочная информация
   
   const [data, setData] = useState<TamagotchiData | null>(null)
@@ -41,8 +44,6 @@ export default function TamagotchiPage() {
   })
   const [loading, setLoading] = useState(true)
   const [babyState, setBabyState] = useState<BabyState>('ok')
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalAction, setModalAction] = useState<QuickActionType>('feeding')
   const [score, setScore] = useState(0)
   const [justWokeUp, setJustWokeUp] = useState(false)
   const [scoreAnimation, setScoreAnimation] = useState(false)
@@ -609,14 +610,9 @@ export default function TamagotchiPage() {
   }
 
   const handleItemClick = (action: QuickActionType) => {
-    setModalAction(action)
-    setModalOpen(true)
+    onModalOpen(action)
   }
-
-  const handleModalSuccess = async (result?: {}) => {
-    await fetchData()
-    setModalOpen(false)
-  }
+  
   const getStatePhrase = (state: BabyState, currentScore: number): string => {
     const scoreLevel = Math.floor(currentScore / 10)
 
@@ -1342,13 +1338,6 @@ export default function TamagotchiPage() {
         </div>
       </div>
 
-      {/* Модальное окно для действий */}
-      <QuickActionModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        actionType={modalAction}
-        onSuccess={handleModalSuccess}
-      />
     </div>
   )
 }

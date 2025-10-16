@@ -2387,6 +2387,14 @@
     height: 40px;
   }
 
+  .liquid-glass-tab-icon img {
+    width: 40px;
+    height: 40px;
+    /* Фильтр для темно-серого цвета по умолчанию */
+    filter: brightness(0) saturate(100%) invert(27%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.6) contrast(1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   /* Активное состояние */
   .liquid-glass-tab-active::before {
     background: rgba(59, 130, 246, 0.15);
@@ -2406,6 +2414,12 @@
     transform: scale(1.05);
   }
 
+  .liquid-glass-tab-active .liquid-glass-tab-icon img {
+    /* Фильтр для синего цвета активного состояния */
+    filter: brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1234%) hue-rotate(213deg) brightness(98%) contrast(101%);
+    transform: scale(1.05);
+  }
+
   /* Hover эффекты */
   .liquid-glass-tab-button:hover::before {
     /* Убираем подложку у hover для неактивных кнопок */
@@ -2418,6 +2432,12 @@
 
   .liquid-glass-tab-button:hover .liquid-glass-tab-icon {
     color: rgba(0, 0, 0, 0.8);
+    transform: scale(1.08);
+  }
+
+  .liquid-glass-tab-button:hover .liquid-glass-tab-icon img {
+    /* Фильтр для более темного цвета при hover */
+    filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.8) contrast(1);
     transform: scale(1.08);
   }
 
@@ -2454,6 +2474,12 @@
     transform: scale(1.1);
   }
 
+  .liquid-glass-tab-active:hover .liquid-glass-tab-icon img {
+    /* Фильтр для более темного синего цвета при hover активной кнопки */
+    filter: brightness(0) saturate(100%) invert(27%) sepia(96%) saturate(1234%) hue-rotate(213deg) brightness(98%) contrast(101%);
+    transform: scale(1.1);
+  }
+
   /* Адаптивность для разных размеров экранов */
   @media (max-width: 640px) {
     .liquid-glass-tab-bar {
@@ -2486,6 +2512,11 @@
     
     /* Увеличенные иконки для планшетов */
     .liquid-glass-tab-icon svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .liquid-glass-tab-icon img {
       width: 36px;
       height: 36px;
     }
@@ -2525,6 +2556,11 @@
       width: 32px;
       height: 32px;
     }
+
+    .liquid-glass-tab-icon img {
+      width: 32px;
+      height: 32px;
+    }
   }
 
   /* Оптимизация для touch-устройств */
@@ -2540,6 +2576,11 @@
     
     .liquid-glass-tab-button:hover .liquid-glass-tab-icon {
       color: rgba(0, 0, 0, 0.6);
+      transform: scale(1);
+    }
+
+    .liquid-glass-tab-button:hover .liquid-glass-tab-icon img {
+      filter: brightness(0) saturate(100%) invert(27%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.6) contrast(1);
       transform: scale(1);
     }
     
@@ -2565,6 +2606,11 @@
     
     .liquid-glass-tab-active:hover .liquid-glass-tab-icon {
       color: #3b82f6;
+      transform: scale(1.05);
+    }
+
+    .liquid-glass-tab-active:hover .liquid-glass-tab-icon img {
+      filter: brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1234%) hue-rotate(213deg) brightness(98%) contrast(101%);
       transform: scale(1.05);
     }
   }
