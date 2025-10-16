@@ -226,19 +226,6 @@ export const CompactSlider: React.FC<CompactSliderProps> = ({
           className="modern-slider feeding-slider"
         />
       </div>
-      
-      <div className="slider-labels">
-        {labels.map((label) => (
-          <button 
-            key={label.value}
-            className="slider-label" 
-            onClick={() => onChange(label.value)}
-          >
-            <span className="label-value">{label.value}</span>
-            <span className="label-text">{label.text}</span>
-          </button>
-        ))}
-      </div>
     </div>
   </div>
 )

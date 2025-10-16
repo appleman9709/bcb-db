@@ -2008,21 +2008,39 @@
 /* Специальные стили для QuickActionModal на мобильных устройствах */
 @media (max-width: 768px) {
   .quick-action-modal .modal-content {
-    max-height: 85vh !important;
-    max-height: 85dvh !important;
+    max-height: 95vh !important;
+    max-height: 95dvh !important;
+    height: 95vh !important;
+    height: 95dvh !important;
   }
   
   .quick-action-modal .modal-overlay {
-    padding: 0.5rem !important;
-    padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
+    padding: 0.25rem !important;
+    padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
   }
 }
 
-/* Дополнительная оптимизация для iPhone 14 Pro */
-@media (max-width: 430px) and (min-height: 800px) {
+/* Специальные стили для очень маленьких экранов */
+@media (max-width: 480px) {
   .quick-action-modal .modal-content {
-    max-height: 70vh !important;
-    max-height: 70dvh !important;
+    max-height: 98vh !important;
+    max-height: 98dvh !important;
+    height: 98vh !important;
+    height: 98dvh !important;
+  }
+  
+  .quick-action-modal .modal-overlay {
+    padding: 0.125rem !important;
+    padding-bottom: max(0.125rem, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Убираем прокрутку для QuickActionModal на мобильных устройствах */
+@media (max-width: 768px) {
+  .quick-action-modal .modal-content > div {
+    overflow-y: visible !important;
+    max-height: none !important;
+    height: auto !important;
   }
 }
 
@@ -2441,7 +2459,7 @@
   /* Адаптивность для разных размеров экранов */
   @media (max-width: 640px) {
     .liquid-glass-tab-bar {
-      bottom: 36px;
+      bottom: 18px;
       left: 12px;
       right: 12px;
     }
@@ -2477,7 +2495,7 @@
 
   @media (max-width: 480px) {
     .liquid-glass-tab-bar {
-      bottom: 32px;
+      bottom: 18px;
       left: 8px;
       right: 8px;
     }

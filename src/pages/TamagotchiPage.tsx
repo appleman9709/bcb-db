@@ -1102,21 +1102,39 @@ export default function TamagotchiPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-xs font-semibold text-gray-700" htmlFor="portion-size-ounces">
+                  <label className="block text-xs font-semibold text-gray-700">
                     Размер порции смеси (унции)
                   </label>
                   <div className="flex items-center gap-2">
-                    <input
-                      id="portion-size-ounces"
-                      type="number"
-                      min="0"
-                      step="0.1"
-                      placeholder="Например, 5"
-                      value={portionSizeOuncesInput}
-                      onChange={event => setPortionSizeOuncesInput(event.target.value)}
-                      onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); handleApplyPortionSize(); } }}
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition"
-                    />
+                    <div className="flex-1 bg-white rounded-2xl border border-gray-200 p-2">
+                      <div className="flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const current = parseFloat(portionSizeOuncesInput) || 1
+                            const newValue = Math.max(0.5, current - 0.5)
+                            setPortionSizeOuncesInput(newValue.toString())
+                          }}
+                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
+                        >
+                          −
+                        </button>
+                        <span className="text-lg font-semibold text-gray-900 px-4">
+                          {portionSizeOuncesInput}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const current = parseFloat(portionSizeOuncesInput) || 1
+                            const newValue = Math.min(20, current + 0.5)
+                            setPortionSizeOuncesInput(newValue.toString())
+                          }}
+                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
                     <button
                       type="button"
                       onClick={handleApplyPortionSize}
@@ -1133,37 +1151,74 @@ export default function TamagotchiPage() {
                 </div>
                 <form className="space-y-2.5" onSubmit={handleRestockSubmit}>
                   <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-gray-700" htmlFor="restock-diapers">
+                    <label className="block text-xs font-semibold text-gray-700">
                       Добавить подгузники (шт)
                     </label>
-                    <input
-                      id="restock-diapers"
-                      type="number"
-                      inputMode="numeric"
-                      min="0"
-                      step="1"
-                      placeholder="Например, 10"
-                      value={restockDiapersInput}
-                      onChange={event => setRestockDiapersInput(event.target.value)}
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition"
-                    />
+                    <div className="bg-white rounded-2xl border border-gray-200 p-2">
+                      <div className="flex items-center justify-between">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const current = parseInt(restockDiapersInput) || 0
+                            const newValue = Math.max(0, current - 25)
+                            setRestockDiapersInput(newValue.toString())
+                          }}
+                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
+                        >
+                          −
+                        </button>
+                        <span className="text-lg font-semibold text-gray-900 px-4">
+                          {restockDiapersInput || '0'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const current = parseInt(restockDiapersInput) || 0
+                            const newValue = Math.min(500, current + 25)
+                            setRestockDiapersInput(newValue.toString())
+                          }}
+                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-gray-700" htmlFor="restock-grams">
+                    <label className="block text-xs font-semibold text-gray-700">
                       Добавить смесь (г)
                     </label>
                     <div className="flex items-center gap-2">
-                      <input
-                        id="restock-grams"
-                        type="number"
-                        min="0"
-                        step="1"
-                        placeholder="Например, 180"
-                        value={restockGramsInput}
-                        onChange={event => setRestockGramsInput(event.target.value)}
-                        className="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 transition"
-                      />
+                      <div className="flex-1 bg-white rounded-2xl border border-gray-200 p-2">
+                        <div className="flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const current = parseInt(restockGramsInput) || 0
+                              const newValue = Math.max(0, current - 550)
+                              setRestockGramsInput(newValue.toString())
+                            }}
+                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
+                          >
+                            −
+                          </button>
+                          <span className="text-lg font-semibold text-gray-900 px-4">
+                            {restockGramsInput || '0'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const current = parseInt(restockGramsInput) || 0
+                              const newValue = Math.min(5000, current + 550)
+                              setRestockGramsInput(newValue.toString())
+                            }}
+                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                       {restockPortionsPreview > 0 && restockPortionsPreviewText && (
                         <span className="text-[10px] text-gray-500 whitespace-nowrap">
                           ≈ {restockPortionsPreviewText} порц. ({portionSizeOunces} унц.)

@@ -277,7 +277,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="sm">
+    <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <div className={`quick-action-modal space-y-4 ${actionType === 'activity' ? 'sm:space-y-4' : 'sm:space-y-6'}`}>
         {/* Изображение только для кормления, подгузника и купания */}
         {actionType !== 'activity' && (
@@ -433,29 +433,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     onChange={(e) => handleFeedingOuncesChange(parseFloat(e.target.value))}
                     className="modern-slider feeding-slider"
                   />
-                </div>
-                
-                <div className="slider-labels">
-                  <button className="slider-label" onClick={() => handleFeedingOuncesChange(0)}>
-                    <span className="label-value">0</span>
-                    <span className="label-text">унц</span>
-                  </button>
-                  <button className="slider-label" onClick={() => handleFeedingOuncesChange(2)}>
-                    <span className="label-value">2</span>
-                    <span className="label-text">унц</span>
-                  </button>
-                  <button className="slider-label" onClick={() => handleFeedingOuncesChange(4)}>
-                    <span className="label-value">4</span>
-                    <span className="label-text">унц</span>
-                  </button>
-                  <button className="slider-label" onClick={() => handleFeedingOuncesChange(6)}>
-                    <span className="label-value">6</span>
-                    <span className="label-text">унц</span>
-                  </button>
-                  <button className="slider-label" onClick={() => handleFeedingOuncesChange(8)}>
-                    <span className="label-value">8</span>
-                    <span className="label-text">унц</span>
-                  </button>
                 </div>
               </div>
             </div>

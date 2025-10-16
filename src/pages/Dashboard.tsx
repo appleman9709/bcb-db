@@ -1113,33 +1113,6 @@ export default function Dashboard() {
                           className="modern-slider feeding-slider"
                         />
                       </div>
-                      
-                      <div className="slider-labels">
-                        <div className="slider-label">
-                          <span className="label-value">1</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">2</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">3</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">4</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">5</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">6</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                   <div className="modern-slider-card">
@@ -1172,32 +1145,6 @@ export default function Dashboard() {
                           className="modern-slider diaper-slider"
                         />
                       </div>
-                      
-                      <div className="slider-labels">
-                        <div className="slider-label">
-                          <span className="label-value">1</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">2</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">3</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">4</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">5</span>
-                          <span className="label-text">ч</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">6</span>
-                          <span className="label-text">ч</span>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -1231,41 +1178,9 @@ export default function Dashboard() {
                           className="modern-slider bath-slider"
                         />
                       </div>
-                      
-                      <div className="slider-labels">
-                        <div className="slider-label">
-                          <span className="label-value">1</span>
-                          <span className="label-text">д</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">2</span>
-                          <span className="label-text">д</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">3</span>
-                          <span className="label-text">д</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">4</span>
-                          <span className="label-text">д</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">5</span>
-                          <span className="label-text">д</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">6</span>
-                          <span className="label-text">д</span>
-                        </div>
-                        <div className="slider-label">
-                          <span className="label-value">7</span>
-                          <span className="label-text">д</span>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
-            </div>
 
               {/* Синхронизация сна */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
