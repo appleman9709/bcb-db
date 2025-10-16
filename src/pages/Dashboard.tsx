@@ -1022,7 +1022,7 @@ export default function Dashboard() {
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content overflow-y-auto overflow-x-hidden'}`}>
+        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content'} ${activeTab === 'settings' || activeTab === 'history' ? 'overflow-y-auto overflow-x-hidden' : ''}`}>
           {activeTab === 'tamagotchi' ? (
             <TamagotchiPage />
           ) : activeTab === 'tetris' ? (
@@ -1339,11 +1339,11 @@ export default function Dashboard() {
                 💾 Сохранить все изменения
               </button>
               
-              {/* Отступ после кнопки сохранения */}
-              <div className="h-4"></div>
+              {/* Отступ после кнопки сохранения - достаточный для liquid-glass-tab-bar */}
+              <div className="h-32"></div>
             </div>
           ) : activeTab === 'home' && (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {/* Иллюстрация младенца */}
               <div className="text-center">
                 <BabyIllustration 
@@ -1360,10 +1360,10 @@ export default function Dashboard() {
               </div>
 
               {/* Карточки активности */}
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <button
                     onClick={() => handleQuickAction('feeding')}
-                  className="w-full bg-white rounded-3xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 iphone14-quick-action"
+                  className="w-full bg-white rounded-3xl p-2.5 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 iphone14-quick-action"
                 >
                   <div className="w-12 h-12 flex items-center justify-center">
                     <img src="/icons/feeding.png" alt="Кормление" className="w-10 h-10 object-contain" />
@@ -1407,7 +1407,7 @@ export default function Dashboard() {
 
                 <button
                     onClick={() => handleQuickAction('diaper')}
-                  className="w-full bg-white rounded-3xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-all duration-200 iphone14-quick-action"
+                  className="w-full bg-white rounded-3xl p-2.5 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-all duration-200 iphone14-quick-action"
                 >
                   <div className="w-12 h-12 flex items-center justify-center">
                     <img src="/icons/poor.png" alt="Смена подгузника" className="w-10 h-10 object-contain" />
@@ -1451,7 +1451,7 @@ export default function Dashboard() {
 
                 <button
                     onClick={() => handleQuickAction('bath')}
-                  className="w-full bg-white rounded-3xl p-3 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200 transition-all duration-200 iphone14-quick-action"
+                  className="w-full bg-white rounded-3xl p-2.5 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200 transition-all duration-200 iphone14-quick-action"
                 >
                   <div className="w-12 h-12 flex items-center justify-center">
                     <img src="/icons/bath.png" alt="Купание" className="w-10 h-10 object-contain" />
@@ -1495,7 +1495,7 @@ export default function Dashboard() {
               </div>
 
 {data?.dailyTip && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-3 shadow-sm border border-blue-100 iphone14-tip">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-2.5 shadow-sm border border-blue-100 iphone14-tip">
                   <div className="flex items-start gap-2">
                     <div className="w-8 h-8 flex items-center justify-center iphone14-tip-icon">
                       <img src="/icons/sovet.png" alt="Совет" className="w-8 h-8 object-contain" />
@@ -1512,6 +1512,8 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {/* Отступ для liquid-glass-tab-bar */}
+              <div className="h-20"></div>
           </div>
         )}
 
@@ -1763,6 +1765,9 @@ export default function Dashboard() {
                 )}
               </div>
               </div>
+              
+              {/* Отступ для liquid-glass-tab-bar */}
+              <div className="h-32"></div>
           </div>
         )}
 

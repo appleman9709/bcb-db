@@ -343,7 +343,7 @@
     cursor: pointer !important;
     border: 5px solid white !important; /* Увеличена толщина белой границы с 4px до 5px */
     box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* Усилены тени и добавлена внешняя тень */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: none !important;
     margin-top: -10px !important; /* Центрируем ползунок относительно трека (увеличено с -8px до -10px) */
     position: relative !important;
   }
@@ -356,19 +356,19 @@
     cursor: pointer !important;
     border: 5px solid white !important; /* Увеличена толщина белой границы с 4px до 5px */
     box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2) !important; /* Усилены тени и добавлена внешняя тень */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: none !important;
   }
 
   /* Активное состояние ползунка */
   input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.2); /* Увеличен масштаб с 1.15 до 1.2 */
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.3); /* Усилены тени */
+    transform: none; /* Убрана анимация масштабирования */
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2); /* Убраны усиленные тени */
     background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   }
 
   input[type="range"]::-moz-range-thumb:hover {
-    transform: scale(1.2); /* Увеличен масштаб с 1.15 до 1.2 */
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.3); /* Усилены тени */
+    transform: none; /* Убрана анимация масштабирования */
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2); /* Убраны усиленные тени */
     background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
   }
 
@@ -376,13 +376,13 @@
   input[type="range"]:focus::-webkit-slider-thumb {
     outline: 4px solid rgba(59, 130, 246, 0.4); /* Увеличена толщина outline с 3px до 4px */
     outline-offset: 3px; /* Увеличен offset с 2px до 3px */
-    transform: scale(1.15); /* Увеличен масштаб с 1.1 до 1.15 */
+    transform: none; /* Убрана анимация масштабирования */
   }
 
   input[type="range"]:focus::-moz-range-thumb {
     outline: 4px solid rgba(59, 130, 246, 0.4); /* Увеличена толщина outline с 3px до 4px */
     outline-offset: 3px; /* Увеличен offset с 2px до 3px */
-    transform: scale(1.15); /* Увеличен масштаб с 1.1 до 1.15 */
+    transform: none; /* Убрана анимация масштабирования */
   }
 
   /* Специальные стили для разных типов напоминаний */
@@ -554,7 +554,7 @@
     border-radius: 24px;
     padding: 20px;
     margin-bottom: 16px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
     position: relative;
     overflow: hidden;
   }
@@ -571,15 +571,15 @@
       rgba(16, 185, 129, 0.8) 50%, 
       rgba(249, 115, 22, 0.8) 100%);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: none;
   }
   
   .modern-slider-card:hover {
-    transform: translateY(-2px);
+    transform: none;
   }
   
   .modern-slider-card:hover::before {
-    opacity: 1;
+    opacity: 0;
   }
   
   /* Заголовок слайдера */
@@ -673,7 +673,7 @@
   .slider-progress {
     height: 100%;
     border-radius: 24px;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
     position: relative;
     overflow: hidden;
   }
@@ -689,7 +689,7 @@
       rgba(255, 255, 255, 0.3) 0%, 
       rgba(255, 255, 255, 0.1) 50%, 
       rgba(255, 255, 255, 0.3) 100%);
-    animation: shimmer 2s infinite;
+    animation: none;
   }
   
   @keyframes shimmer {
@@ -743,7 +743,7 @@
       0 4px 12px rgba(0, 0, 0, 0.15),
       0 2px 4px rgba(0, 0, 0, 0.1),
       0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: none !important;
     transform: translateY(25%) !important;
     position: relative;
   }
@@ -766,7 +766,7 @@
       0 4px 12px rgba(0, 0, 0, 0.15),
       0 2px 4px rgba(0, 0, 0, 0.1),
       0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: none !important;
   }
   
   /* Специальные стили для разных типов слайдеров */
@@ -820,27 +820,27 @@
   
   /* Активные состояния */
   .modern-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.15) !important;
+    transform: none !important;
     box-shadow: 
-      0 6px 16px rgba(59, 130, 246, 0.4),
-      0 3px 6px rgba(0, 0, 0, 0.15),
-      0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+      0 4px 12px rgba(0, 0, 0, 0.15),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
   }
   
   .modern-slider::-moz-range-thumb:hover {
-    transform: scale(1.15) !important;
+    transform: none !important;
     box-shadow: 
-      0 6px 16px rgba(59, 130, 246, 0.4),
-      0 3px 6px rgba(0, 0, 0, 0.15),
-      0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+      0 4px 12px rgba(0, 0, 0, 0.15),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
   }
   
   .modern-slider:active::-webkit-slider-thumb {
-    transform: scale(1.1) !important;
+    transform: none !important;
   }
   
   .modern-slider:active::-moz-range-thumb {
-    transform: scale(1.1) !important;
+    transform: none !important;
   }
   
   /* Метки слайдера */
@@ -883,7 +883,7 @@
   
   /* Анимации */
   .modern-slider-card {
-    animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: none;
   }
   
   @keyframes slideInUp {
@@ -1143,7 +1143,7 @@
   
   /* Анимация появления прогресс-бара */
   .slider-progress {
-    animation: progressGrow 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: none;
   }
   
   @keyframes progressGrow {
@@ -1166,11 +1166,11 @@
   
   /* Анимация изменения значения */
   .slider-value-badge {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
   }
   
   .modern-slider-card:focus-within .slider-value-badge {
-    transform: scale(1.05);
+    transform: none;
   }
   
   /* Эффект волны для ползунка */
@@ -1184,7 +1184,7 @@
     background: rgba(59, 130, 246, 0.3);
     border-radius: 50%;
     transform: translate(-50%, -50%) scale(0);
-    animation: ripple 0.6s ease-out;
+    animation: none;
   }
   
   @keyframes ripple {
@@ -1196,12 +1196,12 @@
   
   /* Улучшенные hover эффекты для иконок */
   .slider-icon {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
   }
   
   .modern-slider-card:hover .slider-icon {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.2);
+    transform: none;
+    box-shadow: none;
   }
   
   /* Анимация появления карточек с задержкой */
@@ -1237,7 +1237,7 @@
   
   /* Улучшенная анимация shimmer для прогресс-бара */
   .slider-progress::after {
-    animation: shimmer 3s infinite;
+    animation: none;
   }
   
   @keyframes shimmer {
@@ -1256,22 +1256,22 @@
   
   /* Эффект магнитного притяжения для меток */
   .slider-label {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
   }
   
   .slider-label:hover {
-    background: rgba(59, 130, 246, 0.05);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    background: transparent;
+    transform: none;
+    box-shadow: none;
   }
   
   /* Анимация пульсации для активных значений */
   .value-number {
-    transition: all 0.3s ease;
+    transition: none;
   }
   
   .modern-slider-card:focus-within .value-number {
-    animation: valuePulse 0.6s ease-in-out;
+    animation: none;
   }
   
   @keyframes valuePulse {
@@ -1315,35 +1315,35 @@
 
   /* Анимация при изменении значения */
   input[type="range"]:active::-webkit-slider-thumb {
-    animation: pulse-glow 0.6s ease-in-out;
+    animation: none;
   }
 
   input[type="range"]:active::-moz-range-thumb {
-    animation: pulse-glow 0.6s ease-in-out;
+    animation: none;
   }
 
   .feeding-slider:active::-webkit-slider-thumb {
-    animation: pulse-glow 0.6s ease-in-out;
+    animation: none;
   }
 
   .feeding-slider:active::-moz-range-thumb {
-    animation: pulse-glow 0.6s ease-in-out;
+    animation: none;
   }
 
   .diaper-slider:active::-webkit-slider-thumb {
-    animation: pulse-glow-green 0.6s ease-in-out;
+    animation: none;
   }
 
   .diaper-slider:active::-moz-range-thumb {
-    animation: pulse-glow-green 0.6s ease-in-out;
+    animation: none;
   }
 
   .bath-slider:active::-webkit-slider-thumb {
-    animation: pulse-glow-orange 0.6s ease-in-out;
+    animation: none;
   }
 
   .bath-slider:active::-moz-range-thumb {
-    animation: pulse-glow-orange 0.6s ease-in-out;
+    animation: none;
   }
 
   /* Красивые метки значений */
@@ -1352,12 +1352,12 @@
     backdrop-filter: blur(12px); /* Увеличен blur с 10px до 12px */
     border: 2px solid rgba(255, 255, 255, 0.4); /* Увеличена толщина границы с 1px до 2px */
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.3); /* Усилены тени */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: none;
   }
 
   .slider-value-display:hover {
-    transform: scale(1.08); /* Увеличен масштаб с 1.05 до 1.08 */
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2), 0 4px 8px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.4); /* Усилены тени */
+    transform: none; /* Убрана анимация масштабирования */
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.3); /* Убраны усиленные тени */
   }
 
   /* Градиентные границы для контейнеров слайдеров */
@@ -1378,7 +1378,7 @@
 
   /* Анимация появления слайдеров */
   .slider-container {
-    animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: none;
   }
 
   @keyframes slideInUp {
