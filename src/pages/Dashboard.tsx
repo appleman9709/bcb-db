@@ -16,8 +16,8 @@ import { useAuth } from '../contexts/AuthContext'
 import { dataService } from '../services/dataService'
 import type { Feeding, Diaper, Bath, Activity, Tip, SleepSession, FamilyMember } from '../services/dataService'
 import RecordDetailModal from '../components/RecordDetailModal'
-import HistoryFilters from '../components/HistoryFilters'
 import EventGroup from '../components/EventGroup'
+import TimelineEvent from '../components/TimelineEvent'
 import DutyScheduleModal from '../components/DutyScheduleModal'
 import {
   DEFAULT_BLOCK_DURATION,
@@ -64,7 +64,6 @@ interface SettingsState {
   feedingInterval: number
   diaperInterval: number
   bathInterval: number
-  sleepMonitoringEnabled: boolean
   wakeOnActivityEnabled: boolean
 }
 
@@ -115,7 +114,6 @@ export default function Dashboard() {
     feedingInterval: 3,
     diaperInterval: 2,
     bathInterval: 1,
-    sleepMonitoringEnabled: true,
     wakeOnActivityEnabled: true
   })
   const [loading, setLoading] = useState(true)
@@ -140,8 +138,6 @@ export default function Dashboard() {
     end_time?: string
     duration_minutes?: number
   } | null>(null)
-  const [historyFilter, setHistoryFilter] = useState<string>('all')
-  const [groupByDate, setGroupByDate] = useState<boolean>(true)
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([])
   const [dutySchedule, setDutySchedule] = useState<DutySchedule | null>(null)
   const [dutyModalOpen, setDutyModalOpen] = useState(false)
@@ -273,7 +269,6 @@ export default function Dashboard() {
           feedingInterval: settingsFromDb.feed_interval ?? prev.feedingInterval,
           diaperInterval: settingsFromDb.diaper_interval ?? prev.diaperInterval,
           bathInterval: settingsFromDb.bath_reminder_period ?? prev.bathInterval,
-          sleepMonitoringEnabled: settingsFromDb.sleep_monitoring_enabled ?? prev.sleepMonitoringEnabled,
           wakeOnActivityEnabled: settingsFromDb.wake_on_activity_enabled ?? prev.wakeOnActivityEnabled
         }))
       }
@@ -439,6 +434,56 @@ export default function Dashboard() {
     }
 
     return `${formatDuration(diffInMinutes)} назад`
+  }
+
+  // Функция для расчета статистики за день
+  const getTodayStats = () => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    const todayFeedings = historyData?.feedings?.filter(f => {
+      const feedingDate = new Date(f.timestamp)
+      return feedingDate >= today && feedingDate < tomorrow
+    }).length || 0
+
+    const todayDiapers = historyData?.diapers?.filter(d => {
+      const diaperDate = new Date(d.timestamp)
+      return diaperDate >= today && diaperDate < tomorrow
+    }).length || 0
+
+    const todayActivities = historyData?.activities?.filter(a => {
+      const activityDate = new Date(a.timestamp)
+      return activityDate >= today && activityDate < tomorrow && 
+             !['feeding', 'diaper', 'bath'].includes(a.activity_type)
+    }).length || 0
+
+    // Расчет общего времени сна за день
+    const todaySleepSessions = historyData?.sleepSessions?.filter(s => {
+      const sleepDate = new Date(s.start_time)
+      return sleepDate >= today && sleepDate < tomorrow
+    }) || []
+
+    const totalSleepMinutes = todaySleepSessions.reduce((total, session) => {
+      if (session.end_time) {
+        const start = new Date(session.start_time)
+        const end = new Date(session.end_time)
+        return total + Math.floor((end.getTime() - start.getTime()) / (1000 * 60))
+      }
+      return total
+    }, 0)
+
+    const sleepHours = Math.floor(totalSleepMinutes / 60)
+    const sleepMinutes = totalSleepMinutes % 60
+    const sleepTime = sleepHours > 0 ? `${sleepHours}ч ${sleepMinutes}м` : `${sleepMinutes}м`
+
+    return {
+      feedings: todayFeedings,
+      diapers: todayDiapers,
+      activities: todayActivities,
+      sleep: sleepTime
+    }
   }
 
   // Функция для расчета цвета градиента на основе времени
@@ -618,7 +663,6 @@ export default function Dashboard() {
         bath_reminder_period: settings.bathInterval,
         baby_birth_date: settings.birthDate,
         baby_age_months: calculateAgeInMonths(settings.birthDate),
-        sleep_monitoring_enabled: settings.sleepMonitoringEnabled,
         wake_on_activity_enabled: settings.wakeOnActivityEnabled
       })
 
@@ -1182,45 +1226,6 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-              {/* Синхронизация сна */}
-              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 flex items-center justify-center text-sm">
-                    😴
-                  </div>
-                  <h2 className="text-base font-semibold text-gray-900">Синхронизация сна</h2>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-medium text-gray-900">Семейная синхронизация</p>
-                      <p className="text-xs text-gray-500">Сон малыша будет синхронизирован между всеми членами семьи</p>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        id="sleepMonitoring"
-                        checked={settings.sleepMonitoringEnabled}
-                        onChange={(event) => handleSettingChange('sleepMonitoringEnabled', event.target.checked)}
-                        className="sr-only"
-                      />
-                      <label
-                        htmlFor="sleepMonitoring"
-                        className={`toggle-switch ${settings.sleepMonitoringEnabled ? 'active' : ''}`}
-                      >
-                        <div className="toggle-thumb"></div>
-                      </label>
-                    </div>
-                  </div>
-                  <div className={`px-2 py-1 rounded-3xl text-xs font-medium ${
-                    settings.sleepMonitoringEnabled 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-gray-100 text-gray-700'
-                  }`}>
-                    {settings.sleepMonitoringEnabled ? '✅ Синхронизация включена' : '❌ Синхронизация отключена'}
-                  </div>
-                </div>
-              </div>
 
               {/* Пробуждение после активности */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
@@ -1519,7 +1524,7 @@ export default function Dashboard() {
 
           {activeTab === 'history' && (
             <div className="space-y-0.125">
-              <div className="text-center">
+              <div className="text-center mb-4">
                 <h1 className="text-lg font-bold text-gray-900 mb-1">📋 История событий</h1>
                 <p className="text-xs text-gray-600 mb-0.5">Подробная статистика и хронология всех записей</p>
             </div>
@@ -1559,211 +1564,76 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Общая статистика */}
-              <div className="bg-white rounded-3xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
-                <h2 className="text-xs font-semibold text-gray-900 mt-2 mb-2">📊 Общая статистика</h2>
+              {/* Статистика за день */}
+              <div className="p-0.25 iphone14-card">
+                <h2 className="text-lg font-semibold text-gray-900 mt-2 mb-2 text-center">Статистика за день</h2>
                 <div className="grid grid-cols-2 gap-0.5">
                   <div className="text-center p-3 bg-blue-50 rounded-3xl">
-                    <div className="text-xs font-bold text-blue-500 mb-0.5">{totalCounts?.feedings || 0}</div>
+                    <div className="text-xs font-bold text-blue-500 mb-0.5">{getTodayStats().feedings}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Кормлений</div>
                   </div>
                   <div className="text-center p-3 bg-green-50 rounded-3xl">
-                    <div className="text-xs font-bold text-green-500 mb-0.5">{totalCounts?.diapers || 0}</div>
+                    <div className="text-xs font-bold text-green-500 mb-0.5">{getTodayStats().diapers}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Подгузников</div>
                   </div>
-                  <div className="text-center p-3 bg-yellow-50 rounded-3xl">
-                    <div className="text-xs font-bold text-yellow-500 mb-0.5">{totalCounts?.baths || 0}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Купаний</div>
-                  </div>
                   <div className="text-center p-3 bg-purple-50 rounded-3xl">
-                    <div className="text-xs font-bold text-purple-500 mb-0.5">{totalCounts?.activities || 0}</div>
+                    <div className="text-xs font-bold text-purple-500 mb-0.5">{getTodayStats().activities}</div>
                     <div className="text-xs text-gray-600 mb-0.5">Активностей</div>
+                  </div>
+                  <div className="text-center p-3 bg-indigo-50 rounded-3xl">
+                    <div className="text-xs font-bold text-indigo-500 mb-0.5">{getTodayStats().sleep}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Сон</div>
                   </div>
                 </div>
             </div>
 
               {/* Последние события */}
-              <div className="bg-white rounded-3xl p-0.25 shadow-sm border border-gray-100 iphone14-card">
+              <div className="p-0.25 iphone14-card">
+                <div className="flex justify-center mb-0.5 px-0.125">
+                  <img src="/icons/clock.png" alt="Часы" className="w-32 h-32 object-contain" />
+                </div>
                 <div className="mb-0.5">
-                  <h2 className="text-xs font-semibold text-gray-900 mt-2 mb-2">🕒 Последние события</h2>
-              </div>
-              <p className="text-xs text-gray-500 mb-0.5 px-0.125">
-                💡 Нажмите на запись для просмотра деталей
-              </p>
-
-
-              {/* Фильтры истории */}
-              <HistoryFilters 
-                selectedFilter={historyFilter} 
-                onFilterChange={setHistoryFilter} 
-              />
-
-              {/* Переключатель группировки */}
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-700">Группировка по дням</span>
-                <button
-                  onClick={() => setGroupByDate(!groupByDate)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-3xl transition-colors ${
-                    groupByDate ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-3xl bg-white transition-transform ${
-                      groupByDate ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
+                  <h2 className="text-lg font-semibold text-gray-900 mt-2 mb-2 text-center">Последние события</h2>
               </div>
 
-                <div className="space-y-0.0625">
-                {historyData ? (
-                  (() => {
-                    const allEvents = [
-                      ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' as const })),
-                      ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
-                      ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const })),
-                      ...(historyData.activities || [])
-                        .filter(item => !['feeding', 'diaper', 'bath'].includes(item.activity_type)) // Исключаем служебные записи из истории
-                        .map(item => ({ ...item, type: 'activity' as const })),
-                      // Для сна используем одну запись с меткой времени окончания, если она есть (иначе начала)
-                      ...((historyData.sleepSessions || []).map(item => ({
-                        ...item,
-                        type: 'sleep' as const,
-                        timestamp: item.end_time ?? item.start_time
-                      })))
-                    ]
-                      .filter(item => historyFilter === 'all' || item.type === historyFilter)
-                      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                      .slice(0, MAX_HISTORY_EVENTS)
 
-                    if (groupByDate) {
-                      // Группируем события по дням
-                      const groupedEvents = allEvents.reduce((groups, event) => {
-                        const date = new Date(event.timestamp).toDateString()
-                        if (!groups[date]) {
-                          groups[date] = []
-                        }
-                        groups[date].push(event)
-                        return groups
-                      }, {} as Record<string, typeof allEvents>)
+              {/* Timeline container */}
+                <div className="relative">
+                  {historyData ? (
+                    (() => {
+                      const allEvents = [
+                        ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' as const })),
+                        ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
+                        ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const })),
+                        ...(historyData.activities || [])
+                          .filter(item => !['feeding', 'diaper', 'bath'].includes(item.activity_type)) // Исключаем служебные записи из истории
+                          .map(item => ({ ...item, type: 'activity' as const })),
+                        // Для сна используем одну запись с меткой времени окончания, если она есть (иначе начала)
+                        ...((historyData.sleepSessions || []).map(item => ({
+                          ...item,
+                          type: 'sleep' as const,
+                          timestamp: item.end_time ?? item.start_time
+                        })))
+                      ]
+                        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                        .slice(0, MAX_HISTORY_EVENTS)
 
-                      return Object.entries(groupedEvents)
-                        .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-                        .map(([date, events]) => (
-                          <EventGroup
-                            key={date}
-                            date={date}
-                            events={events}
-                            onEventClick={handleRecordClick}
-                          />
-                        ))
-                    } else {
-                      // Отображаем события без группировки (как было раньше)
-                      return allEvents.map((item, index) => {
-                        const getTypeInfo = (type: typeof item.type) => {
-                          switch (type) {
-                            case 'feeding':
-                                const feedingItem = item as any
-                                const ouncesText = feedingItem.ounces ? ` • ${feedingItem.ounces} унций` : ''
-                                return { 
-                                  icon: <img src="/icons/feeding.png" alt="Кормление" className="w-6 h-6 object-contain" />, 
-                                  label: 'Кормление', 
-                                  color: 'bg-blue-100 text-blue-600',
-                                  bgColor: 'bg-blue-50',
-                                  description: `Ребенок покормлен${ouncesText}`,
-                                  extraInfo: feedingItem.ounces ? `🍼 ${feedingItem.ounces} унций` : null
-                                }
-                            case 'diaper':
-                                const diaperItem = item as any
-                                const diaperTypeText = diaperItem.diaper_type === 'Покакал' ? ' • Покакал' : ''
-                                return { 
-                                  icon: <img src="/icons/poor.png" alt="Смена подгузника" className="w-6 h-6 object-contain" />, 
-                                  label: 'Смена подгузника', 
-                                  color: 'bg-green-100 text-green-600',
-                                  bgColor: 'bg-green-50',
-                                  description: `Подгузник заменен${diaperTypeText}`,
-                                  extraInfo: diaperItem.diaper_type === 'Покакал' ? '💩 Покакал' : '💧 Просто'
-                                }
-                            case 'bath':
-                                const bathItem = item as any
-                                const moodText = bathItem.bath_mood === 'Кричал' ? ' • Беспокоился' : ''
-                                return { 
-                                  icon: <img src="/icons/bath.png" alt="Купание" className="w-6 h-6 object-contain" />, 
-                                  label: 'Купание', 
-                                  color: 'bg-yellow-100 text-yellow-600',
-                                  bgColor: 'bg-yellow-50',
-                                  description: `Ребенок искупан${moodText}`,
-                                  extraInfo: bathItem.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'
-                                }
-                            case 'activity':
-                                const activityItem = item as any
-                                return { 
-                                  icon: <img src="/icons/activity.png" alt="Активность" className="w-6 h-6 object-contain" />, 
-                                  label: 'Активность', 
-                                  color: 'bg-purple-100 text-purple-600',
-                                  bgColor: 'bg-purple-50',
-                                  description: activityItem.activity_type || 'Активность записана',
-                                  extraInfo: null // Убираем дублирование - тип активности уже в описании
-                                }
-                            default:
-                                return { 
-                                  icon: '⭐', 
-                                  label: 'Событие', 
-                                  color: 'bg-gray-100 text-gray-600',
-                                  bgColor: 'bg-gray-50',
-                                  description: 'Записано событие',
-                                  extraInfo: null
-                                }
-                          }
-                        }
-
-                        const typeInfo = getTypeInfo(item.type)
-                          const eventDate = new Date(item.timestamp)
-                          const timeAgo = getTimeAgo(item.timestamp)
-
-                        return (
-                            <div 
-                              key={`${item.type}-${item.id}-${index}`} 
-                              className={`flex items-center space-x-0.125 p-0.125 rounded-3xl ${typeInfo.bgColor} border border-gray-100 iphone14-card cursor-pointer hover:shadow-md transition-all duration-200`}
-                              onClick={() => handleRecordClick(item)}
-                            >
-                              <div className="w-8 h-8 flex items-center justify-center">
-                                {typeInfo.icon}
-                              </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                  <h3 className="text-xs font-semibold text-gray-900">{typeInfo.label}</h3>
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-xs font-medium text-gray-500">{timeAgo}</span>
-                                    <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                    </svg>
-                                  </div>
-                              </div>
-                                <p className="text-xs text-gray-600 mt-0.5">{typeInfo.description}</p>
-                                {typeInfo.extraInfo && (
-                                  <div className="flex items-center gap-1 mt-1">
-                                    <span className="text-xs font-medium text-gray-700 bg-white px-1.5 py-0.5 rounded-3xl border border-gray-200">
-                                      {typeInfo.extraInfo}
-                                    </span>
-                                  </div>
-                                )}
-                                <p className="text-xs text-gray-500 mt-0.5">
-                                  📅 {eventDate.toLocaleDateString('ru-RU')} в {formatTime(eventDate)}
-                                </p>
-                            </div>
-                          </div>
-                        )
-                      })
-                    }
-                  })()
-                ) : (
-                  <div className="text-center py-8 text-gray-400">
-                    <div className="text-4xl mb-2">⏳</div>
+                      return allEvents.map((event, index) => (
+                        <TimelineEvent
+                          key={`${event.type}-${event.id}-${index}`}
+                          event={event}
+                          isLast={index === allEvents.length - 1}
+                          onClick={handleRecordClick}
+                        />
+                      ))
+                    })()
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <div className="text-4xl mb-2">⏳</div>
                       <p>Загружаем историю событий...</p>
-                  </div>
-                )}
-              </div>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Отступ для liquid-glass-tab-bar */}

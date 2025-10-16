@@ -276,6 +276,111 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     }
   }
 
+  const handleDiaperSubmit = async (diaperTypeValue: string) => {
+    if (!selectedDateTime) {
+      setError('Выберите дату и время обязательно')
+      return
+    }
+
+    const eventDate = new Date(selectedDateTime)
+    if (Number.isNaN(eventDate.getTime())) {
+      setError('Не удалось распознать выбранную дату')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    const timestamp = eventDate.toISOString()
+
+    try {
+      const result = await dataService.addDiaper(timestamp, diaperTypeValue)
+
+      // Добавляем вибрацию при успешном выполнении действия
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100]) // Паттерн вибрации: 100мс, пауза 50мс, 100мс
+      }
+
+      onSuccess?.({})
+      onClose()
+    } catch (submitError) {
+      console.error('Error adding diaper record:', submitError)
+      setError('Не удалось сохранить запись, попробуйте еще раз позже')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleBathSubmit = async (bathMoodValue: string) => {
+    if (!selectedDateTime) {
+      setError('Выберите дату и время обязательно')
+      return
+    }
+
+    const eventDate = new Date(selectedDateTime)
+    if (Number.isNaN(eventDate.getTime())) {
+      setError('Не удалось распознать выбранную дату')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    const timestamp = eventDate.toISOString()
+
+    try {
+      const result = await dataService.addBath(timestamp, bathMoodValue)
+
+      // Добавляем вибрацию при успешном выполнении действия
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100]) // Паттерн вибрации: 100мс, пауза 50мс, 100мс
+      }
+
+      onSuccess?.({})
+      onClose()
+    } catch (submitError) {
+      console.error('Error adding bath record:', submitError)
+      setError('Не удалось сохранить запись, попробуйте еще раз позже')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleActivitySubmit = async (activityTypeValue: string) => {
+    if (!selectedDateTime) {
+      setError('Выберите дату и время обязательно')
+      return
+    }
+
+    const eventDate = new Date(selectedDateTime)
+    if (Number.isNaN(eventDate.getTime())) {
+      setError('Не удалось распознать выбранную дату')
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+
+    const timestamp = eventDate.toISOString()
+
+    try {
+      const result = await dataService.addActivity(activityTypeValue, timestamp)
+
+      // Добавляем вибрацию при успешном выполнении действия
+      if ('vibrate' in navigator) {
+        navigator.vibrate([100, 50, 100]) // Паттерн вибрации: 100мс, пауза 50мс, 100мс
+      }
+
+      onSuccess?.({})
+      onClose()
+    } catch (submitError) {
+      console.error('Error adding activity record:', submitError)
+      setError('Не удалось сохранить запись, попробуйте еще раз позже')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       <div className={`quick-action-modal space-y-4 ${actionType === 'activity' ? 'sm:space-y-4' : 'sm:space-y-6'}`}>
@@ -293,122 +398,8 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
         )}
 
         <div className="space-y-3 sm:space-y-4">
-          {/* Выбор типа активности - только для активности */}
-          {actionType === 'activity' && (
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                {activityTypes.map((activity) => (
-                  <button
-                    key={activity.id}
-                    type="button"
-                    onClick={() => setSelectedActivity(activity.id)}
-                    className={`relative p-3 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-1 ${
-                      selectedActivity === activity.id
-                        ? `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg`
-                        : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                    }`}
-                  >
-                    <img 
-                      src={activity.icon} 
-                      alt={activity.label} 
-                      className="w-8 h-8 object-contain"
-                    />
-                    <span className="text-xs font-medium text-center leading-tight">
-                      {activity.label}
-                    </span>
-                    {selectedActivity === activity.id && (
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">✓</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-gray-600 text-center">
-                {activityTypes.find(a => a.id === selectedActivity)?.description}
-              </p>
-            </div>
-          )}
 
-          {/* Опции для смены подгузника */}
-          {actionType === 'diaper' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Тип смены подгузника</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDiaperType('Просто')}
-                  className={`p-3 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-1 ${
-                    diaperType === 'Просто'
-                      ? 'border-green-500 bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <img 
-                    src="/icons/common.png" 
-                    alt="Просто" 
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span className="text-xs font-medium">Просто</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDiaperType('Покакал')}
-                  className={`p-3 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-1 ${
-                    diaperType === 'Покакал'
-                      ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <img 
-                    src="/icons/poor.png" 
-                    alt="Покакал" 
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span className="text-xs font-medium">Покакал</span>
-                </button>
-              </div>
-            </div>
-          )}
 
-          {/* Опции для купания */}
-          {actionType === 'bath' && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Настроение во время купания</label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setBathMood('Спокойное')}
-                  className={`p-3 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-1 ${
-                    bathMood === 'Спокойное'
-                      ? 'border-blue-500 bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <img 
-                    src="/icons/still.png" 
-                    alt="Спокойное" 
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span className="text-xs font-medium text-center">Спокойное</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setBathMood('Беспокоился')}
-                  className={`p-3 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-1 ${
-                    bathMood === 'Беспокоился'
-                      ? 'border-orange-500 bg-gradient-to-br from-orange-400 to-yellow-500 text-white shadow-lg'
-                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  <img 
-                    src="/icons/angry.png" 
-                    alt="Беспокоился" 
-                    className="w-8 h-8 object-contain"
-                  />
-                  <span className="text-xs font-medium">Беспокоился</span>
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Ползунок для кормления */}
           {actionType === 'feeding' && (
@@ -511,24 +502,180 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
         </div>
 
-        <div className="flex gap-2 sm:gap-3">
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            className="flex-1"
-            disabled={loading}
-          >
-            Отмена
-          </Button>
-          <Button
-            variant={config.buttonVariant}
-            onClick={handleSubmit}
-            className="flex-1"
-            disabled={loading}
-          >
-            {loading ? 'Сохранение...' : config.buttonText}
-          </Button>
-        </div>
+        {/* Кнопки выбора типа смены подгузника */}
+        {actionType === 'diaper' && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={async () => {
+                  setDiaperType('Покакал')
+                  await handleDiaperSubmit('Покакал')
+                }}
+                disabled={loading}
+                className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                  loading
+                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'border-orange-500 bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                }`}
+              >
+                <img 
+                  src="/icons/poor.png" 
+                  alt="Покакал" 
+                  className="w-10 h-10 object-contain"
+                />
+                <span className="text-sm font-semibold">Покакал</span>
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setDiaperType('Просто')
+                  await handleDiaperSubmit('Просто')
+                }}
+                disabled={loading}
+                className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                  loading
+                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'border-green-500 bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                }`}
+              >
+                <img 
+                  src="/icons/common.png" 
+                  alt="Просто" 
+                  className="w-10 h-10 object-contain"
+                />
+                <span className="text-sm font-semibold">Просто</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full py-2 px-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-sm font-medium"
+              disabled={loading}
+            >
+              Отмена
+            </button>
+          </div>
+        )}
+
+        {/* Кнопки выбора настроения купания */}
+        {actionType === 'bath' && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={async () => {
+                  setBathMood('Беспокоился')
+                  await handleBathSubmit('Беспокоился')
+                }}
+                disabled={loading}
+                className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                  loading
+                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'border-orange-500 bg-gradient-to-br from-orange-400 to-yellow-500 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                }`}
+              >
+                <img 
+                  src="/icons/angry.png" 
+                  alt="Беспокоился" 
+                  className="w-10 h-10 object-contain"
+                />
+                <span className="text-sm font-semibold">Беспокоился</span>
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setBathMood('Спокойное')
+                  await handleBathSubmit('Спокойное')
+                }}
+                disabled={loading}
+                className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                  loading
+                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'border-blue-500 bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                }`}
+              >
+                <img 
+                  src="/icons/still.png" 
+                  alt="Спокойное" 
+                  className="w-10 h-10 object-contain"
+                />
+                <span className="text-sm font-semibold">Спокойное</span>
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full py-2 px-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-sm font-medium"
+              disabled={loading}
+            >
+              Отмена
+            </button>
+          </div>
+        )}
+
+        {/* Кнопки выбора типа активности */}
+        {actionType === 'activity' && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              {activityTypes.map((activity) => (
+                <button
+                  key={activity.id}
+                  type="button"
+                  onClick={async () => {
+                    setSelectedActivity(activity.id)
+                    await handleActivitySubmit(activity.id)
+                  }}
+                  disabled={loading}
+                  className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                    loading
+                      ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg hover:shadow-xl hover:scale-105`
+                  }`}
+                >
+                  <img 
+                    src={activity.icon} 
+                    alt={activity.label} 
+                    className="w-10 h-10 object-contain"
+                  />
+                  <span className="text-sm font-semibold text-center leading-tight">
+                    {activity.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full py-2 px-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-sm font-medium"
+              disabled={loading}
+            >
+              Отмена
+            </button>
+          </div>
+        )}
+
+        {/* Кнопки действий - только для кормления */}
+        {actionType === 'feeding' && (
+          <div className="flex gap-2 sm:gap-3">
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              className="flex-1"
+              disabled={loading}
+            >
+              Отмена
+            </Button>
+            <Button
+              variant={config.buttonVariant}
+              onClick={handleSubmit}
+              className="flex-1"
+              disabled={loading}
+            >
+              {loading ? 'Сохранение...' : config.buttonText}
+            </Button>
+          </div>
+        )}
       </div>
     </Modal>
   )

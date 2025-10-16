@@ -66,7 +66,7 @@ const getTypeInfo = (type: string, item: any) => {
         label: 'Активность', 
         color: 'bg-purple-100 text-purple-600',
         bgColor: 'bg-purple-50',
-        description: '',
+        description: item.activity_type || '',
         extraInfo: item.activity_type ? `🎯 ${item.activity_type}` : null
       }
     case 'sleep':

@@ -26,7 +26,6 @@ interface SettingsState {
   feedingInterval: number
   diaperInterval: number
   bathInterval: number
-  sleepMonitoringEnabled: boolean
   wakeOnActivityEnabled: boolean
 }
 
@@ -38,7 +37,6 @@ export default function TamagotchiPage() {
     feedingInterval: 3,
     diaperInterval: 2,
     bathInterval: 1,
-    sleepMonitoringEnabled: true,
     wakeOnActivityEnabled: true
   })
   const [loading, setLoading] = useState(true)
@@ -399,7 +397,6 @@ export default function TamagotchiPage() {
           feedingInterval: settingsFromDb.feed_interval ?? prev.feedingInterval,
           diaperInterval: settingsFromDb.diaper_interval ?? prev.diaperInterval,
           bathInterval: settingsFromDb.bath_reminder_period ?? prev.bathInterval,
-          sleepMonitoringEnabled: settingsFromDb.sleep_monitoring_enabled ?? prev.sleepMonitoringEnabled,
           wakeOnActivityEnabled: settingsFromDb.wake_on_activity_enabled ?? prev.wakeOnActivityEnabled
         }))
       }
@@ -603,11 +600,7 @@ export default function TamagotchiPage() {
         durationText = `${minutes} минут`
       }
       
-      if (settings.sleepMonitoringEnabled) {
-        return `😴 Малыш спит уже ${durationText} (включил: ${sleepSession.author_name})`
-      } else {
-        return `😴 Малыш спит уже ${durationText}`
-      }
+      return `😴 Малыш спит уже ${durationText} (включил: ${sleepSession.author_name})`
     } else if (isSleepMode) {
       return "😴 Малыш спит сладким сном..."
     }

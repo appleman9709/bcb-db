@@ -52,12 +52,6 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
           style={{ width: '128px', height: '128px' }}
         />
         
-        {/* Индикатор кликабельности */}
-        {onClick && (
-          <div className="absolute top-2 right-2 w-6 h-6 bg-white/80 rounded-full flex items-center justify-center shadow-sm">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-          </div>
-        )}
       </div>
     </div>
   )
