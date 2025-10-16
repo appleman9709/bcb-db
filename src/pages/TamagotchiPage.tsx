@@ -1010,6 +1010,10 @@ export default function TamagotchiPage() {
 
       {/* GIF/Video малыша - адаптивное */}
       <div className="tamagotchi-video-container">
+        <p className="text-xs font-medium text-gray-700 mt-2 mb-2">
+          {getStateDescription(babyState)}
+        </p>
+        
         <div className="relative inline-block">
           {isSleepMode && getGifSource(babyState).endsWith('.MP4') ? (
             <video
@@ -1047,7 +1051,7 @@ export default function TamagotchiPage() {
           </div>
 
           {/* Кнопка рюкзака в нижнем правом углу */}
-          <div className="absolute bottom-4 right-4 z-50 flex flex-col items-end gap-2">
+          <div className="absolute bottom-8 right-4 z-50 flex flex-col items-end gap-2">
             <button
               type="button"
               onClick={toggleBackpack}
@@ -1057,7 +1061,7 @@ export default function TamagotchiPage() {
               <img 
                 src="/icons/bag.png" 
                 alt="Рюкзак" 
-                className="w-16 h-16 object-contain"
+                className="w-20 h-20 object-contain"
               />
               {shoppingList.length > 0 && (
                 <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[10px] rounded-full bg-red-100 text-red-600 font-semibold">
@@ -1264,10 +1268,6 @@ export default function TamagotchiPage() {
           </div>
 
         </div>
-        
-        <p className="text-xs font-medium text-gray-700 mt-2">
-          {getStateDescription(babyState)}
-        </p>
       </div>
 
       {/* Лоток с предметами - в стиле liquid glass */}
@@ -1275,8 +1275,12 @@ export default function TamagotchiPage() {
         <div className="tamagotchi-inventory-container">
           {/* Подгузник */}
           <div 
-            onClick={() => handleItemClick('diaper')}
-            className="tamagotchi-inventory-item"
+            onClick={(e) => {
+              e.currentTarget.classList.add('clicked');
+              setTimeout(() => e.currentTarget.classList.remove('clicked'), 600);
+              handleItemClick('diaper');
+            }}
+            className={`tamagotchi-inventory-item ${lowOnDiapers ? 'low-stock' : ''}`}
           >
             <div className="tamagotchi-inventory-icon">
               <img 
@@ -1291,8 +1295,12 @@ export default function TamagotchiPage() {
 
           {/* Бутылочка */}
           <div 
-            onClick={() => handleItemClick('feeding')}
-            className="tamagotchi-inventory-item"
+            onClick={(e) => {
+              e.currentTarget.classList.add('clicked');
+              setTimeout(() => e.currentTarget.classList.remove('clicked'), 600);
+              handleItemClick('feeding');
+            }}
+            className={`tamagotchi-inventory-item ${lowOnFormula ? 'low-stock' : ''}`}
           >
             <div className="tamagotchi-inventory-icon">
               <img 
@@ -1307,7 +1315,11 @@ export default function TamagotchiPage() {
 
           {/* Губка */}
           <div 
-            onClick={() => handleItemClick('bath')}
+            onClick={(e) => {
+              e.currentTarget.classList.add('clicked');
+              setTimeout(() => e.currentTarget.classList.remove('clicked'), 600);
+              handleItemClick('bath');
+            }}
             className="tamagotchi-inventory-item"
           >
             <div className="tamagotchi-inventory-icon">
@@ -1320,7 +1332,11 @@ export default function TamagotchiPage() {
 
           {/* Активность */}
           <div 
-            onClick={() => handleItemClick('activity')}
+            onClick={(e) => {
+              e.currentTarget.classList.add('clicked');
+              setTimeout(() => e.currentTarget.classList.remove('clicked'), 600);
+              handleItemClick('activity');
+            }}
             className="tamagotchi-inventory-item"
           >
             <div className="tamagotchi-inventory-icon">
