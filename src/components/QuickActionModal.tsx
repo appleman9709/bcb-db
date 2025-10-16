@@ -278,7 +278,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="sm">
-      <div className={`space-y-4 ${actionType === 'activity' ? 'sm:space-y-4' : 'sm:space-y-6'}`}>
+      <div className={`quick-action-modal space-y-4 ${actionType === 'activity' ? 'sm:space-y-4' : 'sm:space-y-6'}`}>
         {/* Изображение только для кормления, подгузника и купания */}
         {actionType !== 'activity' && (
           <img 
@@ -482,23 +482,23 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
               </svg>
             </div>
             
-            {/* Поле времени - основное, больше */}
-            <div className="rounded-3xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-3 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
-              <label className="text-[10px] font-medium uppercase tracking-wide text-blue-600 block mb-1">Время</label>
-              <div className="flex items-center gap-2">
+            {/* Поле времени - компактное */}
+            <div className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-2 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
+              <label className="text-[9px] font-medium uppercase tracking-wide text-blue-600 block mb-0.5">Время</label>
+              <div className="flex items-center gap-1.5">
                 <input
                   type="time"
                   step={300}
                   value={timePart}
                   onChange={(event) => handleTimeChange(event.target.value)}
-                  className="flex-1 bg-transparent text-sm font-semibold text-blue-700 focus:outline-none focus:ring-0 cursor-pointer"
+                  className="flex-1 bg-transparent text-xs font-semibold text-blue-700 focus:outline-none focus:ring-0 cursor-pointer"
                   style={{
                     colorScheme: 'light',
                     WebkitAppearance: 'none',
                     MozAppearance: 'textfield'
                   }}
                 />
-                <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>

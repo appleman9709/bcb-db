@@ -45,7 +45,7 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
   }
 
   return (
-    <div className="modal-overlay flex items-start justify-center p-4 sm:items-center sm:p-6">
+    <div className="modal-overlay flex items-start justify-center p-4 sm:items-center sm:p-6" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
       {/* Background overlay */}
       <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
       
@@ -62,7 +62,7 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
         </button>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden p-5 sm:p-6 sm:overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
           {children}
         </div>
       </div>
