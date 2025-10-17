@@ -1,9 +1,12 @@
 
 import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ImagePreloadProvider } from './contexts/ImagePreloadContext'
 import Dashboard from './pages/Dashboard'
 import AuthPage from './pages/AuthPage'
 import LoadingScreen from './components/LoadingScreen'
+import { CriticalImagePreloader } from './lib/imagePreloader'
+import ImagePreloader from './components/ImagePreloader'
 
 function AppContent() {
   const { family, member, initialized } = useAuth()
@@ -23,9 +26,13 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ImagePreloadProvider>
+        <AuthProvider>
+          <CriticalImagePreloader />
+          <ImagePreloader />
+          <AppContent />
+        </AuthProvider>
+      </ImagePreloadProvider>
     </ThemeProvider>
   )
 }

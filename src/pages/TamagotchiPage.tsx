@@ -1066,7 +1066,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       </div>
 
       {/* Кнопка рюкзака - вынесена из tamagotchi-video-container */}
-      <div className="absolute bottom-8 right-4 z-50 flex flex-col items-end gap-2">
+      <div className="absolute bottom-8 right-4 z-50 flex flex-col items-end gap-2" style={{ bottom: 'calc(32px + 16rem)' }}>
         <button
           type="button"
           onClick={toggleBackpack}

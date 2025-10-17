@@ -716,33 +716,53 @@ export default function Dashboard() {
   const handleRecentEventsClick = async () => {
     if (!recentEventsExpanded) {
       await fetchRecentEvents()
-      // Добавляем небольшую прокрутку вниз для мобильной версии при открытии модального окна
+      // Добавляем плавную прокрутку вниз для мобильной версии при открытии модального окна
       setTimeout(() => {
         console.log('Попытка прокрутки, ширина экрана:', window.innerWidth)
         // Проверяем, что это мобильное устройство (ширина экрана меньше 768px)
         if (window.innerWidth < 768) {
-          console.log('Мобильное устройство, выполняем прокрутку')
+          console.log('Мобильное устройство, выполняем плавную прокрутку')
           // Пробуем найти элемент с событиями и прокрутить к нему
           const eventsElement = document.querySelector('[data-recent-events]')
           if (eventsElement) {
-            console.log('Найден элемент событий, прокручиваем к нему')
+            console.log('Найден элемент событий, прокручиваем к нему плавно')
             eventsElement.scrollIntoView({ 
               behavior: 'smooth', 
               block: 'start',
               inline: 'nearest'
             })
           } else {
-            console.log('Элемент событий не найден, используем обычную прокрутку')
-            // Если элемент не найден, используем обычную прокрутку
-            window.scrollBy({
-              top: 150,
-              behavior: 'smooth'
-            })
+            console.log('Элемент событий не найден, используем плавную прокрутку')
+            // Если элемент не найден, используем более плавную прокрутку
+            const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop
+            const targetScrollTop = currentScrollTop + 80
+            
+            // Создаем плавную анимацию прокрутки
+            const startTime = performance.now()
+            const duration = 500 // Оптимальное время анимации для небольшой прокрутки
+            
+            const animateScroll = (currentTime: number) => {
+              const elapsed = currentTime - startTime
+              const progress = Math.min(elapsed / duration, 1)
+              
+              // Используем easing функцию для более плавной анимации
+              const easeInOutCubic = (t: number) => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1
+              const easedProgress = easeInOutCubic(progress)
+              
+              const newScrollTop = currentScrollTop + (targetScrollTop - currentScrollTop) * easedProgress
+              window.scrollTo(0, newScrollTop)
+              
+              if (progress < 1) {
+                requestAnimationFrame(animateScroll)
+              }
+            }
+            
+            requestAnimationFrame(animateScroll)
           }
         } else {
           console.log('Десктопное устройство, прокрутка не нужна')
         }
-      }, 300) // Увеличиваем задержку для лучшей синхронизации
+      }, 200) // Оптимальная задержка для синхронизации
     }
     setRecentEventsExpanded(!recentEventsExpanded)
   }
