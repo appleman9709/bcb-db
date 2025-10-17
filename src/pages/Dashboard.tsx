@@ -18,7 +18,6 @@ import { dataService } from '../services/dataService'
 import type { Feeding, Diaper, Bath, Activity, Tip, SleepSession, FamilyMember } from '../services/dataService'
 import RecordDetailModal from '../components/RecordDetailModal'
 import EventGroup from '../components/EventGroup'
-import TimelineEvent from '../components/TimelineEvent'
 import DutyScheduleModal from '../components/DutyScheduleModal'
 import {
   DEFAULT_BLOCK_DURATION,
@@ -32,7 +31,7 @@ import {
   type DutySchedule
 } from '../services/dutyScheduleService'
 
-type DashboardSection = 'dashboard' | 'history' | 'settings'
+type DashboardSection = 'dashboard' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
 type ReminderType = 'feeding' | 'diaper'
 
@@ -45,13 +44,6 @@ interface DashboardData {
   dailyTip: Tip | null
 }
 
-interface HistoryData {
-  feedings: Feeding[]
-  diapers: Diaper[]
-  baths: Bath[]
-  activities: Activity[]
-  sleepSessions: SleepSession[]
-}
 
 interface TotalCounts {
   feedings: number
@@ -68,7 +60,6 @@ interface SettingsState {
   wakeOnActivityEnabled: boolean
 }
 
-const MAX_HISTORY_EVENTS = 20
 const PULL_REFRESH_THRESHOLD = 90
 const MAX_PULL_DISTANCE = 140
 
@@ -96,6 +87,136 @@ const formatDuration = (minutes: number) => {
 const formatTime = (date: Date) =>
   date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 
+const getTypeInfo = (type: string, item: any) => {
+  switch (type) {
+    case 'feeding':
+      return { 
+        icon: <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />, 
+        label: 'Кормление', 
+        color: 'bg-blue-100 text-blue-600',
+        bgColor: 'bg-blue-50',
+        description: '',
+        extraInfo: item.ounces ? `🍼 ${item.ounces} унций` : null
+      }
+    case 'diaper':
+      return { 
+        icon: <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />, 
+        label: 'Смена подгузника', 
+        color: 'bg-green-100 text-green-600',
+        bgColor: 'bg-green-50',
+        description: '',
+        extraInfo: item.diaper_type === 'Покакал' ? '💩 Покакал' : '💧 Просто'
+      }
+    case 'bath':
+      return { 
+        icon: <img src="/icons/bath.png" alt="Купание" className="w-9 h-9 object-contain" />, 
+        label: 'Купание', 
+        color: 'bg-yellow-100 text-yellow-600',
+        bgColor: 'bg-yellow-50',
+        description: '',
+        extraInfo: item.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'
+      }
+    case 'activity':
+      // Определяем иконку и стили в зависимости от типа активности
+      const getActivityInfo = (activityType: string) => {
+        switch (activityType) {
+          case 'Прогулка':
+            return {
+              icon: '/icons/walking.png',
+              label: 'Прогулка',
+              color: 'bg-green-100 text-green-600',
+              bgColor: 'bg-green-50',
+              extraInfo: '🚶 Прогулка'
+            }
+          case 'Выкладывание на живот':
+            return {
+              icon: '/icons/belly.png',
+              label: 'Выкладывание на живот',
+              color: 'bg-blue-100 text-blue-600',
+              bgColor: 'bg-blue-50',
+              extraInfo: '🤱 Выкладывание на живот'
+            }
+          case 'Массаж':
+            return {
+              icon: '/icons/massage.png',
+              label: 'Массаж',
+              color: 'bg-purple-100 text-purple-600',
+              bgColor: 'bg-purple-50',
+              extraInfo: '💆 Массаж'
+            }
+          case 'Танцы на руках':
+            return {
+              icon: '/icons/dance.png',
+              label: 'Танцы на руках',
+              color: 'bg-orange-100 text-orange-600',
+              bgColor: 'bg-orange-50',
+              extraInfo: '💃 Танцы на руках'
+            }
+          default:
+            return {
+              icon: '/icons/activity.png',
+              label: 'Активность',
+              color: 'bg-gray-100 text-gray-600',
+              bgColor: 'bg-gray-50',
+              extraInfo: item.activity_type ? `🎯 ${item.activity_type}` : null
+            }
+        }
+      }
+      
+      const activityInfo = getActivityInfo(item.activity_type)
+      return {
+        icon: <img src={activityInfo.icon} alt={activityInfo.label} className="w-9 h-9 object-contain" />,
+        label: activityInfo.label,
+        color: activityInfo.color,
+        bgColor: activityInfo.bgColor,
+        description: '',
+        extraInfo: activityInfo.extraInfo
+      }
+    case 'sleep':
+      // Берем duration_minutes из БД, а если его нет, считаем по start_time/end_time
+      const hasEnded = Boolean(item.end_time)
+      const computedDuration = (() => {
+        if (typeof item?.duration_minutes === 'number' && item.duration_minutes > 0) return item.duration_minutes as number
+        if (hasEnded && item.start_time && item.end_time) {
+          const start = new Date(item.start_time).getTime()
+          const end = new Date(item.end_time).getTime()
+          if (!Number.isNaN(start) && !Number.isNaN(end) && end > start) {
+            return Math.max(1, Math.floor((end - start) / (1000 * 60)))
+          }
+        }
+        return undefined
+      })()
+      if (hasEnded) {
+        const durationText = typeof computedDuration === 'number' ? formatDuration(computedDuration) : null
+        return {
+          icon: <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />,
+          label: 'Сон',
+          color: 'bg-indigo-100 text-indigo-600',
+          bgColor: 'bg-indigo-50',
+          description: '',
+          extraInfo: durationText ? `😴 ${durationText}` : null
+        }
+      }
+      return { 
+        icon: <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />, 
+        label: 'Сон начат', 
+        color: 'bg-indigo-100 text-indigo-600',
+        bgColor: 'bg-indigo-50',
+        description: '',
+        extraInfo: '😴 В процессе'
+      }
+    default:
+      return { 
+        icon: <img src="/icons/activity.png" alt="Событие" className="w-9 h-9 object-contain" />, 
+        label: 'Событие', 
+        color: 'bg-gray-100 text-gray-600',
+        bgColor: 'bg-gray-50',
+        description: '',
+        extraInfo: null
+      }
+  }
+}
+
 const requestDefaultNotificationPermission = () => {
   if (typeof window === 'undefined' || !('Notification' in window)) {
     return 'default' as NotificationPermission
@@ -107,8 +228,6 @@ const requestDefaultNotificationPermission = () => {
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<DashboardSection>('dashboard')
   const [data, setData] = useState<DashboardData | null>(null)
-  const [historyData, setHistoryData] = useState<HistoryData | null>(null)
-  const [historyLoading, setHistoryLoading] = useState(false)
   const [totalCounts, setTotalCounts] = useState<TotalCounts | null>(null)
   const [settings, setSettings] = useState<SettingsState>({
     birthDate: '2024-01-01',
@@ -123,7 +242,7 @@ export default function Dashboard() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(requestDefaultNotificationPermission)
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [activeTab, setActiveTab] = useState<'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris'>('home')
+  const [activeTab, setActiveTab] = useState<'home' | 'settings' | 'tamagotchi' | 'tetris'>('home')
   const [recordDetailModalOpen, setRecordDetailModalOpen] = useState(false)
   const [growthChartModalOpen, setGrowthChartModalOpen] = useState(false)
   const [growthChartType, setGrowthChartType] = useState<'height' | 'weight'>('height')
@@ -146,11 +265,18 @@ export default function Dashboard() {
   const [dutyModalOpen, setDutyModalOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [currentDutyMemberFromDB, setCurrentDutyMemberFromDB] = useState<FamilyMember | null>(null)
-  const [isHistoryExpanded, setIsHistoryExpanded] = useState(false)
   
   // Tamagotchi modal state
   const [tamagotchiModalOpen, setTamagotchiModalOpen] = useState(false)
   const [tamagotchiModalAction, setTamagotchiModalAction] = useState<QuickActionType>('feeding')
+  
+  // Состояние для недавних событий
+  const [recentEventsExpanded, setRecentEventsExpanded] = useState(false)
+  
+  // Состояние для пользовательского изображения малыша
+  const [customBabyImage, setCustomBabyImage] = useState<string | null>(null)
+  const [recentEvents, setRecentEvents] = useState<any[]>([])
+  const [recentEventsLoading, setRecentEventsLoading] = useState(false)
 
   const { member, family, signOut } = useAuth()
 
@@ -176,6 +302,14 @@ export default function Dashboard() {
 
     return () => {
       window.clearInterval(intervalId)
+    }
+  }, [])
+
+  // Загружаем пользовательское изображение малыша из localStorage
+  useEffect(() => {
+    const savedImage = localStorage.getItem('customBabyImage')
+    if (savedImage) {
+      setCustomBabyImage(savedImage)
     }
   }, [])
 
@@ -400,37 +534,6 @@ export default function Dashboard() {
     return buildDefaultSchedule(familyMembers, currentBlockDuration, currentStartOffset)
   }, [dutySchedule, familyMembers, currentBlockDuration, currentStartOffset])
 
-  const fetchHistoryData = useCallback(async () => {
-    if (!member || !family) {
-      return
-    }
-
-    try {
-      setHistoryLoading(true)
-      const [feedings, diapers, baths, activities, sleepSessions, counts] = await Promise.all([
-        dataService.getFeedings(50),
-        dataService.getDiapers(50),
-        dataService.getBaths(50),
-        dataService.getActivities(50),
-        dataService.getSleepSessions(7),
-        dataService.getTotalCounts()
-      ])
-
-      setHistoryData({
-        feedings,
-        diapers,
-        baths,
-        activities,
-        sleepSessions
-      })
-
-      setTotalCounts(counts)
-    } catch (error) {
-      console.error('Error fetching history data:', error)
-    } finally {
-      setHistoryLoading(false)
-    }
-  }, [member, family])
 
   const getTimeAgo = (timestamp: string) => {
     const now = new Date()
@@ -446,51 +549,12 @@ export default function Dashboard() {
 
   // Функция для расчета статистики за день
   const getTodayStats = () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-
-    const todayFeedings = historyData?.feedings?.filter(f => {
-      const feedingDate = new Date(f.timestamp)
-      return feedingDate >= today && feedingDate < tomorrow
-    }).length || 0
-
-    const todayDiapers = historyData?.diapers?.filter(d => {
-      const diaperDate = new Date(d.timestamp)
-      return diaperDate >= today && diaperDate < tomorrow
-    }).length || 0
-
-    const todayActivities = historyData?.activities?.filter(a => {
-      const activityDate = new Date(a.timestamp)
-      return activityDate >= today && activityDate < tomorrow && 
-             !['feeding', 'diaper', 'bath'].includes(a.activity_type)
-    }).length || 0
-
-    // Расчет общего времени сна за день
-    const todaySleepSessions = historyData?.sleepSessions?.filter(s => {
-      const sleepDate = new Date(s.start_time)
-      return sleepDate >= today && sleepDate < tomorrow
-    }) || []
-
-    const totalSleepMinutes = todaySleepSessions.reduce((total, session) => {
-      if (session.end_time) {
-        const start = new Date(session.start_time)
-        const end = new Date(session.end_time)
-        return total + Math.floor((end.getTime() - start.getTime()) / (1000 * 60))
-      }
-      return total
-    }, 0)
-
-    const sleepHours = Math.floor(totalSleepMinutes / 60)
-    const sleepMinutes = totalSleepMinutes % 60
-    const sleepTime = sleepHours > 0 ? `${sleepHours}ч ${sleepMinutes}м` : `${sleepMinutes}м`
-
+    // Упрощенная версия без истории событий
     return {
-      feedings: todayFeedings,
-      diapers: todayDiapers,
-      activities: todayActivities,
-      sleep: sleepTime
+      feedings: 0,
+      diapers: 0,
+      activities: 0,
+      sleep: '0м'
     }
   }
 
@@ -530,6 +594,32 @@ export default function Dashboard() {
     setModalOpen(true)
   }
 
+  // Функция для загрузки пользовательского изображения малыша
+  const handleImageUpload = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          const imageDataUrl = event.target?.result as string
+          setCustomBabyImage(imageDataUrl)
+          localStorage.setItem('customBabyImage', imageDataUrl)
+        }
+        reader.readAsDataURL(file)
+      }
+    }
+    input.click()
+  }
+
+  // Функция для сброса пользовательского изображения
+  const handleImageReset = () => {
+    setCustomBabyImage(null)
+    localStorage.removeItem('customBabyImage')
+  }
+
   // Функция для определения действия при клике на изображение малыша
   const handleBabyImageClick = () => {
     const babyState = getBabyImageState()
@@ -545,9 +635,16 @@ export default function Dashboard() {
         handleQuickAction('bath')
         break
       default:
-        // Если все в порядке, предлагаем выбрать действие
-        // Можно открыть модальное окно с выбором или просто показать подсказку
-        handleQuickAction('feeding') // По умолчанию кормление
+        // Если все в порядке (normal), предлагаем загрузить изображение или сбросить его
+        if (customBabyImage) {
+          // Если есть пользовательское изображение, предлагаем сбросить его
+          if (confirm('Сбросить пользовательское изображение малыша?')) {
+            handleImageReset()
+          }
+        } else {
+          // Если нет пользовательского изображения, предлагаем загрузить его
+          handleImageUpload()
+        }
         break
     }
   }
@@ -555,9 +652,6 @@ export default function Dashboard() {
   const handleModalSuccess = async (result?: QuickActionResult) => {
     // Перезагружаем данные после быстрого действия и обновляем историю при необходимости
     await fetchData()
-    if (activeTab === 'history') {
-      await fetchHistoryData()
-    }
     setModalOpen(false)
   }
 
@@ -571,6 +665,59 @@ export default function Dashboard() {
     // Перезагружаем данные после быстрого действия
     await fetchData()
     setTamagotchiModalOpen(false)
+  }
+
+  // Функция для загрузки недавних событий
+  const fetchRecentEvents = async () => {
+    if (!member || !family) {
+      return
+    }
+
+    try {
+      setRecentEventsLoading(true)
+      const [feedings, diapers, baths, activities, sleepSessions] = await Promise.all([
+        dataService.getFeedings(10),
+        dataService.getDiapers(10),
+        dataService.getBaths(10),
+        dataService.getActivities(10),
+        dataService.getSleepSessions(10)
+      ])
+
+      // Фильтруем активности: оставляем только реальные активности малыша
+      const realActivities = activities.filter(activity => {
+        const realActivityTypes = ['Прогулка', 'Выкладывание на живот', 'Массаж', 'Танцы на руках']
+        return realActivityTypes.includes(activity.activity_type)
+      })
+
+      // Объединяем все события в один массив
+      const allEvents = [
+        ...feedings.map(f => ({ ...f, type: 'feeding' })),
+        ...diapers.map(d => ({ ...d, type: 'diaper' })),
+        ...baths.map(b => ({ ...b, type: 'bath' })),
+        ...realActivities.map(a => ({ ...a, type: 'activity' })),
+        ...sleepSessions.map(s => ({ ...s, type: 'sleep', timestamp: s.start_time }))
+      ]
+
+      // Сортируем по времени (новые сначала) и берем последние 20 событий
+      const sortedEvents = allEvents
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 20)
+
+      setRecentEvents(sortedEvents)
+    } catch (error) {
+      console.error('Error fetching recent events:', error)
+      setRecentEvents([])
+    } finally {
+      setRecentEventsLoading(false)
+    }
+  }
+
+  // Обработчик клика по изображению часов для раскрытия недавних событий
+  const handleRecentEventsClick = async () => {
+    if (!recentEventsExpanded) {
+      await fetchRecentEvents()
+    }
+    setRecentEventsExpanded(!recentEventsExpanded)
   }
 
   const handleDeleteRecord = async (type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep', id: number) => {
@@ -601,9 +748,6 @@ export default function Dashboard() {
       if (success) {
         // Обновляем данные
         fetchData()
-        if (activeTab === 'history') {
-          fetchHistoryData()
-        }
         
         // Вибрация при успешном удалении
         if ('vibrate' in navigator) {
@@ -645,9 +789,6 @@ export default function Dashboard() {
     setSelectedRecord(null)
   }
 
-  const handleHistoryToggle = () => {
-    setIsHistoryExpanded(!isHistoryExpanded)
-  }
 
 
   const handleRefresh = useCallback(async () => {
@@ -655,14 +796,14 @@ export default function Dashboard() {
     try {
       await Promise.all([
         fetchData(),
-        activeTab === 'history' ? fetchHistoryData() : Promise.resolve()
+        Promise.resolve()
       ])
     } catch (error) {
       console.error('Error refreshing data:', error)
     } finally {
       setIsRefreshing(false)
     }
-  }, [fetchData, fetchHistoryData, activeTab])
+  }, [fetchData, activeTab])
 
   const handleSettingChange = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -777,10 +918,7 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    if (activeTab === 'history' && member && family) {
-      fetchHistoryData()
-    }
-  }, [activeTab, member, family, fetchHistoryData])
+  }, [activeTab, member, family])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -818,8 +956,8 @@ export default function Dashboard() {
         return
       }
 
-      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе и тамагочи
-      if (activeTab === 'settings' || activeTab === 'history' || activeTab === 'tetris' || activeTab === 'tamagotchi') {
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе, тамагочи и когда открыт таймлайн
+      if (activeTab === 'settings' || activeTab === 'tetris' || activeTab === 'tamagotchi' || recentEventsExpanded) {
         resetPullState()
         return
       }
@@ -833,8 +971,8 @@ export default function Dashboard() {
         return
       }
 
-      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе и тамагочи
-      if (activeTab === 'settings' || activeTab === 'history' || activeTab === 'tetris' || activeTab === 'tamagotchi') {
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе, тамагочи и когда открыт таймлайн
+      if (activeTab === 'settings' || activeTab === 'tetris' || activeTab === 'tamagotchi' || recentEventsExpanded) {
         resetPullState()
         return
       }
@@ -894,7 +1032,7 @@ export default function Dashboard() {
       window.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('touchcancel', handleTouchCancel)
     }
-  }, [handleRefresh, updatePullDistance, activeSection, activeTab])
+  }, [handleRefresh, updatePullDistance, activeSection, activeTab, recentEventsExpanded])
 
   useEffect(() => {
     if (!isNotificationSupported) {
@@ -1003,12 +1141,10 @@ export default function Dashboard() {
     isNotificationSupported
   ])
 
-  const handleTabChange = (tab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris') => {
+  const handleTabChange = (tab: 'home' | 'settings' | 'tamagotchi' | 'tetris') => {
     console.log('Tab changed to:', tab) // Отладочная информация
     setActiveTab(tab)
-    if (tab === 'history') {
-      setActiveSection('history')
-    } else if (tab === 'settings') {
+    if (tab === 'settings') {
       setActiveSection('settings')
     } else if (tab === 'tamagotchi') {
       setActiveSection('dashboard') // Используем dashboard для тамагочи
@@ -1030,9 +1166,9 @@ export default function Dashboard() {
     const handleTetrisNavigation = (event: CustomEvent) => {
       const tab = event.detail.tab
       console.log('Dashboard: Received tetris-navigation event for tab:', tab)
-      if (['home', 'history', 'settings', 'tamagotchi', 'tetris'].includes(tab)) {
+      if (['home', 'settings', 'tamagotchi', 'tetris'].includes(tab)) {
         console.log('Dashboard: Switching to tab:', tab)
-        handleTabChange(tab as 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris')
+        handleTabChange(tab as 'home' | 'settings' | 'tamagotchi' | 'tetris')
       }
     }
 
@@ -1090,7 +1226,7 @@ export default function Dashboard() {
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content'} ${activeTab === 'settings' || activeTab === 'history' ? 'overflow-y-auto overflow-x-hidden' : ''}`}>
+        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content'} ${activeTab === 'settings' ? 'overflow-y-auto overflow-x-hidden' : 'overflow-y-auto overflow-x-hidden'}`}>
           {activeTab === 'tamagotchi' ? (
             <TamagotchiPage 
               onModalOpen={handleTamagotchiModalOpen}
@@ -1124,14 +1260,34 @@ export default function Dashboard() {
                 </div>
               )}
 
+              {/* Статистика за день */}
+              <div className="">
+                <h2 className="text-lg font-semibold text-gray-900 mt-2 mb-2 text-center">Статистика за день</h2>
+                <div className="grid grid-cols-2 gap-0.5">
+                  <div className="text-center p-3 bg-blue-50 rounded-3xl">
+                    <div className="text-xs font-bold text-blue-500 mb-0.5">{getTodayStats().feedings}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Кормлений</div>
+                  </div>
+                  <div className="text-center p-3 bg-green-50 rounded-3xl">
+                    <div className="text-xs font-bold text-green-500 mb-0.5">{getTodayStats().diapers}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Подгузников</div>
+                  </div>
+                  <div className="text-center p-3 bg-purple-50 rounded-3xl">
+                    <div className="text-xs font-bold text-purple-500 mb-0.5">{getTodayStats().activities}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Активностей</div>
+                  </div>
+                  <div className="text-center p-3 bg-indigo-50 rounded-3xl">
+                    <div className="text-xs font-bold text-indigo-500 mb-0.5">{getTodayStats().sleep}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Сон</div>
+                  </div>
+                </div>
+              </div>
+
               {/* Профиль малыша */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 flex items-center justify-center text-sm">
-                    👶
-      </div>
+                <div className="text-center mb-2">
                   <h2 className="text-base font-semibold text-gray-900">Профиль малыша</h2>
-            </div>
+                </div>
                 <div className="space-y-2">
                   <div className="date-input-container">
                     <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -1164,16 +1320,13 @@ export default function Dashboard() {
 
               {/* Напоминания */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 flex items-center justify-center text-sm">
-                    ⏰
-              </div>
+                <div className="text-center mb-2">
                   <h2 className="text-base font-semibold text-gray-900">Напоминания</h2>
                 </div>
                 <div className="space-y-3">
                   <div className="modern-slider-card">
                     <div className="slider-header">
-                      <div className="slider-icon">🍼</div>
+                      <div>🍼</div>
                       <div className="slider-info">
                         <h3 className="slider-title">Интервал кормления</h3>
                         <p className="slider-description">Рекомендуется кормить каждые 2-3 часа для новорожденных</p>
@@ -1205,7 +1358,7 @@ export default function Dashboard() {
                   </div>
                   <div className="modern-slider-card">
                     <div className="slider-header">
-                      <div className="slider-icon">💩</div>
+                      <div>💩</div>
                       <div className="slider-info">
                         <h3 className="slider-title">Интервал смены подгузника</h3>
                         <p className="slider-description">Меняйте подгузник каждые 2-4 часа или по необходимости</p>
@@ -1238,7 +1391,7 @@ export default function Dashboard() {
                   </div>
                   <div className="modern-slider-card">
                     <div className="slider-header">
-                      <div className="slider-icon">🛁</div>
+                      <div>🛁</div>
                       <div className="slider-info">
                         <h3 className="slider-title">Период купания</h3>
                         <p className="slider-description">Купайте малыша 2-3 раза в неделю или ежедневно</p>
@@ -1300,15 +1453,6 @@ export default function Dashboard() {
                         <div className="toggle-thumb"></div>
                       </label>
                     </div>
-                  </div>
-                  <div className={`px-2 py-1 rounded-3xl text-xs font-medium ${
-                    settings.wakeOnActivityEnabled 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-gray-100 text-gray-700'
-                  }`}>
-                    {settings.wakeOnActivityEnabled 
-                      ? '✅ Малыш будет просыпаться при записи активности' 
-                      : '❌ Автоматическое пробуждение отключено'}
                   </div>
                 </div>
               </div>
@@ -1395,7 +1539,7 @@ export default function Dashboard() {
             <div className="space-y-2">
               {/* Дежурство */}
               <div
-                className="border border-blue-100 rounded-3xl p-3 iphone14-card cursor-pointer transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-white h-[80px] flex flex-col justify-between"
+                className=""
                 role="button"
                 tabIndex={0}
                 onClick={() => setDutyModalOpen(true)}
@@ -1438,6 +1582,7 @@ export default function Dashboard() {
                   className="mb-3" 
                   state={getBabyImageState()} 
                   onClick={handleBabyImageClick}
+                  customImage={customBabyImage}
                 />
               </div>
 
@@ -1578,29 +1723,9 @@ export default function Dashboard() {
 
 
               {/* Блок истории событий */}
-              <div className="p-0.25 iphone14-card">
+              <div className="">
                 <div className="flex items-center justify-center mb-0.5 px-0.125 gap-2">
-                  {/* Кнопка графика роста слева */}
-                  <button
-                    onClick={() => {
-                      setGrowthChartType('height')
-                      setGrowthChartModalOpen(true)
-                    }}
-                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95 hover:scale-105"
-                    title="График роста"
-                  >
-                    <img src="/icons/height.png" alt="График роста" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" />
-                  </button>
-                  
-                  {/* Основное изображение малыша */}
-                  <img 
-                    src="/icons/clock.png" 
-                    alt="Часы" 
-                    className="w-32 h-32 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" 
-                    onClick={handleHistoryToggle}
-                  />
-                  
-                  {/* Кнопка графика веса справа */}
+                  {/* Кнопка графика веса слева */}
                   <button
                     onClick={() => {
                       setGrowthChartType('weight')
@@ -1611,671 +1736,110 @@ export default function Dashboard() {
                   >
                     <img src="/icons/wight.png" alt="График веса" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" />
                   </button>
+                  
+                  {/* Основное изображение малыша */}
+                  <img 
+                    src="/icons/clock.png" 
+                    alt="Часы" 
+                    className="w-32 h-32 object-contain transition-all duration-200 active:scale-95 hover:scale-105 cursor-pointer" 
+                    onClick={handleRecentEventsClick}
+                  />
+                  
+                  {/* Кнопка графика роста справа */}
+                  <button
+                    onClick={() => {
+                      setGrowthChartType('height')
+                      setGrowthChartModalOpen(true)
+                    }}
+                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95 hover:scale-105"
+                    title="График роста"
+                  >
+                    <img src="/icons/height.png" alt="График роста" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" />
+                  </button>
                 </div>
-                {isHistoryExpanded && (
-                  <div className="mb-0.5">
-                    <h2 className="text-lg font-semibold text-gray-900 mt-2 mb-2 text-center">Последние события</h2>
+                
+                {/* Таймлайн недавних событий */}
+                {recentEventsExpanded && (
+                  <div className="mt-4">
+                    <div className="text-center mb-3">
+                      <h3 className="text-lg font-bold text-gray-900">
+                        Недавние события
+                      </h3>
+                    </div>
+                    
+                    {recentEventsLoading ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="ml-2 text-gray-600 text-sm">Загружаем события...</span>
+                      </div>
+                    ) : recentEvents.length === 0 ? (
+                      <div className="text-center py-4">
+                        <div className="text-2xl mb-2">📅</div>
+                        <p className="text-gray-600 text-sm">Пока нет записанных событий</p>
+                        <p className="text-xs text-gray-500 mt-1">Начните записывать кормления, смены подгузников и другие активности</p>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="space-y-0">
+                          {recentEvents.map((event, index) => {
+                            const typeInfo = getTypeInfo(event.type, event)
+                            const eventDate = new Date(event.timestamp)
+                            const timeAgo = getTimeAgo(event.timestamp)
+                            const isLast = index === recentEvents.length - 1
+                            
+                            return (
+                              <div 
+                                key={`${event.type}-${event.id}-${index}`} 
+                                className="relative flex items-start space-x-3 pb-4 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                                onClick={() => handleRecordClick(event)}
+                              >
+                                {/* Контейнер для иконки и линии */}
+                                <div className="flex flex-col items-center">
+                                  {/* Иконка события */}
+                                  <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                                    <div className="w-9 h-9 flex items-center justify-center">
+                                      {typeInfo.icon}
+                                    </div>
+                                  </div>
+                                  {/* Линия снизу (кроме последнего элемента) */}
+                                  {!isLast && (
+                                    <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                                  )}
+                                </div>
+                                
+                                {/* Карточка события */}
+                                <div className={`flex-1 min-w-0 p-3 rounded-2xl ${typeInfo.bgColor} border border-gray-100 shadow-sm`}>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <h4 className="text-sm font-semibold text-gray-900">{typeInfo.label}</h4>
+                                    <span className="text-xs text-gray-500">{timeAgo}</span>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-sm text-gray-600">{formatTime(eventDate)}</span>
+                                    {typeInfo.extraInfo && (
+                                      <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">
+                                        {typeInfo.extraInfo}
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="text-xs text-gray-500">
+                                    👤 {event.author_name || 'Неизвестно'} • {eventDate.toLocaleDateString('ru-RU')}
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-                {isHistoryExpanded && (
-                  <div className="relative">
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">18:06</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">1 мин назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 0ч 42м</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">16:41</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">1 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Выкладывание на живот</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">16:12</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">1 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💩 Покакал</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-blue-50 border-blue-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Кормление</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">15:46</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">2 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🍼 4.5 унций</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">15:41</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">2 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 1ч 27м</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">15:41</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">2 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💧 Просто</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">12:42</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">5 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Массаж</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">12:42</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">5 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Танцы на руках</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">12:42</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">5 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Выкладывание на живот</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">11:30</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">6 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💧 Просто</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-blue-50 border-blue-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Кормление</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">11:15</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">6 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🍼 5 унций</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">07:25</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">10 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💩 Покакал</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">05:31</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">12 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 2ч 48м</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-blue-50 border-blue-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Кормление</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">05:31</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">12 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🍼 4.5 унций</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">05:31</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">12 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💧 Просто</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">02:42</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">15 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 1ч 5м</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">01:36</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">16 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 0ч 39м</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">01:36</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">16 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Танцы на руках</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                    </div>
-                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">00:58</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">17 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 0ч 10м</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
-                    </div>
-                  </div>
-                  <div className="relative flex items-start space-x-3 pb-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                        <div className="w-9 h-9 flex items-center justify-center">
-                          <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 bg-blue-50 border-blue-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-2">
-                          <div>
-                            <h3 className="text-sm font-semibold text-gray-900">Кормление</h3>
-                            <p className="text-xs text-gray-600 mt-0.5">23:56</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-gray-400">18 ч назад</div>
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🍼 5 унций</span>
-                      </div>
-                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 16.10.2025</div>
-                    </div>
-                  </div>
-                </div>
                 )}
               </div>
 
-              {/* Отступ для liquid-glass-tab-bar */}
-              <div className="h-20"></div>
           </div>
         )}
 
-          {activeTab === 'history' && (
-            <div className="space-y-0.125">
-              <div className="text-center mb-4">
-                <h1 className="text-lg font-bold text-gray-900 mb-1">📋 История событий</h1>
-                <p className="text-xs text-gray-600 mb-0.5">Подробная статистика и хронология всех записей</p>
-            </div>
-
-              {/* Статистика за день */}
-              <div className="p-0.25 iphone14-card">
-                <h2 className="text-lg font-semibold text-gray-900 mt-2 mb-2 text-center">Статистика за день</h2>
-                <div className="grid grid-cols-2 gap-0.5">
-                  <div className="text-center p-3 bg-blue-50 rounded-3xl">
-                    <div className="text-xs font-bold text-blue-500 mb-0.5">{getTodayStats().feedings}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Кормлений</div>
-                  </div>
-                  <div className="text-center p-3 bg-green-50 rounded-3xl">
-                    <div className="text-xs font-bold text-green-500 mb-0.5">{getTodayStats().diapers}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Подгузников</div>
-                  </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-3xl">
-                    <div className="text-xs font-bold text-purple-500 mb-0.5">{getTodayStats().activities}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Активностей</div>
-                  </div>
-                  <div className="text-center p-3 bg-indigo-50 rounded-3xl">
-                    <div className="text-xs font-bold text-indigo-500 mb-0.5">{getTodayStats().sleep}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Сон</div>
-                  </div>
-                </div>
-            </div>
-
-              {/* Графики роста и веса */}
-              <div className="space-y-0.25">
-                <div className="p-0.25">
-                  <GrowthChartCard
-                    measurementType="height"
-                    title="Рост"
-                    description="Отмечайте рост малыша раз в месяц и сравнивайте показатели с рекомендованными перцентилями."
-                    unit="см"
-                    yAxisLabel="Рост"
-                    whoCurves={WHO_HEIGHT_CURVES}
-                    babyAgeMonths={calculateAgeInMonths(settings.birthDate)}
-                  />
-                </div>
-                <div className="p-0.25">
-                  <GrowthChartCard
-                    measurementType="weight"
-                    title="Вес"
-                    description="Фиксируйте вес малыша ежемесячно и отслеживайте динамику относительно шкалы ВОЗ."
-                    unit="кг"
-                    yAxisLabel="Вес"
-                    whoCurves={WHO_WEIGHT_CURVES}
-                    babyAgeMonths={calculateAgeInMonths(settings.birthDate)}
-                  />
-                </div>
-              </div>
-
-              {/* Последние события */}
-              <div className="p-0.25 iphone14-card">
-                <div className="flex justify-center px-0.125">
-                  <img src="/icons/clock.png" alt="Часы" className="w-32 h-32 object-contain" />
-                </div>
-                <div className="mb-0.5">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2 text-center">Последние события</h2>
-              </div>
-
-
-              {/* Timeline container */}
-                <div className="relative">
-                  {historyData ? (
-                    (() => {
-                      const allEvents = [
-                        ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' as const })),
-                        ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
-                        ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const })),
-                        ...(historyData.activities || [])
-                          .filter(item => !['feeding', 'diaper', 'bath'].includes(item.activity_type)) // Исключаем служебные записи из истории
-                          .map(item => ({ ...item, type: 'activity' as const })),
-                        // Для сна используем одну запись с меткой времени окончания, если она есть (иначе начала)
-                        ...((historyData.sleepSessions || []).map(item => ({
-                          ...item,
-                          type: 'sleep' as const,
-                          timestamp: item.end_time ?? item.start_time
-                        })))
-                      ]
-                        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                        .slice(0, MAX_HISTORY_EVENTS)
-
-                      return allEvents.map((event, index) => (
-                        <TimelineEvent
-                          key={`${event.type}-${event.id}-${index}`}
-                          event={event}
-                          isLast={index === allEvents.length - 1}
-                          onClick={handleRecordClick}
-                        />
-                      ))
-                    })()
-                  ) : (
-                    <div className="text-center py-8 text-gray-400">
-                      <div className="text-4xl mb-2">⏳</div>
-                      <p>Загружаем историю событий...</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Отступ для liquid-glass-tab-bar */}
-              <div className="h-32"></div>
-          </div>
-        )}
 
             </div>
 
@@ -2318,7 +1882,7 @@ export default function Dashboard() {
         {/* Модальное окно графика роста и веса */}
         {growthChartModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2">
-            <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-bounce-in">
               <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 rounded-t-3xl">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-bold text-gray-900">
@@ -2365,6 +1929,7 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
 
         {process.env.NODE_ENV === 'development' && <DebugPanel />}
       </div>

@@ -1,8 +1,8 @@
 import React from 'react'
 
 interface BottomNavigationProps {
-  activeTab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris'
-  onTabChange: (tab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris') => void
+  activeTab: 'home' | 'settings' | 'tamagotchi' | 'tetris'
+  onTabChange: (tab: 'home' | 'settings' | 'tamagotchi' | 'tetris') => void
 }
 
 export default function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
@@ -23,19 +23,6 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
           </div>
         </button>
 
-        {/* История */}
-        <button
-          onClick={() => onTabChange('history')}
-          className={`liquid-glass-tab-button ${activeTab === 'history' ? 'liquid-glass-tab-active' : ''}`}
-        >
-          <div className="liquid-glass-tab-icon">
-            <img 
-              src="/icons/history.svg" 
-              alt="История" 
-              className="w-8 h-8"
-            />
-          </div>
-        </button>
 
         {/* Тамагочи */}
         <button

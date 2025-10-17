@@ -6,10 +6,16 @@ interface BabyIllustrationProps {
   className?: string
   state?: BabyState
   onClick?: () => void
+  customImage?: string | null
 }
 
-export default function BabyIllustration({ className = '', state = 'normal', onClick }: BabyIllustrationProps) {
+export default function BabyIllustration({ className = '', state = 'normal', onClick, customImage }: BabyIllustrationProps) {
   const getImageSrc = () => {
+    // Если есть пользовательское изображение и состояние normal, используем его
+    if (customImage && state === 'normal') {
+      return customImage
+    }
+    
     switch (state) {
       case 'hungry':
         return '/icons/old-feed.png'
@@ -48,10 +54,16 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
         <img 
           src={getImageSrc()} 
           alt="Малыш" 
-          className="object-contain relative z-10"
-          style={{ width: '128px', height: '128px' }}
+          className={`relative z-10 ${
+            customImage && state === 'normal' 
+              ? 'w-full h-full object-cover rounded-full' 
+              : 'object-contain'
+          }`}
+          style={{ 
+            width: customImage && state === 'normal' ? '100%' : '128px', 
+            height: customImage && state === 'normal' ? '100%' : '128px' 
+          }}
         />
-        
       </div>
     </div>
   )
