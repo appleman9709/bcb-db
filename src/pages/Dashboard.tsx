@@ -12,6 +12,7 @@ import BottomNavigation from '../components/BottomNavigation'
 import BackgroundElements from '../components/BackgroundElements'
 import TamagotchiPage from './TamagotchiPage'
 import TetrisPage from './TetrisPage'
+import GrowthChartCard, { WHO_HEIGHT_CURVES, WHO_WEIGHT_CURVES } from '../components/GrowthChartCard'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService } from '../services/dataService'
 import type { Feeding, Diaper, Bath, Activity, Tip, SleepSession, FamilyMember } from '../services/dataService'
@@ -124,6 +125,8 @@ export default function Dashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [activeTab, setActiveTab] = useState<'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris'>('home')
   const [recordDetailModalOpen, setRecordDetailModalOpen] = useState(false)
+  const [growthChartModalOpen, setGrowthChartModalOpen] = useState(false)
+  const [growthChartType, setGrowthChartType] = useState<'height' | 'weight'>('height')
   const [selectedRecord, setSelectedRecord] = useState<{
     type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep'
     id: number
@@ -143,6 +146,7 @@ export default function Dashboard() {
   const [dutyModalOpen, setDutyModalOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [currentDutyMemberFromDB, setCurrentDutyMemberFromDB] = useState<FamilyMember | null>(null)
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(false)
   
   // Tamagotchi modal state
   const [tamagotchiModalOpen, setTamagotchiModalOpen] = useState(false)
@@ -641,6 +645,10 @@ export default function Dashboard() {
     setSelectedRecord(null)
   }
 
+  const handleHistoryToggle = () => {
+    setIsHistoryExpanded(!isHistoryExpanded)
+  }
+
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true)
@@ -810,8 +818,8 @@ export default function Dashboard() {
         return
       }
 
-      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории и тетрисе
-      if (activeTab === 'settings' || activeTab === 'history' || activeTab === 'tetris') {
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе и тамагочи
+      if (activeTab === 'settings' || activeTab === 'history' || activeTab === 'tetris' || activeTab === 'tamagotchi') {
         resetPullState()
         return
       }
@@ -825,8 +833,8 @@ export default function Dashboard() {
         return
       }
 
-      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории и тетрисе
-      if (activeTab === 'settings' || activeTab === 'history' || activeTab === 'tetris') {
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе и тамагочи
+      if (activeTab === 'settings' || activeTab === 'history' || activeTab === 'tetris' || activeTab === 'tamagotchi') {
         resetPullState()
         return
       }
@@ -1097,6 +1105,24 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-600">Персонализируйте приложение под вашего малыша</p>
         </div>
 
+              {/* Совет дня */}
+              {data?.dailyTip && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-2.5 shadow-sm border border-blue-100 iphone14-tip">
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 flex items-center justify-center iphone14-tip-icon">
+                      <img src="/icons/sovet.png" alt="Совет" className="w-10 h-10 object-contain" />
+                </div>
+                    <div className="flex-1">
+                      <h3 className="text-base font-semibold text-gray-900 mb-1">Совет дня</h3>
+                      <p className="text-xs text-gray-700 mb-1">{data.dailyTip.content}</p>
+                      <div className="flex flex-wrap gap-1 text-xs text-gray-500">
+                        <span className="bg-white px-1.5 py-0.5 rounded-3xl">📂 {data.dailyTip.category}</span>
+                        <span className="bg-white px-1.5 py-0.5 rounded-3xl">👶 {data.dailyTip.age_months} мес.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Профиль малыша */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
@@ -1367,6 +1393,45 @@ export default function Dashboard() {
             </div>
           ) : activeTab === 'home' && (
             <div className="space-y-2">
+              {/* Дежурство */}
+              <div
+                className="border border-blue-100 rounded-3xl p-3 iphone14-card cursor-pointer transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-white h-[80px] flex flex-col justify-between"
+                role="button"
+                tabIndex={0}
+                onClick={() => setDutyModalOpen(true)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    setDutyModalOpen(true)
+                  }
+                }}
+              >
+                <div className="text-center space-y-0.5">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-500">Сейчас на подхвате</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {currentDutyName || 'Добавьте расписание'}
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    {currentDutyBlock
+                      ? `Смена ${currentDutyBlock.label}`
+                      : 'Расскажите приложению, кто помогает семье и когда'}
+                  </p>
+                </div>
+                <div className="mt-1">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-white shadow-inner">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-400 transition-all duration-500"
+                      style={{ width: `${currentDutyProgressDisplay}%` }}
+                    />
+                  </div>
+                </div>
+                {familyMembers.length === 0 && (
+                  <p className="mt-1 text-[9px] text-gray-500 text-center">
+                    Добавьте родных и друзей, чтобы распределять заботу по очереди.
+                  </p>
+                )}
+              </div>
+
               {/* Иллюстрация младенца */}
               <div className="text-center">
                 <BabyIllustration 
@@ -1374,12 +1439,6 @@ export default function Dashboard() {
                   state={getBabyImageState()} 
                   onClick={handleBabyImageClick}
                 />
-                <p className="text-xs text-gray-600 mb-3">
-                  {getBabyImageState() === 'normal' 
-                    ? 'Нажмите на малыша для быстрой записи' 
-                    : 'Нажмите на малыша - пора действовать!'
-                  }
-                </p>
               </div>
 
               {/* Карточки активности */}
@@ -1517,23 +1576,591 @@ export default function Dashboard() {
                 </button>
               </div>
 
-{data?.dailyTip && (
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-2.5 shadow-sm border border-blue-100 iphone14-tip">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 flex items-center justify-center iphone14-tip-icon">
-                      <img src="/icons/sovet.png" alt="Совет" className="w-10 h-10 object-contain" />
+
+              {/* Блок истории событий */}
+              <div className="p-0.25 iphone14-card">
+                <div className="flex items-center justify-center mb-0.5 px-0.125 gap-2">
+                  {/* Кнопка графика роста слева */}
+                  <button
+                    onClick={() => {
+                      setGrowthChartType('height')
+                      setGrowthChartModalOpen(true)
+                    }}
+                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95 hover:scale-105"
+                    title="График роста"
+                  >
+                    <img src="/icons/height.png" alt="График роста" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" />
+                  </button>
+                  
+                  {/* Основное изображение малыша */}
+                  <img 
+                    src="/icons/clock.png" 
+                    alt="Часы" 
+                    className="w-32 h-32 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" 
+                    onClick={handleHistoryToggle}
+                  />
+                  
+                  {/* Кнопка графика веса справа */}
+                  <button
+                    onClick={() => {
+                      setGrowthChartType('weight')
+                      setGrowthChartModalOpen(true)
+                    }}
+                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95 hover:scale-105"
+                    title="График веса"
+                  >
+                    <img src="/icons/wight.png" alt="График веса" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" />
+                  </button>
                 </div>
-                    <div className="flex-1">
-                      <h3 className="text-base font-semibold text-gray-900 mb-1">Совет дня</h3>
-                      <p className="text-xs text-gray-700 mb-1">{data.dailyTip.content}</p>
-                      <div className="flex flex-wrap gap-1 text-xs text-gray-500">
-                        <span className="bg-white px-1.5 py-0.5 rounded-3xl">📂 {data.dailyTip.category}</span>
-                        <span className="bg-white px-1.5 py-0.5 rounded-3xl">👶 {data.dailyTip.age_months} мес.</span>
+                {isHistoryExpanded && (
+                  <div className="mb-0.5">
+                    <h2 className="text-lg font-semibold text-gray-900 mt-2 mb-2 text-center">Последние события</h2>
+                  </div>
+                )}
+                {isHistoryExpanded && (
+                  <div className="relative">
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
+                        </div>
                       </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">18:06</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">1 мин назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 0ч 42м</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">16:41</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">1 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Выкладывание на живот</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">16:12</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">1 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💩 Покакал</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-blue-50 border-blue-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Кормление</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">15:46</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">2 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🍼 4.5 унций</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">15:41</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">2 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 1ч 27м</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">15:41</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">2 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💧 Просто</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">12:42</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">5 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Массаж</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">12:42</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">5 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Танцы на руках</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">12:42</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">5 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Выкладывание на живот</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">11:30</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">6 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💧 Просто</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-blue-50 border-blue-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Кормление</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">11:15</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">6 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🍼 5 унций</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">07:25</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">10 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💩 Покакал</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">05:31</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">12 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 2ч 48м</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-blue-50 border-blue-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Кормление</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">05:31</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">12 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🍼 4.5 унций</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/poor.png" alt="Смена подгузника" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-green-50 border-green-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Смена подгузника</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">05:31</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">12 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">💧 Просто</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Надежда • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">02:42</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">15 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 1ч 5м</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">01:36</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">16 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 0ч 39м</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/activity.png" alt="Активность" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-purple-50 border-purple-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Активность</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">01:36</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">16 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🎯 Танцы на руках</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/sleep.png" alt="Сон" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
+                    </div>
+                    <div className="flex-1 bg-indigo-50 border-indigo-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Сон</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">00:58</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">17 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">😴 0ч 10м</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 17.10.2025</div>
+                    </div>
+                  </div>
+                  <div className="relative flex items-start space-x-3 pb-4">
+                    <div className="flex flex-col items-center">
+                      <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                        <div className="w-9 h-9 flex items-center justify-center">
+                          <img src="/icons/feeding.png" alt="Кормление" className="w-9 h-9 object-contain" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1 bg-blue-50 border-blue-200 border rounded-2xl p-3 cursor-pointer hover:shadow-md transition-all duration-200">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div>
+                            <h3 className="text-sm font-semibold text-gray-900">Кормление</h3>
+                            <p className="text-xs text-gray-600 mt-0.5">23:56</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-gray-400">18 ч назад</div>
+                        </div>
+                      </div>
+                      <div className="mt-2">
+                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">🍼 5 унций</span>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">👤 Петя • 16.10.2025</div>
                     </div>
                   </div>
                 </div>
-              )}
+                )}
+              </div>
 
               {/* Отступ для liquid-glass-tab-bar */}
               <div className="h-20"></div>
@@ -1546,41 +2173,6 @@ export default function Dashboard() {
                 <h1 className="text-lg font-bold text-gray-900 mb-1">📋 История событий</h1>
                 <p className="text-xs text-gray-600 mb-0.5">Подробная статистика и хронология всех записей</p>
             </div>
-
-              {/* Дежурство */}
-              <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Дежурство</p>
-                    </div>
-                    <p className="mt-1 text-base font-semibold text-gray-900">{currentDutyName}</p>
-                    <p className="text-xs text-gray-500">
-                      {currentDutyBlock ? `Интервал ${currentDutyBlock.label}` : 'Назначьте ответственного'}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setDutyModalOpen(true)}
-                    className="shrink-0 rounded-3xl bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-100"
-                  >
-                    Настроить
-                  </button>
-                </div>
-                <div className="mt-3">
-                  <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-sky-400 transition-all duration-300"
-                      style={{ width: `${currentDutyProgressDisplay}%` }}
-                    />
-                  </div>
-                </div>
-                {familyMembers.length === 0 && (
-                  <p className="mt-3 text-xs text-gray-500">
-                    Добавьте родителей в семью, чтобы распределять дежурства.
-                  </p>
-                )}
-              </div>
 
               {/* Статистика за день */}
               <div className="p-0.25 iphone14-card">
@@ -1605,13 +2197,39 @@ export default function Dashboard() {
                 </div>
             </div>
 
+              {/* Графики роста и веса */}
+              <div className="space-y-0.25">
+                <div className="p-0.25">
+                  <GrowthChartCard
+                    measurementType="height"
+                    title="Рост"
+                    description="Отмечайте рост малыша раз в месяц и сравнивайте показатели с рекомендованными перцентилями."
+                    unit="см"
+                    yAxisLabel="Рост"
+                    whoCurves={WHO_HEIGHT_CURVES}
+                    babyAgeMonths={calculateAgeInMonths(settings.birthDate)}
+                  />
+                </div>
+                <div className="p-0.25">
+                  <GrowthChartCard
+                    measurementType="weight"
+                    title="Вес"
+                    description="Фиксируйте вес малыша ежемесячно и отслеживайте динамику относительно шкалы ВОЗ."
+                    unit="кг"
+                    yAxisLabel="Вес"
+                    whoCurves={WHO_WEIGHT_CURVES}
+                    babyAgeMonths={calculateAgeInMonths(settings.birthDate)}
+                  />
+                </div>
+              </div>
+
               {/* Последние события */}
               <div className="p-0.25 iphone14-card">
-                <div className="flex justify-center mb-0.5 px-0.125">
+                <div className="flex justify-center px-0.125">
                   <img src="/icons/clock.png" alt="Часы" className="w-32 h-32 object-contain" />
                 </div>
                 <div className="mb-0.5">
-                  <h2 className="text-lg font-semibold text-gray-900 mt-2 mb-2 text-center">Последние события</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2 text-center">Последние события</h2>
               </div>
 
 
@@ -1696,6 +2314,57 @@ export default function Dashboard() {
           onDelete={handleRecordDelete}
           record={selectedRecord}
         />
+
+        {/* Модальное окно графика роста и веса */}
+        {growthChartModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2">
+            <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 rounded-t-3xl">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-gray-900">
+                    {growthChartType === 'height' ? 'График роста малыша' : 'График веса малыша'}
+                  </h2>
+                  <button
+                    onClick={() => setGrowthChartModalOpen(false)}
+                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="p-3">
+                {growthChartType === 'height' ? (
+                  <GrowthChartCard
+                    measurementType="height"
+                    title="Рост малыша"
+                    unit="см"
+                    description="Отслеживайте рост малыша и сравнивайте с нормативами ВОЗ"
+                    whoCurves={WHO_HEIGHT_CURVES}
+                    yAxisLabel="Рост"
+                    valuePrecision={1}
+                    babyAgeMonths={data ? Math.floor((Date.now() - new Date(settings.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30.44)) : 0}
+                    compact={true}
+                  />
+                ) : (
+                  <GrowthChartCard
+                    measurementType="weight"
+                    title="Вес малыша"
+                    unit="кг"
+                    description="Отслеживайте вес малыша и сравнивайте с нормативами ВОЗ"
+                    whoCurves={WHO_WEIGHT_CURVES}
+                    yAxisLabel="Вес"
+                    valuePrecision={2}
+                    babyAgeMonths={data ? Math.floor((Date.now() - new Date(settings.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30.44)) : 0}
+                    compact={true}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {process.env.NODE_ENV === 'development' && <DebugPanel />}
       </div>

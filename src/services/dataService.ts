@@ -168,6 +168,18 @@ export interface DutyScheduleWithAssignments extends DutySchedule {
   assignments: DutyAssignment[]
 }
 
+export interface GrowthMeasurement {
+  id: number
+  family_id: number
+  user_id: string
+  measurement_type: 'height' | 'weight'
+  month: number
+  value: number
+  recorded_by?: string
+  created_at: string
+  updated_at: string
+}
+
 type AuthorContext = {
   authorId: string
   authorName: string
@@ -1583,6 +1595,129 @@ class DataService {
     return {
       ...data,
       user_id: String(data.user_id)
+    }
+  }
+
+  // Growth measurements operations
+  async getGrowthMeasurements(measurementType?: 'height' | 'weight'): Promise<GrowthMeasurement[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .rpc('get_family_growth_measurements', {
+        family_id_param: familyId,
+        measurement_type_param: measurementType || null
+      })
+
+    if (error) {
+      console.error('Error fetching growth measurements', error)
+      return []
+    }
+
+    return (data || []).map(measurement => ({
+      ...measurement,
+      user_id: String(measurement.user_id)
+    }))
+  }
+
+  async addGrowthMeasurement(
+    measurementType: 'height' | 'weight',
+    month: number,
+    value: number
+  ): Promise<GrowthMeasurement | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName } = this.requireAuthor()
+
+    const { data, error } = await supabase
+      .rpc('add_growth_measurement', {
+        p_family_id: familyId,
+        p_user_id: authorId,
+        p_measurement_type: measurementType,
+        p_month: month,
+        p_value: value,
+        p_recorded_by: authorName
+      })
+
+    if (error) {
+      console.error('Error adding growth measurement', error)
+      return null
+    }
+
+    if (!data || data.length === 0) {
+      return null
+    }
+
+    return {
+      ...data[0],
+      user_id: String(data[0].user_id)
+    }
+  }
+
+  async deleteGrowthMeasurement(
+    measurementType: 'height' | 'weight',
+    month: number
+  ): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .rpc('delete_growth_measurement', {
+        family_id_param: familyId,
+        measurement_type_param: measurementType,
+        month_param: month
+      })
+
+    if (error) {
+      console.error('Error deleting growth measurement', error)
+      return false
+    }
+
+    return data || false
+  }
+
+  async migrateGrowthDataFromLocalStorage(
+    storageKey: string,
+    measurementType: 'height' | 'weight'
+  ): Promise<number> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName } = this.requireAuthor()
+
+    try {
+      // Получаем данные из localStorage
+      const storedData = window.localStorage.getItem(storageKey)
+      if (!storedData) {
+        return 0
+      }
+
+      const measurements = JSON.parse(storedData)
+      if (!Array.isArray(measurements)) {
+        return 0
+      }
+
+      let migratedCount = 0
+
+      // Мигрируем каждое измерение
+      for (const measurement of measurements) {
+        if (measurement.month !== undefined && measurement.value !== undefined) {
+          const result = await this.addGrowthMeasurement(
+            measurementType,
+            measurement.month,
+            measurement.value
+          )
+          
+          if (result) {
+            migratedCount++
+          }
+        }
+      }
+
+      // Очищаем localStorage после успешной миграции
+      if (migratedCount > 0) {
+        window.localStorage.removeItem(storageKey)
+      }
+
+      return migratedCount
+    } catch (error) {
+      console.error('Error migrating growth data from localStorage', error)
+      return 0
     }
   }
 }

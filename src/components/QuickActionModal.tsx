@@ -547,14 +547,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 <span className="text-sm font-semibold">Просто</span>
               </button>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full py-2 px-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-sm font-medium"
-              disabled={loading}
-            >
-              Отмена
-            </button>
           </div>
         )}
 
@@ -603,14 +595,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 <span className="text-sm font-semibold">Спокойное</span>
               </button>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full py-2 px-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-sm font-medium"
-              disabled={loading}
-            >
-              Отмена
-            </button>
           </div>
         )}
 
@@ -644,14 +628,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full py-2 px-4 rounded-2xl border-2 border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 text-sm font-medium"
-              disabled={loading}
-            >
-              Отмена
-            </button>
           </div>
         )}
 

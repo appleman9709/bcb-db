@@ -81,6 +81,23 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }, [data?.inventory?.portion_size_ounces])
 
+  useEffect(() => {
+    if (!backpackOpen) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setBackpackOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [backpackOpen])
+
   const inventoryTotals = useMemo(() => {
     const rawInventory = data?.inventory
     const diapers = Math.max(0, rawInventory?.diapers_stock ?? 0)
@@ -143,6 +160,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
     return items
   }, [inventoryTotals.diapers, inventoryTotals.portions, inventoryTotals.portionSize])
+
+  const hasShoppingListItems = shoppingList.length > 0
+  const backpackIntroMessage = hasShoppingListItems
+    ? 'Запасы подсказывают, что скоро пригодится поход по магазинам.'
+    : 'Все нужное под рукой — можно отдыхать!'
 
   const displayPortionsText = useMemo(() => {
     const value = inventoryTotals.portions
@@ -1060,197 +1082,225 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             </button>
 
             {backpackOpen && (
-              <div className="w-72 max-w-[85vw] bg-white/95 backdrop-blur-md rounded-3xl shadow-lg border border-gray-200 p-4 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900">🎒 Семейный рюкзак</h3>
-                    <p className="text-[11px] text-gray-500">Отслеживайте запасы и пополняйте их здесь.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setBackpackOpen(false)}
-                    className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                    aria-label="Закрыть рюкзак"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div className="rounded-2xl bg-gray-50 border border-gray-100 p-3 space-y-1.5">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">Подгузники</span>
-                    <span className={`font-semibold ${lowOnDiapers ? 'text-red-500' : 'text-gray-900'}`}>
-                      {inventoryTotals.diapers} шт
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">Смесь</span>
-                    <span className={`font-semibold ${lowOnFormula ? 'text-red-500' : 'text-gray-900'}`}>
-                      {displayPortionsText} порций
-                      <span className="text-[10px] text-gray-400 ml-1">
-                        (~{inventoryTotals.grams} г / {portionSizeOunces} унц.)
-                      </span>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-semibold text-gray-700">
-                    Размер порции смеси (унции)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 bg-white rounded-2xl border border-gray-200 p-2">
-                      <div className="flex items-center justify-between">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const current = parseFloat(portionSizeOuncesInput) || 1
-                            const newValue = Math.max(0.5, current - 0.5)
-                            setPortionSizeOuncesInput(newValue.toString())
-                          }}
-                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
-                        >
-                          −
-                        </button>
-                        <span className="text-lg font-semibold text-gray-900 px-4">
-                          {portionSizeOuncesInput}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const current = parseFloat(portionSizeOuncesInput) || 1
-                            const newValue = Math.min(20, current + 0.5)
-                            setPortionSizeOuncesInput(newValue.toString())
-                          }}
-                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
+              <div className="fixed inset-0 z-[999] flex items-center justify-center px-3 py-6 sm:px-4 sm:py-10 sm:pb-16">
+                <div
+                  className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
+                  onClick={() => setBackpackOpen(false)}
+                  aria-hidden="true"
+                />
+                <div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Рюкзак семьи"
+                  className="relative z-10 w-full max-w-[360px] pointer-events-auto sm:max-w-md"
+                >
+                  <div className="relative flex h-[70vh] max-h-[70vh] flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl sm:h-[70vh] sm:max-h-[70vh]">
                     <button
                       type="button"
-                      onClick={handleApplyPortionSize}
-                      className="px-3 py-2 rounded-2xl bg-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-300 transition-colors"
+                      onClick={() => setBackpackOpen(false)}
+                      className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                      aria-label="Закрыть рюкзак"
                     >
-                      Ок
+                      ×
                     </button>
-                  </div>
-                  {portionSizeStatus && (
-                    <p className={`text-[10px] ${portionSizeStatusClass}`}>
-                      {portionSizeStatus}
-                    </p>
-                  )}
-                </div>
-                <form className="space-y-2.5" onSubmit={handleRestockSubmit}>
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-gray-700">
-                      Добавить подгузники (шт)
-                    </label>
-                    <div className="bg-white rounded-2xl border border-gray-200 p-2">
-                      <div className="flex items-center justify-between">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const current = parseInt(restockDiapersInput) || 0
-                            const newValue = Math.max(0, current - 25)
-                            setRestockDiapersInput(newValue.toString())
-                          }}
-                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
-                        >
-                          −
-                        </button>
-                        <span className="text-lg font-semibold text-gray-900 px-4">
-                          {restockDiapersInput || '0'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const current = parseInt(restockDiapersInput) || 0
-                            const newValue = Math.min(500, current + 25)
-                            setRestockDiapersInput(newValue.toString())
-                          }}
-                          className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold text-gray-700">
-                      Добавить смесь (г)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 bg-white rounded-2xl border border-gray-200 p-2">
-                        <div className="flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const current = parseInt(restockGramsInput) || 0
-                              const newValue = Math.max(0, current - 550)
-                              setRestockGramsInput(newValue.toString())
-                            }}
-                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
-                          >
-                            −
-                          </button>
-                          <span className="text-lg font-semibold text-gray-900 px-4">
-                            {restockGramsInput || '0'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const current = parseInt(restockGramsInput) || 0
-                              const newValue = Math.min(5000, current + 550)
-                              setRestockGramsInput(newValue.toString())
-                            }}
-                            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 font-bold transition-colors"
-                          >
-                            +
-                          </button>
+                    <div className="bg-gradient-to-r from-sky-50 via-indigo-50 to-purple-50 px-3 pt-3 pb-1.5 sm:px-4 sm:pt-4 sm:pb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-inner">
+                          <img
+                            src="/icons/bag.png"
+                            alt="Рюкзак"
+                            className="h-6 w-6 object-contain"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-slate-900">Рюкзак семьи</h3>
+                          <p className="text-[10px] leading-snug text-slate-600">{backpackIntroMessage}</p>
                         </div>
                       </div>
-                      {restockPortionsPreview > 0 && restockPortionsPreviewText && (
-                        <span className="text-[10px] text-gray-500 whitespace-nowrap">
-                          ≈ {restockPortionsPreviewText} порц. ({portionSizeOunces} унц.)
-                        </span>
-                      )}
+                    </div>
+
+                    <div className="flex flex-1 flex-col gap-2.5 px-3 pb-2 pt-2.5 overflow-y-auto sm:gap-3 sm:px-4 sm:pb-3 sm:pt-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className={`rounded-xl border p-2.5 ${lowOnDiapers ? "border-amber-200 bg-amber-50/70" : "border-emerald-100 bg-emerald-50/60"}`}>
+                          <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">Подгузники</div>
+                          <div className="mt-1 flex items-baseline gap-1">
+                            <span className="text-lg font-bold text-slate-900">{inventoryTotals.diapers}</span>
+                            <span className="text-[10px] font-semibold text-slate-500">шт.</span>
+                          </div>
+                        </div>
+
+                        <div className={`rounded-xl border p-2.5 ${lowOnFormula ? "border-amber-200 bg-amber-50/70" : "border-indigo-100 bg-indigo-50/60"}`}>
+                          <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">Смесь</div>
+                          <div className="mt-1 flex items-baseline gap-1">
+                            <span className="text-lg font-bold text-slate-900">{displayPortionsText}</span>
+                            <span className="text-[10px] font-semibold text-slate-500">порций</span>
+                          </div>
+                          <p className="mt-1 text-[9px] text-slate-400">
+                            ~{inventoryTotals.grams} г / {portionSizeOunces} оз на порцию
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1.2fr,0.8fr] sm:items-center sm:gap-3">
+                        <div className="rounded-xl border border-slate-200 bg-white p-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-slate-800">Размер порции</span>
+                            <span className="text-[10px] text-slate-400">унц.</span>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = parseFloat(portionSizeOuncesInput) || 1
+                                const newValue = Math.max(0.5, current - 0.5)
+                                setPortionSizeOuncesInput(newValue.toString())
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                              aria-label="Уменьшить размер порции"
+                            >
+                              -
+                            </button>
+                            <span className="text-lg font-semibold text-slate-900">
+                              {portionSizeOuncesInput}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = parseFloat(portionSizeOuncesInput) || 1
+                                const newValue = Math.min(20, current + 0.5)
+                                setPortionSizeOuncesInput(newValue.toString())
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                              aria-label="Увеличить размер порции"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <p className="mt-1.5 text-center text-[9px] text-slate-400">
+                            Выбранное значение указано в унциях.
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={handleApplyPortionSize}
+                          className="h-full rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white shadow transition-colors hover:bg-slate-700"
+                        >
+                          Сохранить
+                        </button>
+                        {portionSizeStatus && (
+                          <p className={`col-span-full text-center text-[10px] ${portionSizeStatusClass}`}>
+                            {portionSizeStatus}
+                          </p>
+                        )}
+                      </div>
+
+                       <form className="grid grid-cols-1 gap-2 rounded-xl sm:grid-cols-2 sm:gap-3" onSubmit={handleRestockSubmit}>
+                        <div className="rounded-xl border border-slate-200 bg-white p-2.5">
+                          <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                            <span>Подгузники</span>
+                            <span className="text-[9px] text-slate-400">шт.</span>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = parseInt(restockDiapersInput) || 0
+                                const newValue = Math.max(0, current - 25)
+                                setRestockDiapersInput(newValue.toString())
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                              aria-label="Уменьшить количество подгузников"
+                            >
+                              -
+                            </button>
+                            <span className="text-lg font-semibold text-slate-900">
+                              {restockDiapersInput || "0"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = parseInt(restockDiapersInput) || 0
+                                const newValue = Math.min(500, current + 25)
+                                setRestockDiapersInput(newValue.toString())
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                              aria-label="Увеличить количество подгузников"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="rounded-xl border border-slate-200 bg-white p-2.5">
+                          <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                            <span>Смесь</span>
+                            <span className="text-[9px] text-slate-400">г</span>
+                          </div>
+                          <div className="mt-2 flex items-center justify-between">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = parseInt(restockGramsInput) || 0
+                                const newValue = Math.max(0, current - 100)
+                                setRestockGramsInput(newValue.toString())
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                              aria-label="Уменьшить количество смеси"
+                            >
+                              -
+                            </button>
+                            <span className="text-lg font-semibold text-slate-900">
+                              {restockGramsInput || "0"}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const current = parseInt(restockGramsInput) || 0
+                                const newValue = Math.min(4000, current + 100)
+                                setRestockGramsInput(newValue.toString())
+                              }}
+                              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                              aria-label="Увеличить количество смеси"
+                            >
+                              +
+                            </button>
+                          </div>
+                          {restockPortionsPreviewText && (
+                            <span className="mt-1.5 block text-[9px] font-medium text-slate-500">
+                              ≈ {restockPortionsPreviewText} порций ({portionSizeOunces} оз.)
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="col-span-full flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                           <button
+                             type="submit"
+                             disabled={restockLoading}
+                             className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white shadow transition-colors hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-6"
+                           >
+                             {restockLoading ? "Обработка..." : "Добавить в запасы"}
+                           </button>
+
+                          {restockFeedback && (
+                            <div className={`text-center text-[10px] font-medium ${restockFeedbackClass}`} aria-live="polite">
+                              {restockFeedback}
+                            </div>
+                          )}
+                        </div>
+                      </form>
+
+                      <button
+                        type="button"
+                        onClick={() => setBackpackOpen(false)}
+                        className="w-full rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                      >
+                        Закрыть
+                      </button>
+
                     </div>
                   </div>
-
-                  <button
-                    type="submit"
-                    disabled={restockLoading}
-                    className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-500 text-white text-xs font-semibold py-2.5 shadow hover:bg-blue-600 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {restockLoading ? 'Сохраняем...' : 'Пополнить запасы'}
-                  </button>
-                </form>
-
-                {restockFeedback && (
-                  <div className={`text-[11px] text-center font-medium ${restockFeedbackClass}`} aria-live="polite">
-                    {restockFeedback}
-                  </div>
-                )}
-
-                <div className="pt-2 border-t border-gray-100">
-                  <h4 className="text-xs font-semibold text-gray-800 mb-1.5 flex items-center gap-1">
-                    <span role="img" aria-hidden="true">🛒</span>
-                    <span>Список покупок</span>
-                  </h4>
-                  {shoppingList.length > 0 ? (
-                    <ul className="space-y-1">
-                      {shoppingList.map(item => (
-                        <li key={item.id} className="text-[11px] leading-snug text-gray-600">
-                          <span className="font-medium text-gray-800">{item.label}:</span> {item.message}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-[11px] text-gray-500">Пока ничего докупать не нужно.</p>
-                  )}
                 </div>
               </div>
             )}
@@ -1341,4 +1391,3 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     </div>
   )
 }
-
