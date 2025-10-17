@@ -716,6 +716,33 @@ export default function Dashboard() {
   const handleRecentEventsClick = async () => {
     if (!recentEventsExpanded) {
       await fetchRecentEvents()
+      // Добавляем небольшую прокрутку вниз для мобильной версии при открытии модального окна
+      setTimeout(() => {
+        console.log('Попытка прокрутки, ширина экрана:', window.innerWidth)
+        // Проверяем, что это мобильное устройство (ширина экрана меньше 768px)
+        if (window.innerWidth < 768) {
+          console.log('Мобильное устройство, выполняем прокрутку')
+          // Пробуем найти элемент с событиями и прокрутить к нему
+          const eventsElement = document.querySelector('[data-recent-events]')
+          if (eventsElement) {
+            console.log('Найден элемент событий, прокручиваем к нему')
+            eventsElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start',
+              inline: 'nearest'
+            })
+          } else {
+            console.log('Элемент событий не найден, используем обычную прокрутку')
+            // Если элемент не найден, используем обычную прокрутку
+            window.scrollBy({
+              top: 150,
+              behavior: 'smooth'
+            })
+          }
+        } else {
+          console.log('Десктопное устройство, прокрутка не нужна')
+        }
+      }, 300) // Увеличиваем задержку для лучшей синхронизации
     }
     setRecentEventsExpanded(!recentEventsExpanded)
   }
@@ -1760,7 +1787,7 @@ export default function Dashboard() {
                 
                 {/* Таймлайн недавних событий */}
                 {recentEventsExpanded && (
-                  <div className="mt-4">
+                  <div className="mt-4" data-recent-events>
                     <div className="text-center mb-3">
                       <h3 className="text-lg font-bold text-gray-900">
                         Недавние события
