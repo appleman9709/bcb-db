@@ -1083,7 +1083,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
             {/* Модальное окно рюкзака */}
             {backpackOpen && (
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center px-3 py-6 sm:px-4 sm:py-10 sm:pb-16">
+              <div className="fixed inset-0 z-[99999] flex items-center justify-center px-3 py-6 sm:px-4 sm:py-10 sm:pb-16">
                 <div
                   className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
                   onClick={() => setBackpackOpen(false)}
@@ -1093,7 +1093,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                   role="dialog"
                   aria-modal="true"
                   aria-label="Рюкзак семьи"
-                  className="relative z-[10000] w-full max-w-[360px] pointer-events-auto sm:max-w-md"
+                  className="relative z-[100000] w-full max-w-[360px] pointer-events-auto sm:max-w-md"
                 >
                   <div className="relative flex h-[70vh] max-h-[70vh] flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl sm:h-[70vh] sm:max-h-[70vh] animate-bounce-in">
                     <button
