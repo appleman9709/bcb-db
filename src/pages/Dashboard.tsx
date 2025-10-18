@@ -1837,7 +1837,7 @@ export default function Dashboard() {
                             return (
                               <div 
                                 key={`${event.type}-${event.id}-${index}`} 
-                                className="relative flex items-start space-x-3 pb-4 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                                className="relative flex items-start space-x-3 pb-4 cursor-pointer"
                                 onClick={() => handleRecordClick(event)}
                               >
                                 {/* Контейнер для иконки и линии */}
