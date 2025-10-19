@@ -2705,10 +2705,8 @@
     max-width: 400px;
     margin: 0 auto;
     
-    /* Оптимизированный эффект жидкого стекла - упрощенная версия */
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
+    /* Fallback фон для устройств без поддержки backdrop-filter */
+    background: rgba(255, 255, 255, 0.2);
     
     /* Упрощенные тени - только 2 слоя вместо 6 */
     box-shadow: var(--glass-shadow);
@@ -2723,6 +2721,15 @@
     /* ОПТИМИЗИРОВАННЫЙ эффект "дыхания" - только безопасные свойства */
     animation: liquidGlassBreathing var(--breathing-duration) ease-in-out infinite;
     transform-origin: center;
+  }
+
+  /* Поддержка backdrop-filter только для устройств с аппаратным ускорением */
+  @supports (backdrop-filter: blur(10px)) and (transform: translateZ(0)) {
+    .tamagotchi-inventory-container {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+    }
   }
 
   /* Псевдоэлемент для дополнительного эффекта дыхания */
@@ -2757,6 +2764,19 @@
     .tamagotchi-inventory-container::before {
       animation: none;
       opacity: 0.2;
+    }
+    
+    .tamagotchi-inventory-container::after {
+      animation: none;
+      opacity: 0.1;
+    }
+    
+    .tamagotchi-inventory-item {
+      animation: none;
+    }
+    
+    .tamagotchi-inventory-item.low-stock {
+      animation: none;
     }
   }
 
@@ -2826,8 +2846,8 @@
     background: transparent;
     overflow: hidden;
     
-    /* Добавляем эффект "плавания" */
-    animation: inventoryItemFloat 6s ease-in-out infinite;
+    /* Эффект "плавания" включается только при ховере/фокусе для лучшей производительности */
+    animation: none;
   }
 
   /* Анимация "плавания" для элементов инвентаря */
@@ -2896,7 +2916,14 @@
   /* Улучшенные hover эффекты */
   .tamagotchi-inventory-item:hover {
     transform: translateY(-4px) scale(1.02);
-    animation-play-state: paused;
+    animation: inventoryItemFloat 6s ease-in-out infinite;
+  }
+
+  .tamagotchi-inventory-item:focus {
+    transform: translateY(-4px) scale(1.02);
+    animation: inventoryItemFloat 6s ease-in-out infinite;
+    outline: 2px solid rgba(59, 130, 246, 0.5);
+    outline-offset: 2px;
   }
 
   .tamagotchi-inventory-item:hover::before {
@@ -2933,8 +2960,13 @@
     filter: brightness(0.95) contrast(1.05);
   }
 
-  /* Эффект пульсации для элементов с низким количеством */
-  .tamagotchi-inventory-item.low-stock {
+  /* Эффект пульсации для элементов с низким количеством - только при ховере */
+  .tamagotchi-inventory-item.low-stock:hover {
+    animation: inventoryItemFloat 6s ease-in-out infinite, 
+               lowStockPulse 2s ease-in-out infinite;
+  }
+  
+  .tamagotchi-inventory-item.low-stock:focus {
     animation: inventoryItemFloat 6s ease-in-out infinite, 
                lowStockPulse 2s ease-in-out infinite;
   }
@@ -3064,7 +3096,7 @@
       width: 64px;
       height: 64px;
       border-radius: 20px;
-      animation: inventoryItemFloatSmall 8s ease-in-out infinite;
+      animation: none; /* Отключаем постоянную анимацию на мобильных */
     }
     
     .tamagotchi-inventory-icon img {
@@ -3079,10 +3111,14 @@
     /* Минимальные hover эффекты для маленьких экранов */
     .tamagotchi-inventory-item:hover {
       transform: translateY(-2px) scale(1.005);
+      animation: inventoryItemFloatSmall 8s ease-in-out infinite;
     }
     
-    .tamagotchi-inventory-item:hover .tamagotchi-inventory-icon {
-      transform: scale(1.08) rotate(0.5deg);
+    .tamagotchi-inventory-item:focus {
+      transform: translateY(-2px) scale(1.005);
+      animation: inventoryItemFloatSmall 8s ease-in-out infinite;
+      outline: 2px solid rgba(59, 130, 246, 0.5);
+      outline-offset: 2px;
     }
   }
 
@@ -3129,7 +3165,7 @@
   @media (hover: none) and (pointer: coarse) {
     .tamagotchi-inventory-item:hover {
       transform: translateY(0px) scale(1);
-      animation-play-state: running;
+      animation: none; /* Отключаем анимации на touch-устройствах */
     }
     
     .tamagotchi-inventory-item:hover::before {

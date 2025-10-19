@@ -44,6 +44,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     wakeOnActivityEnabled: true
   })
   const [loading, setLoading] = useState(true)
+  const [backgroundLoading, setBackgroundLoading] = useState(false)
   const [babyState, setBabyState] = useState<BabyState>('ok')
   const [justWokeUp, setJustWokeUp] = useState(false)
   const [scoreAnimation, setScoreAnimation] = useState(false)
@@ -398,13 +399,18 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     setBackpackOpen(prev => !prev)
   }, [])
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isBackgroundUpdate: boolean = false) => {
     if (!member || !family) {
       return
     }
 
     try {
-      setLoading(true)
+      // Устанавливаем соответствующее состояние загрузки
+      if (isBackgroundUpdate) {
+        setBackgroundLoading(true)
+      } else {
+        setLoading(true)
+      }
       
       // Сохраняем предыдущее состояние сна из useRef
       const wasSleeping = previousSleepModeRef.current
@@ -467,7 +473,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     } catch (error) {
       console.error('Error fetching tamagotchi data:', error)
     } finally {
-      setLoading(false)
+      // Сбрасываем соответствующее состояние загрузки
+      if (isBackgroundUpdate) {
+        setBackgroundLoading(false)
+      } else {
+        setLoading(false)
+      }
     }
   }, [member, family, settings.wakeOnActivityEnabled])
 
@@ -525,6 +536,19 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
 
     fetchData()
+  }, [member, family, fetchData])
+
+  // Автоматическое фоновое обновление данных каждые 2 минуты
+  useEffect(() => {
+    if (!member || !family) {
+      return
+    }
+
+    const interval = setInterval(() => {
+      fetchData(true) // Фоновое обновление
+    }, 120000) // 2 минуты
+
+    return () => clearInterval(interval)
   }, [member, family, fetchData])
 
   useEffect(() => {
@@ -759,8 +783,8 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         }
       }
       
-      // Обновляем данные
-      await fetchData()
+      // Обновляем данные в фоновом режиме
+      await fetchData(true)
     } catch (error) {
       console.error('Error toggling sleep mode:', error)
       // В случае ошибки возвращаем состояние обратно
@@ -907,8 +931,10 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       
       if (updatedCoins) {
         console.log('Coins updated successfully:', updatedCoins)
-        // Обновляем данные в состоянии
+        // Обновляем данные в состоянии локально для быстрого отклика
         setData(prev => prev ? { ...prev, parentCoins: updatedCoins } : null)
+        // Дополнительно обновляем данные в фоновом режиме для синхронизации
+        fetchData(true)
       } else {
         console.warn('Failed to update coins in database')
       }
@@ -977,6 +1003,13 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
   return (
     <div className="tamagotchi-container relative">
+      {/* Индикатор фонового обновления */}
+      {backgroundLoading && (
+        <div className="absolute top-2 right-2 z-30 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+          <span>Обновление...</span>
+        </div>
+      )}
 
       {/* Монетки для сбора - позиционированы относительно всего контейнера */}
       {coins.map(coin => (

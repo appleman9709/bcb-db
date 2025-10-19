@@ -3,12 +3,16 @@ import { useAuth } from '../contexts/AuthContext'
 import { dataService, type TetrisRecord } from '../services/dataService'
 import BottomNavigation from '../components/BottomNavigation'
 import { RecordDisplay } from '../components/ModalUtils'
+import { useTetrisRecordCache } from '../hooks/useTetrisRecordCache'
 
 export default function TetrisPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const { family, member } = useAuth()
   const [familyBestRecord, setFamilyBestRecord] = useState<TetrisRecord | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // Используем хук для кэширования рекордов
+  const { loadBestRecord, updateCacheIfBetter, getCachedRecord } = useTetrisRecordCache()
 
   const handleTabChange = (tab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris') => {
     console.log('TetrisPage: Switching to tab:', tab)
@@ -25,22 +29,17 @@ export default function TetrisPage() {
   }, [])
 
   useEffect(() => {
-    loadBestRecord()
-  }, [family])
-
-  const loadBestRecord = async () => {
-    if (!family) return
-
-    setLoading(true)
-    try {
-      const bestRecord = await dataService.getFamilyBestTetrisRecord()
-      setFamilyBestRecord(bestRecord)
-    } catch (error) {
-      console.error('Error loading family best record:', error)
-    } finally {
+    const loadRecord = async () => {
+      if (!family) return
+      
+      setLoading(true)
+      const record = await loadBestRecord()
+      setFamilyBestRecord(record)
       setLoading(false)
     }
-  }
+    
+    loadRecord()
+  }, [family, loadBestRecord])
 
   const formatDuration = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60)
@@ -66,7 +65,7 @@ export default function TetrisPage() {
 
         try {
           const recordData = event.data.data
-          await dataService.addTetrisRecord({
+          const newRecord = {
             player_name: member.name || member.role || 'Игрок',
             score: recordData.score,
             level: recordData.level,
@@ -74,10 +73,20 @@ export default function TetrisPage() {
             game_duration_seconds: recordData.game_duration_seconds,
             pieces_placed: recordData.pieces_placed,
             game_mode: recordData.game_mode || 'classic'
-          })
+          }
           
-          // Перезагружаем лучший рекорд семьи
-          await loadBestRecord()
+          await dataService.addTetrisRecord(newRecord)
+          
+          // Проверяем, действительно ли новый рекорд лучше текущего
+          const wasUpdated = updateCacheIfBetter(newRecord)
+          
+          if (wasUpdated) {
+            // Обновляем состояние с новым рекордом из кэша
+            const updatedRecord = getCachedRecord()
+            if (updatedRecord) {
+              setFamilyBestRecord(updatedRecord)
+            }
+          }
           
           console.log('Tetris record saved from iframe:', recordData)
         } catch (error) {
