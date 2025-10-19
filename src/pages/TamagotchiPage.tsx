@@ -1,10 +1,7 @@
-﻿import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react'
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
-import { useCachedData } from '../hooks/useCachedData'
-import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor'
-import PerformanceStats from '../components/PerformanceStats'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -36,13 +33,8 @@ interface SettingsState {
   wakeOnActivityEnabled: boolean
 }
 
-function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
-  // Мониторинг производительности
-  const { getAverageRenderTime, getMemoryStats } = usePerformanceMonitor('TamagotchiPage', {
-    enableMemoryTracking: true,
-    enableRenderTracking: true,
-    logToConsole: false // Отключено для продакшена
-  })
+export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
+  // console.log('TamagotchiPage rendered') // Отключено для экономии ресурсов
   
   const [data, setData] = useState<TamagotchiData | null>(null)
   const [settings, setSettings] = useState<SettingsState>({
@@ -74,12 +66,6 @@ function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const [portionSizeStatusTone, setPortionSizeStatusTone] = useState<'neutral' | 'success' | 'error'>('neutral')
 
   const { member, family } = useAuth()
-
-  // Кэширование данных инвентаря с TTL 5 минут
-  const { data: cachedInventory, refresh: refreshInventory } = useCachedData(
-    () => dataService.getFamilyInventory(),
-    { key: `inventory_${family?.id}`, ttl: 300000 }
-  )
 
   // Получаем числа монет из parentCoins через useMemo
   const coinCounts = useMemo(() => {
@@ -133,7 +119,7 @@ function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   }, [backpackOpen])
 
   const inventoryTotals = useMemo(() => {
-    const rawInventory = data?.inventory || cachedInventory
+    const rawInventory = data?.inventory
     const diapers = Math.max(0, rawInventory?.diapers_stock ?? 0)
     const grams = Math.max(0, rawInventory?.formula_grams ?? 0)
     
@@ -154,7 +140,7 @@ function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       portionsSource,
       portionSize: portionSizeInGrams
     }
-  }, [data?.inventory, cachedInventory, portionSizeOunces])
+  }, [data?.inventory, portionSizeOunces])
 
   // Размер порции теперь сохраняется в БД через updatePortionSize
 
@@ -341,9 +327,6 @@ function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
       const updatedInventory = await dataService.getFamilyInventory()
       setData(prev => (prev ? { ...prev, inventory: updatedInventory } : prev))
-      
-      // Обновляем кэш инвентаря
-      refreshInventory()
 
       setRestockFeedback('Запасы пополнены!')
       setRestockFeedbackTone('success')
@@ -398,9 +381,6 @@ function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         
         // Обновляем данные в состоянии
         setData(prev => prev ? { ...prev, inventory: updatedInventory } : null)
-        
-        // Обновляем кэш инвентаря
-        refreshInventory()
         
         setPortionSizeStatus(`Размер порции обновлён: ${rounded} унций (${Math.round(rounded * GRAMS_PER_OUNCE * 10) / 10} г).`)
         setPortionSizeStatusTone('success')
@@ -500,7 +480,7 @@ function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         setLoading(false)
       }
     }
-  }, [member, family?.id, settings.wakeOnActivityEnabled])
+  }, [member, family, settings.wakeOnActivityEnabled])
 
   // Функция для определения состояния малыша
   const calculateBabyState = useCallback((): BabyState => {
@@ -585,7 +565,7 @@ function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         backgroundUpdateIntervalRef.current = null
       }
     }
-  }, [member, family?.id, fetchData])
+  }, [member?.id, family?.id, fetchData])
 
   useEffect(() => {
     setBabyState(calculateBabyState())
@@ -1516,12 +1496,6 @@ function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         document.body
       )}
 
-      {/* Компонент статистики производительности (только в development) */}
-      <PerformanceStats />
-
     </div>
   )
 }
-
-// Экспортируем компонент с React.memo для предотвращения лишних рендеров
-export default memo(TamagotchiPage)

@@ -2753,67 +2753,39 @@
     opacity: var(--breathing-overlay-opacity-min);
   }
 
-  /* Адаптивные медиа-запросы для максимальной производительности */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
-  /* Оптимизация для слабых устройств */
-  @media (max-width: 768px) and (max-height: 1024px) {
-    * {
-      /* Отключаем дорогие эффекты на мобильных */
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      filter: none !important;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    /* Упрощаем анимации */
-    .coin-float,
-    .coin-falling,
-    .tamagotchi-inventory-item,
+  /* Отключение дорогих эффектов на слабых устройствах и мобильных */
+  @media (prefers-reduced-motion: reduce), (max-width: 768px) {
     .tamagotchi-inventory-container {
       animation: none !important;
-      transition: none !important;
-    }
-  }
-
-  /* Оптимизация для touch-устройств */
-  @media (hover: none) and (pointer: coarse) {
-    .hover-effect,
-    .hover\:scale-105,
-    .hover\:shadow-xl {
-      display: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(255, 255, 255, 0.2) !important;
     }
     
-    /* Увеличиваем области касания */
-    button, 
-    .tamagotchi-inventory-item,
-    .coin-float {
-      min-height: 44px !important;
-      min-width: 44px !important;
-    }
-  }
-
-  /* Оптимизация для устройств с низкой производительностью */
-  @media (max-width: 480px) {
-    /* Отключаем все анимации на маленьких экранах */
-    * {
+    .tamagotchi-inventory-container::before {
       animation: none !important;
-      transition: none !important;
-      transform: none !important;
+      opacity: 0.2;
     }
     
-    /* Упрощаем тени */
-    .shadow-lg,
-    .shadow-xl,
-    .shadow-2xl {
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    .tamagotchi-inventory-container::after {
+      animation: none !important;
+      opacity: 0.1;
+    }
+    
+    .tamagotchi-inventory-item {
+      animation: none !important;
+    }
+    
+    .tamagotchi-inventory-item.low-stock {
+      animation: none !important;
+    }
+    
+    .coin-float {
+      animation: none !important;
+    }
+    
+    .coin-falling {
+      animation: coinZoomOut 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
     }
   }
 
