@@ -1,7 +1,10 @@
-﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
+import { useCachedData } from '../hooks/useCachedData'
+import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor'
+import PerformanceStats from '../components/PerformanceStats'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -33,8 +36,13 @@ interface SettingsState {
   wakeOnActivityEnabled: boolean
 }
 
-export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
-  console.log('TamagotchiPage rendered') // Отладочная информация
+function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
+  // Мониторинг производительности
+  const { getAverageRenderTime, getMemoryStats } = usePerformanceMonitor('TamagotchiPage', {
+    enableMemoryTracking: true,
+    enableRenderTracking: true,
+    logToConsole: false // Отключено для продакшена
+  })
   
   const [data, setData] = useState<TamagotchiData | null>(null)
   const [settings, setSettings] = useState<SettingsState>({
@@ -66,6 +74,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const [portionSizeStatusTone, setPortionSizeStatusTone] = useState<'neutral' | 'success' | 'error'>('neutral')
 
   const { member, family } = useAuth()
+
+  // Кэширование данных инвентаря с TTL 5 минут
+  const { data: cachedInventory, refresh: refreshInventory } = useCachedData(
+    () => dataService.getFamilyInventory(),
+    { key: `inventory_${family?.id}`, ttl: 300000 }
+  )
 
   // Получаем числа монет из parentCoins через useMemo
   const coinCounts = useMemo(() => {
@@ -119,7 +133,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   }, [backpackOpen])
 
   const inventoryTotals = useMemo(() => {
-    const rawInventory = data?.inventory
+    const rawInventory = data?.inventory || cachedInventory
     const diapers = Math.max(0, rawInventory?.diapers_stock ?? 0)
     const grams = Math.max(0, rawInventory?.formula_grams ?? 0)
     
@@ -140,7 +154,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       portionsSource,
       portionSize: portionSizeInGrams
     }
-  }, [data?.inventory, portionSizeOunces])
+  }, [data?.inventory, cachedInventory, portionSizeOunces])
 
   // Размер порции теперь сохраняется в БД через updatePortionSize
 
@@ -327,6 +341,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
       const updatedInventory = await dataService.getFamilyInventory()
       setData(prev => (prev ? { ...prev, inventory: updatedInventory } : prev))
+      
+      // Обновляем кэш инвентаря
+      refreshInventory()
 
       setRestockFeedback('Запасы пополнены!')
       setRestockFeedbackTone('success')
@@ -381,6 +398,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         
         // Обновляем данные в состоянии
         setData(prev => prev ? { ...prev, inventory: updatedInventory } : null)
+        
+        // Обновляем кэш инвентаря
+        refreshInventory()
         
         setPortionSizeStatus(`Размер порции обновлён: ${rounded} унций (${Math.round(rounded * GRAMS_PER_OUNCE * 10) / 10} г).`)
         setPortionSizeStatusTone('success')
@@ -480,7 +500,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         setLoading(false)
       }
     }
-  }, [member, family, settings.wakeOnActivityEnabled])
+  }, [member, family?.id, settings.wakeOnActivityEnabled])
 
   // Функция для определения состояния малыша
   const calculateBabyState = useCallback((): BabyState => {
@@ -509,13 +529,21 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     return 'ok'
   }, [data, settings])
 
-  // Обновляем состояние каждую минуту
+  // Обновляем состояние каждые 5 минут (увеличено с 1 минуты)
+  // Используем useRef для предотвращения лишних рендеров
+  const babyStateIntervalRef = useRef<number | null>(null)
+  
   useEffect(() => {
-    const interval = setInterval(() => {
+    babyStateIntervalRef.current = window.setInterval(() => {
       setBabyState(calculateBabyState())
-    }, 60000) // Каждую минуту
+    }, 300000) // Каждые 5 минут
 
-    return () => clearInterval(interval)
+    return () => {
+      if (babyStateIntervalRef.current) {
+        clearInterval(babyStateIntervalRef.current)
+        babyStateIntervalRef.current = null
+      }
+    }
   }, [calculateBabyState])
 
   // Обновляем previousSleepModeRef при изменении isSleepMode
@@ -538,18 +566,26 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     fetchData()
   }, [member, family, fetchData])
 
-  // Автоматическое фоновое обновление данных каждые 2 минуты
+  // Автоматическое фоновое обновление данных каждые 10 минут (увеличено с 2 минут)
+  // Используем useRef для предотвращения лишних рендеров
+  const backgroundUpdateIntervalRef = useRef<number | null>(null)
+  
   useEffect(() => {
     if (!member || !family) {
       return
     }
 
-    const interval = setInterval(() => {
+    backgroundUpdateIntervalRef.current = window.setInterval(() => {
       fetchData(true) // Фоновое обновление
-    }, 120000) // 2 минуты
+    }, 600000) // 10 минут
 
-    return () => clearInterval(interval)
-  }, [member, family, fetchData])
+    return () => {
+      if (backgroundUpdateIntervalRef.current) {
+        clearInterval(backgroundUpdateIntervalRef.current)
+        backgroundUpdateIntervalRef.current = null
+      }
+    }
+  }, [member, family?.id, fetchData])
 
   useEffect(() => {
     setBabyState(calculateBabyState())
@@ -559,11 +595,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const getCoinIcon = useCallback((state: BabyState, sleepMode: boolean = false): string => {
     // Если включен режим сна, всегда показываем иконку сна
     if (sleepMode) {
-      console.log('🌙 getCoinIcon: Sleep mode ON, returning sleep.png')
+      // console.log('🌙 getCoinIcon: Sleep mode ON, returning sleep.png') // Отключено для экономии ресурсов
       return '/icons/sleep.png'
     }
     
-    console.log('🌙 getCoinIcon: Sleep mode OFF, state:', state)
+    // console.log('🌙 getCoinIcon: Sleep mode OFF, state:', state) // Отключено для экономии ресурсов
     switch (state) {
       case 'feeding':
         return '/icons/feeding.png'
@@ -586,11 +622,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const getCoinType = useCallback((state: BabyState, sleepMode: boolean = false): 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins' => {
     // Если включен режим сна, всегда показываем монетки сна
     if (sleepMode) {
-      console.log('🌙 getCoinType: Sleep mode ON, returning sleep_coins')
+      // console.log('🌙 getCoinType: Sleep mode ON, returning sleep_coins') // Отключено для экономии ресурсов
       return 'sleep_coins'
     }
     
-    console.log('🌙 getCoinType: Sleep mode OFF, state:', state)
+    // console.log('🌙 getCoinType: Sleep mode OFF, state:', state) // Отключено для экономии ресурсов
     switch (state) {
       case 'feeding':
         return 'feeding_coins'
@@ -630,17 +666,17 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
   // Функция для создания новой монетки
   const spawnCoin = useCallback(() => {
-    // Ограничиваем количество монет на экране (максимум 5)
+    // Ограничиваем количество монет на экране (максимум 3 вместо 5)
     setCoins(prev => {
-      if (prev.filter(coin => !coin.collected).length >= 5) {
+      if (prev.filter(coin => !coin.collected).length >= 3) {
         return prev
       }
       
       const position = getRandomCoinPosition()
       
       // Определяем тип и иконку монетки на основе текущего состояния
-      console.log('🌙 spawnCoin called with:', { babyState, isSleepMode })
-      console.log('🌙 isSleepMode type:', typeof isSleepMode, 'value:', isSleepMode)
+      // console.log('🌙 spawnCoin called with:', { babyState, isSleepMode }) // Отключено для экономии ресурсов
+      // console.log('🌙 isSleepMode type:', typeof isSleepMode, 'value:', isSleepMode) // Отключено для экономии ресурсов
       
       // Если малыш спит, всегда показываем монетки сна
       let coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins'
@@ -649,18 +685,18 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       if (isSleepMode) {
         coinType = 'sleep_coins'
         coinIcon = '/icons/sleep.png'
-        console.log('🌙 Sleep mode detected - using sleep coins')
+        // console.log('🌙 Sleep mode detected - using sleep coins') // Отключено для экономии ресурсов
       } else {
         coinType = getCoinType(babyState, false)
         coinIcon = getCoinIcon(babyState, false)
-        console.log('🌙 Normal mode - using state-based coins:', { babyState, coinType, coinIcon })
+        // console.log('🌙 Normal mode - using state-based coins:', { babyState, coinType, coinIcon }) // Отключено для экономии ресурсов
       }
       
-      // Отладочная информация
-      console.log('🌙 Final coin data:', { coinType, coinIcon, isSleepMode })
-      console.log('🌙 Expected: sleep_coins + sleep.png when sleep mode is ON')
-      console.log('🌙 getCoinType result:', getCoinType(babyState, false))
-      console.log('🌙 getCoinIcon result:', getCoinIcon(babyState, false))
+      // Отладочная информация отключена для экономии ресурсов
+      // console.log('🌙 Final coin data:', { coinType, coinIcon, isSleepMode })
+      // console.log('🌙 Expected: sleep_coins + sleep.png when sleep mode is ON')
+      // console.log('🌙 getCoinType result:', getCoinType(babyState, false))
+      // console.log('🌙 getCoinIcon result:', getCoinIcon(babyState, false))
       
       const newCoin = {
         id: Date.now() + Math.random(),
@@ -672,11 +708,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         type: coinType
       }
       
-      // Автоматически убираем монетку через 10 секунд, если она не была собрана
+      // Автоматически убираем монетку через 5 секунд, если она не была собрана (уменьшено для экономии ресурсов)
       const timeoutId = window.setTimeout(() => {
         setCoins(prevCoins => prevCoins.filter(coin => coin.id !== newCoin.id))
         coinTimeoutRefs.current.delete(timeoutId)
-      }, 10000)
+      }, 5000)
       coinTimeoutRefs.current.add(timeoutId)
       
       return [...prev, newCoin]
@@ -691,6 +727,16 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         clearTimeout(coinSpawnIntervalRef.current)
         coinSpawnIntervalRef.current = null
       }
+      // Очищаем интервал состояния малыша
+      if (babyStateIntervalRef.current) {
+        clearInterval(babyStateIntervalRef.current)
+        babyStateIntervalRef.current = null
+      }
+      // Очищаем интервал фонового обновления
+      if (backgroundUpdateIntervalRef.current) {
+        clearInterval(backgroundUpdateIntervalRef.current)
+        backgroundUpdateIntervalRef.current = null
+      }
       // Очищаем все таймеры монеток
       coinTimeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId))
       coinTimeoutRefs.current.clear()
@@ -700,11 +746,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }, [])
 
-  // Автоматическое появление монет каждые 10-20 секунд
+  // Автоматическое появление монет каждые 30-60 секунд (увеличено для экономии ресурсов)
   useEffect(() => {
     const startCoinSpawning = () => {
       const spawnInterval = () => {
-        const delay = Math.random() * 10000 + 10000 // 10-20 секунд
+        const delay = Math.random() * 30000 + 30000 // 30-60 секунд
         const timeout = window.setTimeout(() => {
           spawnCoin()
           spawnInterval() // Рекурсивно планируем следующую монетку
@@ -765,7 +811,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       // Немедленно обновляем локальное состояние
       const newSleepMode = !isSleepMode
       setIsSleepMode(newSleepMode)
-      console.log('🌙 toggleSleepMode: immediately setting isSleepMode to:', newSleepMode)
+      // console.log('🌙 toggleSleepMode: immediately setting isSleepMode to:', newSleepMode) // Отключено для экономии ресурсов
       
       if (isSleepMode) {
         // Завершаем сессию сна
@@ -926,11 +972,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
     try {
       // Сохраняем монетку в БД
-      console.log(`Adding ${coin.type} coin to database...`)
+      // console.log(`Adding ${coin.type} coin to database...`) // Отключено для экономии ресурсов
       const updatedCoins = await dataService.addCoins(coin.type, 1)
       
       if (updatedCoins) {
-        console.log('Coins updated successfully:', updatedCoins)
+        // console.log('Coins updated successfully:', updatedCoins) // Отключено для экономии ресурсов
         // Обновляем данные в состоянии локально для быстрого отклика
         setData(prev => prev ? { ...prev, parentCoins: updatedCoins } : null)
         // Дополнительно обновляем данные в фоновом режиме для синхронизации
@@ -1470,6 +1516,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         document.body
       )}
 
+      {/* Компонент статистики производительности (только в development) */}
+      <PerformanceStats />
+
     </div>
   )
 }
+
+// Экспортируем компонент с React.memo для предотвращения лишних рендеров
+export default memo(TamagotchiPage)
