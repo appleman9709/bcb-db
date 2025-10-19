@@ -10,6 +10,7 @@ import BabyIllustration from '../components/BabyIllustration'
 import ActivityCard from '../components/ActivityCard'
 import BottomNavigation from '../components/BottomNavigation'
 import BackgroundElements from '../components/BackgroundElements'
+import CategoryPreloader from '../components/CategoryPreloader'
 import TamagotchiPage from './TamagotchiPage'
 import TetrisPage from './TetrisPage'
 import GrowthChartCard, { WHO_HEIGHT_CURVES, WHO_WEIGHT_CURVES } from '../components/GrowthChartCard'
@@ -30,6 +31,7 @@ import {
   saveDutyScheduleHybrid,
   type DutySchedule
 } from '../services/dutyScheduleService'
+import { initGradientTimer, getStatusMessage, calculateGradientProgress } from '../lib/gradientUtils'
 
 type DashboardSection = 'dashboard' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -564,37 +566,6 @@ export default function Dashboard() {
     }
   }
 
-  // Функция для расчета цвета градиента на основе времени
-  const getGradientColor = (timestamp: string, intervalHours: number) => {
-    const now = new Date()
-    const time = new Date(timestamp)
-    const diffInMinutes = Math.max(0, Math.floor((now.getTime() - time.getTime()) / (1000 * 60)))
-    const diffInHours = diffInMinutes / 60
-    
-    // Новая логика градиентов:
-    // 0-95% интервала: зеленый (0-0.2)
-    // 95-100% интервала: желто-оранжевый (0.2-0.8)
-    // >100% интервала: красный (0.8-1.0)
-    const greenThreshold = intervalHours * 0.95
-    const yellowThreshold = intervalHours
-    
-    let progress
-    if (diffInHours <= greenThreshold) {
-      // Зеленый диапазон - плавно от 0 до 0.2
-      progress = (diffInHours / greenThreshold) * 0.2
-    } else if (diffInHours <= yellowThreshold) {
-      // Желто-оранжевый диапазон - от 0.2 до 0.8
-      const localProgress = (diffInHours - greenThreshold) / (yellowThreshold - greenThreshold)
-      progress = 0.2 + localProgress * 0.6
-    } else {
-      // Красный диапазон - от 0.8 до 1.0 (превышение интервала)
-      const localProgress = Math.min(1, (diffInHours - yellowThreshold) / (intervalHours * 0.5)) // Ускоряем переход к красному
-      progress = 0.8 + localProgress * 0.2
-    }
-    
-    return Math.min(1, Math.max(0, progress))
-  }
-
   const handleQuickAction = (action: QuickActionType) => {
     setModalAction(action)
     setModalOpen(true)
@@ -960,15 +931,21 @@ export default function Dashboard() {
     fetchData()
   }, [member, family, fetchData])
 
-  // Обновляем градиенты каждую минуту для плавного изменения цвета
+  // Инициализируем таймер градиентов (заменяет старый проблемный таймер)
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Принудительно обновляем компонент для пересчета градиентов
-      setData(prevData => prevData ? { ...prevData } : null)
-    }, 60000) // Каждую минуту
+    if (!data) return
 
-    return () => clearInterval(interval)
-  }, [])
+    const cleanup = initGradientTimer(
+      data.lastFeeding?.timestamp || null,
+      data.lastDiaper?.timestamp || null,
+      data.lastBath?.timestamp || null,
+      settings.feedingInterval,
+      settings.diaperInterval,
+      settings.bathInterval
+    )
+
+    return cleanup
+  }, [data?.lastFeeding?.timestamp, data?.lastDiaper?.timestamp, data?.lastBath?.timestamp, settings.feedingInterval, settings.diaperInterval, settings.bathInterval])
 
   useEffect(() => {
   }, [activeTab, member, family])
@@ -1241,6 +1218,9 @@ export default function Dashboard() {
   return (
     <div className="h-screen h-dvh bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden pwa-container">
       <BackgroundElements />
+      
+      {/* Предзагрузка изображений для действий */}
+      <CategoryPreloader category="actions" priority="high" delay={500} />
       
       {/* Pull-to-refresh индикатор */}
       <div 
@@ -1614,14 +1594,6 @@ export default function Dashboard() {
                       : 'Расскажите приложению, кто помогает семье и когда'}
                   </p>
                 </div>
-                <div className="mt-1">
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-white shadow-inner">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-500 via-sky-400 to-indigo-400 transition-all duration-500"
-                      style={{ width: `${currentDutyProgressDisplay}%` }}
-                    />
-                  </div>
-                </div>
                 {familyMembers.length === 0 && (
                   <p className="mt-1 text-[9px] text-gray-500 text-center">
                     Добавьте родных и друзей, чтобы распределять заботу по очереди.
@@ -1636,6 +1608,7 @@ export default function Dashboard() {
                   state={getBabyImageState()} 
                   onClick={handleBabyImageClick}
                   customImage={customBabyImage}
+                  dutyProgress={currentDutyProgressDisplay}
                 />
               </div>
 
@@ -1655,10 +1628,10 @@ export default function Dashboard() {
                     </p>
                     <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
                       <div 
-                        className={`h-2 rounded-3xl transition-all duration-300 ${
+                        className={`h-2 rounded-3xl transition-all duration-300 progress-bar-animated ${
                           data?.lastFeeding && (Date.now() - new Date(data.lastFeeding.timestamp).getTime()) >= (settings.feedingInterval * 60 * 60 * 1000)
                             ? 'bg-red-500' 
-                            : 'bg-blue-400'
+                            : 'gradient-feeding-progress'
                         }`}
                         style={{ 
                           width: `${Math.min(100, Math.max(0, data?.lastFeeding 
@@ -1669,11 +1642,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {data?.lastFeeding ? (
-                        getGradientColor(data.lastFeeding.timestamp, settings.feedingInterval) < 0.5 
-                          ? "Все хорошо" 
-                          : getGradientColor(data.lastFeeding.timestamp, settings.feedingInterval) < 0.8
-                          ? "Скоро пора кормить"
-                          : "Пора кормить!"
+                        getStatusMessage(calculateGradientProgress(data.lastFeeding.timestamp, settings.feedingInterval), 'feeding')
                       ) : "Запишите первое кормление"}
                     </div>
                   </div>
@@ -1699,10 +1668,10 @@ export default function Dashboard() {
                     </p>
                     <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
                       <div 
-                        className={`h-2 rounded-3xl transition-all duration-300 ${
+                        className={`h-2 rounded-3xl transition-all duration-300 progress-bar-animated ${
                           data?.lastDiaper && (Date.now() - new Date(data.lastDiaper.timestamp).getTime()) >= (settings.diaperInterval * 60 * 60 * 1000)
                             ? 'bg-red-500' 
-                            : 'bg-green-400'
+                            : 'gradient-diaper-progress'
                         }`}
                         style={{ 
                           width: `${Math.min(100, Math.max(0, data?.lastDiaper 
@@ -1713,11 +1682,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {data?.lastDiaper ? (
-                        getGradientColor(data.lastDiaper.timestamp, settings.diaperInterval) < 0.5 
-                          ? "Подгузник чистый" 
-                          : getGradientColor(data.lastDiaper.timestamp, settings.diaperInterval) < 0.8
-                          ? "Скоро пора сменить"
-                          : "Пора сменить подгузник!"
+                        getStatusMessage(calculateGradientProgress(data.lastDiaper.timestamp, settings.diaperInterval), 'diaper')
                       ) : "Запишите первую смену"}
                     </div>
                   </div>
@@ -1743,10 +1708,10 @@ export default function Dashboard() {
                     </p>
                     <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
                       <div 
-                        className={`h-2 rounded-3xl transition-all duration-300 ${
+                        className={`h-2 rounded-3xl transition-all duration-300 progress-bar-animated ${
                           data?.lastBath && (Date.now() - new Date(data.lastBath.timestamp).getTime()) >= (settings.bathInterval * 24 * 60 * 60 * 1000)
                             ? 'bg-red-500' 
-                            : 'bg-orange-400'
+                            : 'gradient-bath-progress'
                         }`}
                         style={{ 
                           width: `${Math.min(100, Math.max(0, data?.lastBath 
@@ -1757,11 +1722,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {data?.lastBath ? (
-                        getGradientColor(data.lastBath.timestamp, settings.bathInterval * 24) < 0.5 
-                          ? "Купание недавно" 
-                          : getGradientColor(data.lastBath.timestamp, settings.bathInterval * 24) < 0.8
-                          ? "Скоро пора купать"
-                          : "Пора искупать малыша!"
+                        getStatusMessage(calculateGradientProgress(data.lastBath.timestamp, settings.bathInterval * 24), 'bath')
                       ) : "Запишите первое купание"}
                     </div>
                   </div>

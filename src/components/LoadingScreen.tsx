@@ -1,6 +1,5 @@
 
 import { useImagePreloader } from './ImagePreloader'
-import ImagePreloader from './ImagePreloader'
 
 const features = [
   'Умные напоминания',
@@ -9,7 +8,8 @@ const features = [
 ]
 
 export default function LoadingScreen() {
-  const { isPreloading, preloadProgress, handlePreloadComplete, handlePreloadProgress } = useImagePreloader()
+  const { isPreloading, preloadProgress } = useImagePreloader()
+  
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4 sm:px-6 text-gray-900 overflow-hidden">
       {/* Фоновые элементы */}
@@ -53,7 +53,7 @@ export default function LoadingScreen() {
               Добро пожаловать!
             </h1>
             <p className="text-xs sm:text-sm text-gray-600 font-medium">
-              {isPreloading ? `Загружаем изображения... ${preloadProgress.loaded}/${preloadProgress.total}` : 'Загружаем ваши данные...'}
+              {isPreloading ? `Загружаем критические ресурсы... ${preloadProgress.loaded}/${preloadProgress.total}` : 'Загружаем ваши данные...'}
             </p>
           </div>
         </div>
@@ -97,12 +97,6 @@ export default function LoadingScreen() {
         <div className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-2 h-2 sm:w-3 sm:h-3 bg-purple-400/20 rounded-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         <div className="absolute top-1/3 -right-3 sm:-right-4 w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-400/20 rounded-3xl animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
-      
-      {/* Компонент предзагрузки изображений */}
-      <ImagePreloader 
-        onComplete={handlePreloadComplete}
-        onProgress={handlePreloadProgress}
-      />
     </div>
   )
 }

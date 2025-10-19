@@ -7,9 +7,10 @@ interface BabyIllustrationProps {
   state?: BabyState
   onClick?: () => void
   customImage?: string | null
+  dutyProgress?: number
 }
 
-export default function BabyIllustration({ className = '', state = 'normal', onClick, customImage }: BabyIllustrationProps) {
+export default function BabyIllustration({ className = '', state = 'normal', onClick, customImage, dutyProgress = 0 }: BabyIllustrationProps) {
   const getImageSrc = () => {
     // Если есть пользовательское изображение и состояние normal, используем его
     if (customImage && state === 'normal') {
@@ -43,27 +44,64 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
 
   return (
     <div className={`relative ${className}`}>
-      {/* Основной круг с градиентом */}
-      <div 
-        className={`relative w-40 h-40 mx-auto ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration ${
-          onClick ? 'cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-105' : ''
-        }`}
-        onClick={onClick}
-      >
-        {/* Изображение малыша */}
-        <img 
-          src={getImageSrc()} 
-          alt="Малыш" 
-          className={`relative z-10 ${
-            customImage && state === 'normal' 
-              ? 'w-full h-full object-cover rounded-full' 
-              : 'object-contain'
+      {/* Полоса дежурства вокруг изображения */}
+      <div className="relative w-48 h-48 mx-auto">
+        {/* SVG для круговой полосы дежурства */}
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 192 192">
+          <defs>
+            <linearGradient id="dutyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="50%" stopColor="#0ea5e9" />
+              <stop offset="100%" stopColor="#6366f1" />
+            </linearGradient>
+          </defs>
+          {/* Фон полосы */}
+          <circle
+            cx="96"
+            cy="96"
+            r="88"
+            fill="none"
+            stroke="#e5e7eb"
+            strokeWidth="6"
+          />
+          {/* Прогресс полосы */}
+          <circle
+            cx="96"
+            cy="96"
+            r="88"
+            fill="none"
+            stroke="url(#dutyGradient)"
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={`${2 * Math.PI * 88}`}
+            strokeDashoffset={`${2 * Math.PI * 88 * (1 - dutyProgress / 100)}`}
+            className="transition-all duration-500 ease-out"
+            style={{ transform: 'rotate(-90deg)', transformOrigin: '96px 96px' }}
+          />
+        </svg>
+        
+        {/* Основной круг с градиентом */}
+        <div 
+          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration ${
+            onClick ? 'cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-105' : ''
           }`}
-          style={{ 
-            width: customImage && state === 'normal' ? '100%' : '128px', 
-            height: customImage && state === 'normal' ? '100%' : '128px' 
-          }}
-        />
+          onClick={onClick}
+        >
+          {/* Изображение малыша */}
+          <img 
+            src={getImageSrc()} 
+            alt="Малыш" 
+            className={`relative z-10 ${
+              customImage && state === 'normal' 
+                ? 'w-full h-full object-cover rounded-full' 
+                : 'object-contain'
+            }`}
+            style={{ 
+              width: customImage && state === 'normal' ? '100%' : '128px', 
+              height: customImage && state === 'normal' ? '100%' : '128px' 
+            }}
+          />
+        </div>
       </div>
     </div>
   )

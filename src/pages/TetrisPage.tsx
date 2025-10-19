@@ -4,6 +4,7 @@ import { dataService, type TetrisRecord } from '../services/dataService'
 import BottomNavigation from '../components/BottomNavigation'
 import { RecordDisplay } from '../components/ModalUtils'
 import { useTetrisRecordCache } from '../hooks/useTetrisRecordCache'
+import CategoryPreloader from '../components/CategoryPreloader'
 
 export default function TetrisPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -118,6 +119,9 @@ export default function TetrisPage() {
 
   return (
     <div className="h-full w-full flex flex-col bg-gradient-to-b from-yellow-50 to-yellow-100">
+      {/* Предзагрузка изображений для навигации */}
+      <CategoryPreloader category="navigation" priority="medium" delay={200} />
+      
       {/* Лучший рекорд семьи */}
       {!loading && familyBestRecord && (
         <RecordDisplay

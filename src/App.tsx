@@ -5,8 +5,6 @@ import { ImagePreloadProvider } from './contexts/ImagePreloadContext'
 import Dashboard from './pages/Dashboard'
 import AuthPage from './pages/AuthPage'
 import LoadingScreen from './components/LoadingScreen'
-import { CriticalImagePreloader } from './lib/imagePreloader'
-import ImagePreloader from './components/ImagePreloader'
 
 function AppContent() {
   const { family, member, initialized } = useAuth()
@@ -28,8 +26,6 @@ export default function App() {
     <ThemeProvider>
       <ImagePreloadProvider>
         <AuthProvider>
-          <CriticalImagePreloader />
-          <ImagePreloader />
           <AppContent />
         </AuthProvider>
       </ImagePreloadProvider>

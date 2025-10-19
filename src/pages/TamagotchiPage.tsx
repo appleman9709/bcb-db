@@ -2,6 +2,7 @@
 import { createPortal } from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
+import CategoryPreloader from '../components/CategoryPreloader'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -1029,6 +1030,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
   return (
     <div className="tamagotchi-container relative">
+      {/* Предзагрузка изображений для тамагочи */}
+      <CategoryPreloader category="tamagotchi" priority="high" delay={300} />
+      
       {/* Индикатор фонового обновления */}
       {backgroundLoading && (
         <div className="absolute top-2 right-2 z-30 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
