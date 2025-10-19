@@ -287,10 +287,27 @@ export default function Dashboard() {
   const pullStartYRef = useRef<number | null>(null)
   const isPullingRef = useRef(false)
   const pullDistanceRef = useRef(0)
+  const pullIndicatorRef = useRef<HTMLDivElement>(null)
+  const animationFrameRef = useRef<number | null>(null)
+  const lastThresholdStateRef = useRef<'below' | 'above' | 'unknown'>('unknown')
 
+  // Оптимизированная функция обновления pull distance
   const updatePullDistance = useCallback((value: number) => {
     pullDistanceRef.current = value
-    setPullDistance(value)
+    
+    // Прямое обновление DOM стилей для лучшей производительности
+    if (pullIndicatorRef.current) {
+      const clampedValue = Math.min(value, MAX_PULL_DISTANCE)
+      pullIndicatorRef.current.style.transform = `translateY(${clampedValue - 60}px)`
+      pullIndicatorRef.current.style.opacity = value > 20 ? Math.min(1, (value - 20) / 40).toString() : '0'
+    }
+    
+    // Обновляем состояние только при пересечении порогов для редкого режима
+    const currentThresholdState = value >= PULL_REFRESH_THRESHOLD ? 'above' : 'below'
+    if (lastThresholdStateRef.current !== currentThresholdState) {
+      lastThresholdStateRef.current = currentThresholdState
+      setPullDistance(value)
+    }
   }, [])
 
   const reminderTimers = useRef<Partial<Record<ReminderType, number>>>({})
@@ -969,9 +986,16 @@ export default function Dashboard() {
     }
 
     const resetPullState = () => {
+      // Отменяем текущий animation frame если он есть
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
+      
       updatePullDistance(0)
       pullStartYRef.current = null
       isPullingRef.current = false
+      lastThresholdStateRef.current = 'unknown'
     }
 
     const handleTouchStart = (event: TouchEvent) => {
@@ -1023,7 +1047,16 @@ export default function Dashboard() {
         : PULL_REFRESH_THRESHOLD + (delta - PULL_REFRESH_THRESHOLD) * 0.3
       
       const limitedDelta = Math.min(rubberBandDelta, MAX_PULL_DISTANCE)
-      updatePullDistance(limitedDelta)
+      
+      // Используем requestAnimationFrame для плавного обновления
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+      }
+      
+      animationFrameRef.current = requestAnimationFrame(() => {
+        updatePullDistance(limitedDelta)
+        animationFrameRef.current = null
+      })
       
       // Тактильная обратная связь при достижении порога
       if (delta >= PULL_REFRESH_THRESHOLD && pullDistanceRef.current < PULL_REFRESH_THRESHOLD) {
@@ -1224,6 +1257,7 @@ export default function Dashboard() {
       
       {/* Pull-to-refresh индикатор */}
       <div 
+        ref={pullIndicatorRef}
         className="absolute top-0 left-0 right-0 z-20 flex items-center justify-center transition-all duration-300 ease-out"
         style={{ 
           transform: `translateY(${Math.min(pullDistance, MAX_PULL_DISTANCE) - 60}px)`,
@@ -1232,7 +1266,7 @@ export default function Dashboard() {
       >
         <div className="bg-white rounded-3xl p-3 shadow-lg border border-gray-200">
           {isRefreshing ? (
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-3xl animate-spin"></div>
+            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-3xl animate-spin animation-priority-high"></div>
           ) : (
             <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-200 ${
               pullDistance >= PULL_REFRESH_THRESHOLD ? 'rotate-180' : ''
@@ -1783,7 +1817,7 @@ export default function Dashboard() {
                     
                     {recentEventsLoading ? (
                       <div className="flex items-center justify-center py-4">
-                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin animation-priority-high"></div>
                         <span className="ml-2 text-gray-600 text-sm">Загружаем события...</span>
                       </div>
                     ) : recentEvents.length === 0 ? (

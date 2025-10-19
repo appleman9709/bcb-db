@@ -3,19 +3,19 @@ import React from 'react'
 export default function BackgroundElements() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {/* Небо с облаками */}
+      {/* Небо с облаками - оптимизированные */}
       <div className="absolute inset-0 bg-gradient-to-b from-blue-100 to-blue-200">
-        {/* Облака */}
-        <div className="absolute top-8 left-8 w-16 h-8 bg-white rounded-3xl opacity-80 animate-pulse"></div>
-        <div className="absolute top-12 left-20 w-12 h-6 bg-white rounded-3xl opacity-60 animate-pulse delay-1000"></div>
-        <div className="absolute top-6 right-12 w-20 h-10 bg-white rounded-3xl opacity-70 animate-pulse delay-500"></div>
-        <div className="absolute top-16 right-20 w-14 h-7 bg-white rounded-3xl opacity-50 animate-pulse delay-1500"></div>
+        {/* Облака - только одно анимированное */}
+        <div className="absolute top-8 left-8 w-16 h-8 bg-white rounded-3xl opacity-80 loading-element-primary"></div>
+        <div className="absolute top-12 left-20 w-12 h-6 bg-white rounded-3xl opacity-60 decoration-animation"></div>
+        <div className="absolute top-6 right-12 w-20 h-10 bg-white rounded-3xl opacity-70 decoration-animation"></div>
+        <div className="absolute top-16 right-20 w-14 h-7 bg-white rounded-3xl opacity-50 decoration-animation"></div>
         
-        {/* Звезды */}
-        <div className="absolute top-4 left-16 w-1 h-1 bg-yellow-200 rounded-3xl animate-pulse"></div>
-        <div className="absolute top-8 right-16 w-1 h-1 bg-yellow-200 rounded-3xl animate-pulse delay-700"></div>
-        <div className="absolute top-12 left-32 w-1 h-1 bg-yellow-200 rounded-3xl animate-pulse delay-1400"></div>
-        <div className="absolute top-6 right-32 w-1 h-1 bg-yellow-200 rounded-3xl animate-pulse delay-2100"></div>
+        {/* Звезды - только одна анимированная */}
+        <div className="absolute top-4 left-16 w-1 h-1 bg-yellow-200 rounded-3xl loading-element-secondary"></div>
+        <div className="absolute top-8 right-16 w-1 h-1 bg-yellow-200 rounded-3xl decoration-animation"></div>
+        <div className="absolute top-12 left-32 w-1 h-1 bg-yellow-200 rounded-3xl decoration-animation"></div>
+        <div className="absolute top-6 right-32 w-1 h-1 bg-yellow-200 rounded-3xl decoration-animation"></div>
       </div>
       
       {/* Ландшафт */}

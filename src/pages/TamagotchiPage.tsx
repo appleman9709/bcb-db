@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
 import CategoryPreloader from '../components/CategoryPreloader'
+import { useCoinAnimationLimiter } from '../hooks/useAnimationLimiter'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -67,6 +68,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const [portionSizeStatusTone, setPortionSizeStatusTone] = useState<'neutral' | 'success' | 'error'>('neutral')
 
   const { member, family } = useAuth()
+  const { animateCoin, canAnimate } = useCoinAnimationLimiter()
 
   // Получаем числа монет из parentCoins через useMemo
   const coinCounts = useMemo(() => {
@@ -566,7 +568,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         backgroundUpdateIntervalRef.current = null
       }
     }
-  }, [member?.id, family?.id, fetchData])
+  }, [member?.user_id, family?.id, fetchData])
 
   useEffect(() => {
     setBabyState(calculateBabyState())
@@ -647,6 +649,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
   // Функция для создания новой монетки
   const spawnCoin = useCallback(() => {
+    // Проверяем, можем ли мы запустить анимацию
+    if (!canAnimate()) {
+      return // Пропускаем создание монеты, если достигнут лимит анимаций
+    }
+    
     // Ограничиваем количество монет на экране (максимум 3 вместо 5)
     setCoins(prev => {
       if (prev.filter(coin => !coin.collected).length >= 3) {
@@ -698,7 +705,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       
       return [...prev, newCoin]
     })
-  }, [babyState, isSleepMode, getCoinType, getCoinIcon])
+  }, [babyState, isSleepMode, getCoinType, getCoinIcon, canAnimate])
 
   // Очистка всех таймеров при размонтировании компонента
   useEffect(() => {
@@ -749,7 +756,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         coinSpawnIntervalRef.current = null
       }
     }
-  }, [spawnCoin]) // Перезапускаем при изменении функции spawnCoin
+  }, [spawnCoin, canAnimate]) // Перезапускаем при изменении функции spawnCoin или canAnimate
 
 
   const getGifSource = (state: BabyState): string => {
@@ -1021,7 +1028,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-3xl animate-spin mx-auto mb-2"></div>
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-3xl animate-spin animation-priority-high mx-auto mb-2"></div>
           <p className="text-sm text-gray-600">Загружаем малыша...</p>
         </div>
       </div>
@@ -1036,7 +1043,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       {/* Индикатор фонового обновления */}
       {backgroundLoading && (
         <div className="absolute top-2 right-2 z-30 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
-          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin animation-priority-high"></div>
           <span>Обновление...</span>
         </div>
       )}
@@ -1058,7 +1065,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           <img 
             src={coin.icon} 
             alt="Монетка" 
-            className="w-full h-full object-contain hover:scale-110 transition-transform duration-200"
+            className="w-full h-full object-contain coin-hover-effect"
           />
         </div>
       ))}

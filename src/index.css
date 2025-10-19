@@ -2826,16 +2826,161 @@
     }
   }
 
-  /* Дополнительная оптимизация для мобильных устройств */
-  @media (max-width: 768px) {
-    .tamagotchi-inventory-container {
-      /* Отключен backdrop-filter для экономии ресурсов на мобильных */
-      /* backdrop-filter: blur(10px); */
-      /* -webkit-backdrop-filter: blur(10px); */
-      background: rgba(255, 255, 255, 0.2);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+/* Дополнительная оптимизация для мобильных устройств */
+@media (max-width: 768px) {
+  .tamagotchi-inventory-container {
+    /* Отключен backdrop-filter для экономии ресурсов на мобильных */
+    /* backdrop-filter: blur(10px); */
+    /* -webkit-backdrop-filter: blur(10px); */
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
+}
+
+/* ========================================
+   СИСТЕМА ПРИОРИТЕТОВ АНИМАЦИЙ
+   ======================================== */
+
+/* Базовые классы для управления анимациями */
+.animation-priority-high {
+  /* Критически важные анимации - всегда включены */
+}
+
+.animation-priority-medium {
+  /* Важные анимации - отключаются на слабых устройствах */
+}
+
+.animation-priority-low {
+  /* Декоративные анимации - отключаются первыми */
+}
+
+/* Отключение анимаций на слабых устройствах */
+@media (prefers-reduced-motion: reduce), (max-width: 768px) {
+  .animation-priority-medium,
+  .animation-priority-low {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  /* Отключение hover эффектов на touch устройствах */
+  .hover-effect {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Отключение на очень слабых устройствах */
+@media (max-width: 480px) {
+  .animation-priority-high {
+    animation-duration: 0.1s !important;
+  }
+  
+  /* Отключение всех декоративных анимаций */
+  .decoration-animation {
+    animation: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+/* ========================================
+   ОПТИМИЗИРОВАННЫЕ АНИМАЦИИ МОНЕТ
+   ======================================== */
+
+/* Упрощенная анимация падения монет */
+@keyframes coinFallOptimized {
+  0% {
+    transform: scale(0) translateY(-20px);
+    opacity: 0;
+  }
+  20% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8) translateY(20px);
+    opacity: 0;
+  }
+}
+
+.coin-falling-optimized {
+  animation: coinFallOptimized 1s ease-out forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Отключение hover анимаций на мобильных */
+@media (hover: none) {
+  .coin-hover-effect {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Hover эффект для монет на desktop */
+@media (hover: hover) {
+  .coin-hover-effect {
+    transition: transform 0.2s ease;
+  }
+  
+  .coin-hover-effect:hover {
+    transform: scale(1.1);
+  }
+}
+
+/* ========================================
+   ОПТИМИЗИРОВАННЫЕ АНИМАЦИИ ЗАГРУЗКИ
+   ======================================== */
+
+/* Упрощенные анимации загрузки */
+@keyframes loadingPulseOptimized {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+.loading-element-primary {
+  animation: loadingPulseOptimized 2s ease-in-out infinite;
+}
+
+.loading-element-secondary {
+  animation: loadingPulseOptimized 2s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+/* Отключение декоративных анимаций на мобильных */
+@media (max-width: 768px) {
+  .loading-decoration {
+    animation: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+/* ========================================
+   ОПТИМИЗАЦИЯ СУЩЕСТВУЮЩИХ АНИМАЦИЙ
+   ======================================== */
+
+/* Оптимизированная анимация coin-falling */
+.coin-falling {
+  /* Заменяем две анимации на одну оптимизированную */
+  animation: coinFallOptimized 1s ease-out forwards;
+  pointer-events: none;
+  z-index: 10;
+  will-change: transform, opacity;
+}
+
+/* Отключение постоянных анимаций монет на мобильных */
+@media (max-width: 768px) {
+  .coin-float {
+    animation: none !important;
+    pointer-events: auto;
+    z-index: 20;
+  }
+}
 
   /* 
    * ОПТИМИЗИРОВАННАЯ анимация "дыхания" для liquid glass эффекта

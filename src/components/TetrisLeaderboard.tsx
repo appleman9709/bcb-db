@@ -88,7 +88,7 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-3xl p-6 max-w-md w-full mx-4">
           <div className="text-center">
-            <div className="animate-spin rounded-3xl h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-3xl h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4 animation-priority-high"></div>
             <p className="text-gray-600">Загрузка рекордов...</p>
           </div>
         </div>
