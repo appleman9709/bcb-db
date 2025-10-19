@@ -3217,7 +3217,7 @@
 :root {
   --tab-bar-z-index: 50;
   --tab-bar-position: fixed;
-  --tab-bar-bottom: 40px;
+  --tab-bar-bottom: 18px;
   --tab-bar-left: 16px;
   --tab-bar-right: 16px;
 }

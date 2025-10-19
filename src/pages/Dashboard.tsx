@@ -272,6 +272,7 @@ export default function Dashboard() {
   
   // Состояние для недавних событий
   const [recentEventsExpanded, setRecentEventsExpanded] = useState(false)
+  const recentEventsExpandedRef = useRef(false)
   
   // Состояние для пользовательского изображения малыша
   const [customBabyImage, setCustomBabyImage] = useState<string | null>(null)
@@ -304,6 +305,11 @@ export default function Dashboard() {
       window.clearInterval(intervalId)
     }
   }, [])
+
+  // Синхронизируем ref с состоянием recentEventsExpanded
+  useEffect(() => {
+    recentEventsExpandedRef.current = recentEventsExpanded
+  }, [recentEventsExpanded])
 
   // Загружаем пользовательское изображение малыша из localStorage
   useEffect(() => {
@@ -668,7 +674,7 @@ export default function Dashboard() {
   }
 
   // Функция для загрузки недавних событий
-  const fetchRecentEvents = async () => {
+  const fetchRecentEvents = useCallback(async () => {
     if (!member || !family) {
       return
     }
@@ -710,11 +716,11 @@ export default function Dashboard() {
     } finally {
       setRecentEventsLoading(false)
     }
-  }
+  }, [member, family])
 
   // Обработчик клика по изображению часов для раскрытия недавних событий
-  const handleRecentEventsClick = async () => {
-    if (!recentEventsExpanded) {
+  const handleRecentEventsClick = useCallback(async () => {
+    if (!recentEventsExpandedRef.current) {
       await fetchRecentEvents()
       // Добавляем плавную прокрутку вниз для мобильной версии при открытии модального окна
       setTimeout(() => {
@@ -764,8 +770,8 @@ export default function Dashboard() {
         }
       }, 200) // Оптимальная задержка для синхронизации
     }
-    setRecentEventsExpanded(!recentEventsExpanded)
-  }
+    setRecentEventsExpanded(prev => !prev)
+  }, [fetchRecentEvents])
 
   const handleDeleteRecord = async (type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep', id: number) => {
     if (!member || !family) {
