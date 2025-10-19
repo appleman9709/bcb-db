@@ -1905,63 +1905,69 @@
   animation: scoreBounce 0.3s ease-out;
 }
 
-/* Стили для модального окна - поверх нижней панели */
+/* CSS-переменные для оптимизации модальных окон */
+:root {
+  --modal-z-index: 9999;
+  --modal-content-max-height: 90vh;
+  --modal-content-max-height-dvh: 90dvh;
+  --modal-overlay-position: fixed;
+  --modal-overlay-inset: 0;
+}
+
+/* Стили для модального окна - оптимизированная версия */
 .modal-overlay {
-  z-index: 9999 !important;
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
+  z-index: var(--modal-z-index);
+  position: var(--modal-overlay-position);
+  top: var(--modal-overlay-inset);
+  left: var(--modal-overlay-inset);
+  right: var(--modal-overlay-inset);
+  bottom: var(--modal-overlay-inset);
 }
 
 .modal-content {
-  max-height: 90vh !important; /* Полная высота экрана */
-  max-height: 90dvh !important; /* Dynamic viewport height */
+  max-height: var(--modal-content-max-height);
+  max-height: var(--modal-content-max-height-dvh);
 }
 
 /* Дополнительные стили для модальных окон на мобильных устройствах */
 @media (max-width: 768px) {
+  :root {
+    --modal-content-max-height: 85vh;
+    --modal-content-max-height-dvh: 85dvh;
+  }
+  
   .modal-overlay {
-    z-index: 9999 !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    height: 100dvh !important;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
   }
   
   .modal-content {
-    max-height: 85vh !important;
-    max-height: 85dvh !important;
-    margin-bottom: 2rem !important; /* Отступ снизу для нижней панели */
+    margin-bottom: 2rem; /* Отступ снизу для нижней панели */
   }
 }
 
-/* Стили для всех модальных окон - убеждаемся что они поверх нижней панели */
+/* Стили для всех модальных окон - оптимизированная версия */
 [role="dialog"],
 .modal-overlay,
 .record-detail-modal,
 .duty-schedule-modal,
 .quick-action-modal {
-  z-index: 9999 !important;
+  z-index: var(--modal-z-index);
 }
 
 /* Дополнительные стили для модальных окон на всех устройствах */
 .modal-overlay {
   /* Убеждаемся что модальное окно покрывает весь экран */
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  height: 100dvh !important;
-  z-index: 9999 !important;
+  position: var(--modal-overlay-position);
+  top: var(--modal-overlay-inset);
+  left: var(--modal-overlay-inset);
+  right: var(--modal-overlay-inset);
+  bottom: var(--modal-overlay-inset);
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: var(--modal-z-index);
 }
 
 /* Стили для фона модального окна */
@@ -2044,14 +2050,24 @@
   }
 }
 
-/* Специальные стили для Тамагочи страницы - предотвращение прокрутки */
+/* CSS-переменные для контейнера Тамагочи */
+:root {
+  --tamagotchi-container-height: 100%;
+  --tamagotchi-container-max-height: 100vh;
+  --tamagotchi-container-max-height-dvh: 100dvh;
+  --tamagotchi-container-overflow: hidden;
+  --tamagotchi-container-display: flex;
+  --tamagotchi-container-flex-direction: column;
+}
+
+/* Специальные стили для Тамагочи страницы - оптимизированная версия */
 .tamagotchi-container {
-  height: 100%;
-  max-height: 100vh;
-  max-height: 100dvh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  height: var(--tamagotchi-container-height);
+  max-height: var(--tamagotchi-container-max-height);
+  max-height: var(--tamagotchi-container-max-height-dvh);
+  overflow: var(--tamagotchi-container-overflow);
+  display: var(--tamagotchi-container-display);
+  flex-direction: var(--tamagotchi-container-flex-direction);
 }
 
 /* Стили для тумблера режима сна - увеличенный размер */
@@ -2277,13 +2293,13 @@
     }
   }
 
-  /* Apple Liquid Glass Tab Bar Styles */
+  /* Apple Liquid Glass Tab Bar Styles - оптимизированная версия */
   .liquid-glass-tab-bar {
-    position: fixed;
-    bottom: 40px;
-    left: 16px;
-    right: 16px;
-    z-index: 50;
+    position: var(--tab-bar-position);
+    bottom: var(--tab-bar-bottom);
+    left: var(--tab-bar-left);
+    right: var(--tab-bar-right);
+    z-index: var(--tab-bar-z-index);
     padding-bottom: env(safe-area-inset-bottom);
     
     /* Прозрачная панель без стилей */
@@ -2482,10 +2498,10 @@
 
   /* Адаптивность для разных размеров экранов */
   @media (max-width: 640px) {
-    .liquid-glass-tab-bar {
-      bottom: 18px;
-      left: 12px;
-      right: 12px;
+    :root {
+      --tab-bar-bottom: 18px;
+      --tab-bar-left: 12px;
+      --tab-bar-right: 12px;
     }
     
     .liquid-glass-tab-container {
@@ -2523,10 +2539,10 @@
   }
 
   @media (max-width: 480px) {
-    .liquid-glass-tab-bar {
-      bottom: 18px;
-      left: 8px;
-      right: 8px;
+    :root {
+      --tab-bar-bottom: 18px;
+      --tab-bar-left: 8px;
+      --tab-bar-right: 8px;
     }
     
     .liquid-glass-tab-container {
@@ -2623,6 +2639,61 @@
     z-index: 15; /* Увеличенный z-index для наезжания на relative inline-block */
   }
 
+  /* CSS-переменные для оптимизации производительности */
+  :root {
+    --glass-bg: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.25) 0%, 
+      rgba(255, 255, 255, 0.15) 100%);
+    --glass-shadow: 
+      inset 0 1px 2px rgba(255, 255, 255, 0.1),
+      0 8px 16px rgba(0, 0, 0, 0.12);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+    --glass-blur: blur(20px);
+    
+    /* Переменные для оптимизированной анимации дыхания */
+    --breathing-intensity: 1;
+    --breathing-scale-min: 1;
+    --breathing-scale-max: 1.005;
+    --breathing-overlay-opacity-min: 0.3;
+    --breathing-overlay-opacity-max: 0.5;
+    --breathing-duration: 4s;
+  }
+
+  /* 
+   * АЛЬТЕРНАТИВНАЯ ВЕРСИЯ С СТАТИЧНЫМ ИЗОБРАЖЕНИЕМ (максимальная производительность):
+   * 
+   * Для максимальной оптимизации замените .tamagotchi-inventory-container на:
+   * 
+   * .tamagotchi-inventory-container {
+   *   position: relative;
+   *   display: flex;
+   *   justify-content: center;
+   *   align-items: center;
+   *   gap: 8px;
+   *   padding: 4px;
+   *   width: fit-content;
+   *   max-width: 400px;
+   *   margin: 0 auto;
+   *   
+   *   background-image: url('/icons/glass-bg.png'); // Статичное изображение с прозрачностью
+   *   background-size: cover;
+   *   background-position: center;
+   *   background-repeat: no-repeat;
+   *   
+   *   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+   *   border: 1px solid rgba(255, 255, 255, 0.2);
+   *   border-radius: 32px;
+   *   transition: all 0.3s ease;
+   * }
+   * 
+   * Преимущества статичного изображения:
+   * - Нет пересчета градиентов каждый кадр
+   * - Нет backdrop-filter (дорогая операция)
+   * - Нет множественных box-shadow слоев
+   * - Браузер может кэшировать изображение
+   * - Поддержка аппаратного ускорения
+   */
+
   .tamagotchi-inventory-container {
     position: relative; /* Добавляем relative позиционирование */
     display: flex;
@@ -2634,68 +2705,109 @@
     max-width: 400px;
     margin: 0 auto;
     
-    /* Улучшенный эффект жидкого стекла */
-    background: 
-      linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.3) 0%, 
-        rgba(255, 255, 255, 0.15) 50%, 
-        rgba(255, 255, 255, 0.25) 100%);
-    backdrop-filter: blur(40px) saturate(1.2);
-    -webkit-backdrop-filter: blur(40px) saturate(1.2);
+    /* Оптимизированный эффект жидкого стекла - упрощенная версия */
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
     
-    /* Слой корректировки под блюром */
-    filter: saturate(1.2) brightness(1.02) contrast(1.1);
-    
-    /* Многослойное тонирование */
-    background-image: 
-      linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(255, 255, 255, 0.08) 100%),
-      radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.12) 0%, transparent 50%),
-      radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
-    
-    /* Улучшенные внутренние эффекты */
-    box-shadow: 
-      inset 0 2px 4px rgba(255, 255, 255, 0.12),
-      inset 0 -2px 4px rgba(255, 255, 255, 0.08),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.15),
-      /* Внешние тени */
-      0 12px 24px rgba(0, 0, 0, 0.15),
-      0 32px 64px rgba(0, 0, 0, 0.1),
-      0 0 0 1px rgba(255, 255, 255, 0.12);
+    /* Упрощенные тени - только 2 слоя вместо 6 */
+    box-shadow: var(--glass-shadow);
     
     /* Обводка */
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: var(--glass-border);
     
     border-radius: 32px;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: all 0.3s ease;
     z-index: 16; /* Увеличенный z-index для наезжания */
     
-    /* Добавляем эффект "дыхания" */
-    animation: liquidGlassBreathing 4s ease-in-out infinite;
+    /* ОПТИМИЗИРОВАННЫЙ эффект "дыхания" - только безопасные свойства */
+    animation: liquidGlassBreathing var(--breathing-duration) ease-in-out infinite;
+    transform-origin: center;
   }
 
-  /* Анимация "дыхания" для liquid glass эффекта */
+  /* Псевдоэлемент для дополнительного эффекта дыхания */
+  .tamagotchi-inventory-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 50% 50%, 
+      rgba(255, 255, 255, 0.1) 0%, 
+      transparent 70%);
+    border-radius: 32px;
+    z-index: -1;
+    pointer-events: none;
+    
+    /* Анимация через псевдоэлемент - безопасные свойства */
+    animation: liquidGlassBreathingOverlay var(--breathing-duration) ease-in-out infinite;
+    opacity: var(--breathing-overlay-opacity-min);
+  }
+
+  /* Отключение дорогих эффектов на слабых устройствах */
+  @media (prefers-reduced-motion: reduce) {
+    .tamagotchi-inventory-container {
+      animation: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .tamagotchi-inventory-container::before {
+      animation: none;
+      opacity: 0.2;
+    }
+  }
+
+  /* Дополнительная оптимизация для мобильных устройств */
+  @media (max-width: 768px) {
+    .tamagotchi-inventory-container {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  /* 
+   * ОПТИМИЗИРОВАННАЯ анимация "дыхания" для liquid glass эффекта
+   * 
+   * ПРОБЛЕМА: Исходная анимация использовала дорогие свойства:
+   * - backdrop-filter (триггерит paint/composite)
+   * - box-shadow (триггерит paint)
+   * - filter (триггерит paint/composite)
+   * 
+   * РЕШЕНИЕ: Используем только безопасные свойства:
+   * - transform (аппаратное ускорение)
+   * - opacity (аппаратное ускорение)
+   * 
+   * ПРЕИМУЩЕСТВА:
+   * - Нет пересчета слоев на каждом кадре
+   * - Используется GPU вместо CPU
+   * - Плавная анимация даже на слабых устройствах
+   * - Визуальный эффект сохраняется
+   */
+  
+  /* ОСНОВНАЯ АНИМАЦИЯ: используем только безопасные свойства */
   @keyframes liquidGlassBreathing {
     0%, 100% {
-      backdrop-filter: blur(40px) saturate(1.2);
-      -webkit-backdrop-filter: blur(40px) saturate(1.2);
-      box-shadow: 
-        inset 0 2px 4px rgba(255, 255, 255, 0.12),
-        inset 0 -2px 4px rgba(255, 255, 255, 0.08),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.15),
-        0 12px 24px rgba(0, 0, 0, 0.15),
-        0 32px 64px rgba(0, 0, 0, 0.1),
-        0 0 0 1px rgba(255, 255, 255, 0.12);
+      /* Убираем дорогие backdrop-filter и box-shadow из основной анимации */
+      transform: scale(1);
     }
     50% {
-      backdrop-filter: blur(44px) saturate(1.3);
-      -webkit-backdrop-filter: blur(44px) saturate(1.3);
-      box-shadow: 
-        inset 0 2px 6px rgba(255, 255, 255, 0.15),
-        inset 0 -2px 6px rgba(255, 255, 255, 0.1),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.18),
-        0 16px 32px rgba(0, 0, 0, 0.18),
-        0 40px 80px rgba(0, 0, 0, 0.12),
-        0 0 0 1px rgba(255, 255, 255, 0.15);
+      transform: scale(1.005);
+    }
+  }
+
+  /* ДОПОЛНИТЕЛЬНЫЙ ЭФФЕКТ: псевдоэлемент для мягкого дыхания */
+  @keyframes liquidGlassBreathingOverlay {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1) translateY(0px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.01) translateY(-1px);
     }
   }
 
@@ -2851,8 +2963,13 @@
       -webkit-backdrop-filter: blur(36px) saturate(1.15);
       max-width: 350px;
       
-      /* Уменьшенная анимация дыхания для мобильных */
+      /* ОПТИМИЗИРОВАННАЯ анимация дыхания для мобильных */
       animation: liquidGlassBreathingMobile 5s ease-in-out infinite;
+    }
+
+    /* Обновляем псевдоэлемент для мобильных */
+    .tamagotchi-inventory-container::after {
+      animation: liquidGlassBreathingOverlayMobile 5s ease-in-out infinite;
     }
     
     .tamagotchi-inventory-item {
@@ -2881,15 +2998,26 @@
     }
   }
 
-  /* Адаптивная анимация дыхания для мобильных */
+  /* Адаптивная анимация дыхания для мобильных - ОПТИМИЗИРОВАННАЯ */
   @keyframes liquidGlassBreathingMobile {
     0%, 100% {
-      backdrop-filter: blur(36px) saturate(1.15);
-      -webkit-backdrop-filter: blur(36px) saturate(1.15);
+      /* Убираем дорогие backdrop-filter из анимации */
+      transform: scale(1);
     }
     50% {
-      backdrop-filter: blur(40px) saturate(1.25);
-      -webkit-backdrop-filter: blur(40px) saturate(1.25);
+      transform: scale(1.003);
+    }
+  }
+
+  /* Дополнительный эффект для мобильных */
+  @keyframes liquidGlassBreathingOverlayMobile {
+    0%, 100% {
+      opacity: 0.2;
+      transform: scale(1) translateY(0px);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(1.005) translateY(-0.5px);
     }
   }
 
@@ -2923,8 +3051,13 @@
       -webkit-backdrop-filter: blur(32px) saturate(1.1);
       max-width: 300px;
       
-      /* Еще более медленная анимация для маленьких экранов */
+      /* ОПТИМИЗИРОВАННАЯ анимация для маленьких экранов */
       animation: liquidGlassBreathingSmall 6s ease-in-out infinite;
+    }
+
+    /* Обновляем псевдоэлемент для маленьких экранов */
+    .tamagotchi-inventory-container::after {
+      animation: liquidGlassBreathingOverlaySmall 6s ease-in-out infinite;
     }
     
     .tamagotchi-inventory-item {
@@ -2953,15 +3086,26 @@
     }
   }
 
-  /* Адаптивная анимация дыхания для маленьких экранов */
+  /* Адаптивная анимация дыхания для маленьких экранов - ОПТИМИЗИРОВАННАЯ */
   @keyframes liquidGlassBreathingSmall {
     0%, 100% {
-      backdrop-filter: blur(32px) saturate(1.1);
-      -webkit-backdrop-filter: blur(32px) saturate(1.1);
+      /* Убираем дорогие backdrop-filter из анимации */
+      transform: scale(1);
     }
     50% {
-      backdrop-filter: blur(36px) saturate(1.2);
-      -webkit-backdrop-filter: blur(36px) saturate(1.2);
+      transform: scale(1.002);
+    }
+  }
+
+  /* Дополнительный эффект для маленьких экранов */
+  @keyframes liquidGlassBreathingOverlaySmall {
+    0%, 100% {
+      opacity: 0.15;
+      transform: scale(1) translateY(0px);
+    }
+    50% {
+      opacity: 0.3;
+      transform: scale(1.003) translateY(-0.3px);
     }
   }
 
@@ -3022,25 +3166,22 @@
     }
   }
 
-  /* Дополнительные эффекты для улучшения визуального восприятия */
+  /* Упрощенный псевдоэлемент для дополнительного блеска */
   .tamagotchi-inventory-container::before {
     content: '';
     position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: 
-      linear-gradient(45deg, 
-        rgba(255, 255, 255, 0.1) 0%, 
-        rgba(255, 255, 255, 0.05) 25%, 
-        rgba(255, 255, 255, 0.1) 50%, 
-        rgba(255, 255, 255, 0.05) 75%, 
-        rgba(255, 255, 255, 0.1) 100%);
-    border-radius: 34px;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
+    background: linear-gradient(45deg, 
+      rgba(255, 255, 255, 0.08) 0%, 
+      rgba(255, 255, 255, 0.04) 50%, 
+      rgba(255, 255, 255, 0.08) 100%);
+    border-radius: 33px;
     z-index: -1;
-    opacity: 0.6;
-    animation: shimmerEffect 3s ease-in-out infinite;
+    opacity: 0.4;
+    animation: shimmerEffect 4s ease-in-out infinite;
   }
 
   /* Эффект мерцания для дополнительного блеска */
@@ -3072,49 +3213,51 @@
     }
   }
 
-  /* Tamagotchi specific bottom navigation - ensure proper z-index */
-  .tamagotchi-container .liquid-glass-tab-bar {
-    z-index: 50 !important;
-  }
+/* CSS-переменные для нижней панели навигации */
+:root {
+  --tab-bar-z-index: 50;
+  --tab-bar-position: fixed;
+  --tab-bar-bottom: 40px;
+  --tab-bar-left: 16px;
+  --tab-bar-right: 16px;
+}
 
-  /* Tamagotchi specific modal styles - ensure modals appear above navigation */
+/* Tamagotchi specific bottom navigation - оптимизированная версия */
+.tamagotchi-container .liquid-glass-tab-bar {
+  z-index: var(--tab-bar-z-index);
+}
+
+/* Tamagotchi specific modal styles - оптимизированная версия */
+.tamagotchi-container .modal-overlay {
+  z-index: var(--modal-z-index);
+}
+
+.tamagotchi-container .modal-content {
+  z-index: calc(var(--modal-z-index) + 1);
+}
+
+/* Ensure all modals in Tamagotchi context have proper z-index */
+.tamagotchi-container [role="dialog"],
+.tamagotchi-container .record-detail-modal,
+.tamagotchi-container .duty-schedule-modal,
+.tamagotchi-container .quick-action-modal {
+  z-index: var(--modal-z-index);
+}
+
+/* Mobile-specific styles for Tamagotchi modals */
+@media (max-width: 768px) {
   .tamagotchi-container .modal-overlay {
-    z-index: 9999 !important;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
   }
   
   .tamagotchi-container .modal-content {
-    z-index: 10000 !important;
+    max-height: 85vh;
+    max-height: 85dvh;
+    margin-bottom: 2rem;
   }
-
-  /* Ensure all modals in Tamagotchi context have proper z-index */
-  .tamagotchi-container [role="dialog"],
-  .tamagotchi-container .record-detail-modal,
-  .tamagotchi-container .duty-schedule-modal,
-  .tamagotchi-container .quick-action-modal {
-    z-index: 9999 !important;
-  }
-
-  /* Mobile-specific styles for Tamagotchi modals */
-  @media (max-width: 768px) {
-    .tamagotchi-container .modal-overlay {
-      z-index: 9999 !important;
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      right: 0 !important;
-      bottom: 0 !important;
-      width: 100vw !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-    }
-    
-    .tamagotchi-container .modal-content {
-      z-index: 10000 !important;
-      max-height: 85vh !important;
-      max-height: 85dvh !important;
-      margin-bottom: 2rem !important;
-    }
-  }
+}
 
   /* Toggle switch styles */
   .toggle-switch {
