@@ -13,6 +13,8 @@ type DashboardSection = 'dashboard' | 'history' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath'
 type ReminderType = 'feeding' | 'diaper'
 
+type TimelineEvent = (Feeding | Diaper | Bath) & { type: QuickActionType }
+
 interface DashboardData {
   lastFeeding: Feeding | null
   lastDiaper: Diaper | null
@@ -34,8 +36,15 @@ interface SettingsState {
 }
 
 const MAX_HISTORY_EVENTS = 20
+const HISTORY_FETCH_LIMIT = MAX_HISTORY_EVENTS
 const PULL_REFRESH_THRESHOLD = 90
 const MAX_PULL_DISTANCE = 140
+
+const TIMELINE_EVENT_META: Record<QuickActionType, { icon: string; label: string; color: string }> = {
+  feeding: { icon: '🍼', label: 'Кормление', color: 'from-blue-500 to-blue-600' },
+  diaper: { icon: '💩', label: 'Смена подгузника', color: 'from-green-500 to-green-600' },
+  bath: { icon: '🛁', label: 'Купание', color: 'from-yellow-500 to-yellow-600' }
+}
 
 const formatDuration = (minutes: number) => {
   const absMinutes = Math.abs(minutes)
@@ -95,6 +104,7 @@ export default function Dashboard() {
   }, [])
 
   const reminderTimers = useRef<Partial<Record<ReminderType, number>>>({})
+  const reminderConfigsRef = useRef<Partial<Record<ReminderType, { timestamp?: string; interval: number }>>>({})
   const isNotificationSupported = typeof window !== 'undefined' && 'Notification' in window
 
   const { member, family, signOut } = useAuth()
@@ -147,9 +157,9 @@ export default function Dashboard() {
 
     try {
       const [feedings, diapers, baths] = await Promise.all([
-        dataService.getFeedings(50),
-        dataService.getDiapers(50),
-        dataService.getBaths(50)
+        dataService.getFeedings(HISTORY_FETCH_LIMIT),
+        dataService.getDiapers(HISTORY_FETCH_LIMIT),
+        dataService.getBaths(HISTORY_FETCH_LIMIT)
       ])
 
       setHistoryData({
@@ -174,10 +184,19 @@ export default function Dashboard() {
     return `${formatDuration(diffInMinutes)} назад`
   }
 
-  const handleQuickAction = (action: QuickActionType) => {
+  const openQuickAction = useCallback((action: QuickActionType) => {
     setModalAction(action)
     setModalOpen(true)
-  }
+  }, [])
+
+  const quickActionHandlers = useMemo(
+    () => ({
+      feeding: () => openQuickAction('feeding'),
+      diaper: () => openQuickAction('diaper'),
+      bath: () => openQuickAction('bath')
+    }),
+    [openQuickAction]
+  )
 
   const handleModalSuccess = () => {
     fetchData()
@@ -185,10 +204,75 @@ export default function Dashboard() {
   }
 
   const handleRefresh = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      window.location.reload()
+    fetchData()
+
+    if (activeSection === 'history') {
+      fetchHistoryData()
     }
-  }, [])
+  }, [activeSection, fetchData, fetchHistoryData])
+
+  const timelineEvents = useMemo<TimelineEvent[]>(() => {
+    if (!historyData) {
+      return []
+    }
+
+    return [
+      ...historyData.feedings.map(item => ({ ...item, type: 'feeding' as const })),
+      ...historyData.diapers.map(item => ({ ...item, type: 'diaper' as const })),
+      ...historyData.baths.map(item => ({ ...item, type: 'bath' as const }))
+    ]
+      .filter(item => Boolean(item.timestamp))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, MAX_HISTORY_EVENTS)
+  }, [historyData])
+
+  const startReminder = useCallback(
+    (
+      key: ReminderType,
+      config: { timestamp: string; interval: number },
+      title: string,
+      bodyPrefix: string
+    ) => {
+      if (typeof window === 'undefined') {
+        return
+      }
+
+      const lastTime = new Date(config.timestamp)
+      if (Number.isNaN(lastTime.getTime())) {
+        return
+      }
+
+      const nextTime = new Date(lastTime.getTime() + config.interval * 60 * 60 * 1000)
+      const delayMs = Math.max(0, nextTime.getTime() - Date.now())
+
+      reminderTimers.current[key] = window.setTimeout(async () => {
+        try {
+          const registration = await navigator.serviceWorker.getRegistration()
+          const elapsedMinutes = Math.round((Date.now() - lastTime.getTime()) / (1000 * 60))
+          const body = `${bodyPrefix} ${formatDuration(Math.max(elapsedMinutes, 0))}`
+          const notificationOptions: NotificationOptions = {
+            body,
+            tag: `babycare-${key}-reminder`,
+            badge: '/icons/icon-96x96.png',
+            icon: '/icons/icon-192x192.png'
+          }
+
+          if (registration) {
+            await registration.showNotification(title, notificationOptions)
+          } else if ('Notification' in window) {
+            new Notification(title, notificationOptions)
+          }
+        } catch (error) {
+          console.error('Unable to show reminder notification:', error)
+        } finally {
+          const newTimestamp = new Date().toISOString()
+          reminderConfigsRef.current[key] = { timestamp: newTimestamp, interval: config.interval }
+          startReminder(key, { timestamp: newTimestamp, interval: config.interval }, title, bodyPrefix)
+        }
+      }, delayMs)
+    },
+    []
+  )
 
   const handleSettingChange = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -380,17 +464,44 @@ export default function Dashboard() {
         }
       })
       reminderTimers.current = {}
+      reminderConfigsRef.current = {}
       return
     }
 
-    const scheduleReminder = (
-      key: ReminderType,
-      lastTimestamp: string | undefined,
-      intervalHours: number,
-      title: string,
+    const reminderDefinitions: Record<ReminderType, {
+      timestamp: string | undefined
+      interval: number
+      title: string
       bodyPrefix: string
-    ) => {
-      if (!lastTimestamp || !Number.isFinite(intervalHours) || intervalHours <= 0) {
+    }> = {
+      feeding: {
+        timestamp: data?.lastFeeding?.timestamp,
+        interval: settings.feedingInterval,
+        title: 'Пора покормить малыша',
+        bodyPrefix: 'С момента последнего кормления прошло'
+      },
+      diaper: {
+        timestamp: data?.lastDiaper?.timestamp,
+        interval: settings.diaperInterval,
+        title: 'Пора сменить подгузник',
+        bodyPrefix: 'С момента последней смены прошло'
+      }
+    }
+
+    const previousConfigs = reminderConfigsRef.current
+    const nextConfigs: Partial<Record<ReminderType, { timestamp?: string; interval: number }>> = {}
+    const reminderEntries = Object.entries(reminderDefinitions) as Array<[
+      ReminderType,
+      { timestamp: string | undefined; interval: number; title: string; bodyPrefix: string }
+    ]>
+
+    reminderEntries.forEach(([key, { timestamp, interval, title, bodyPrefix }]) => {
+      nextConfigs[key] = { timestamp, interval }
+
+      const prevConfig = previousConfigs[key]
+      const hasChanged = !prevConfig || prevConfig.timestamp !== timestamp || prevConfig.interval !== interval
+
+      if (!timestamp || !Number.isFinite(interval) || interval <= 0) {
         if (reminderTimers.current[key]) {
           window.clearTimeout(reminderTimers.current[key]!)
           delete reminderTimers.current[key]
@@ -398,66 +509,31 @@ export default function Dashboard() {
         return
       }
 
-      const lastTime = new Date(lastTimestamp)
-      if (Number.isNaN(lastTime.getTime())) {
+      if (!hasChanged) {
         return
       }
-
-      const nextTime = new Date(lastTime.getTime() + intervalHours * 60 * 60 * 1000)
-      const delayMs = Math.max(0, nextTime.getTime() - Date.now())
 
       if (reminderTimers.current[key]) {
         window.clearTimeout(reminderTimers.current[key]!)
       }
 
-      reminderTimers.current[key] = window.setTimeout(async () => {
-        try {
-          const registration = await navigator.serviceWorker.getRegistration()
-          const elapsedMinutes = Math.round((Date.now() - lastTime.getTime()) / (1000 * 60))
-          const body = `${bodyPrefix} ${formatDuration(Math.max(elapsedMinutes, 0))}`
-          const notificationOptions: NotificationOptions = {
-            body,
-            tag: `babycare-${key}-reminder`,
-            badge: '/icons/icon-96x96.png',
-            icon: '/icons/icon-192x192.png'
-          }
+      startReminder(
+        key,
+        { timestamp, interval },
+        title,
+        bodyPrefix
+      )
+    })
 
-          if (registration) {
-            await registration.showNotification(title, notificationOptions)
-          } else if ('Notification' in window) {
-            new Notification(title, notificationOptions)
-          }
-        } catch (error) {
-          console.error('Unable to show reminder notification:', error)
-        } finally {
-          const newTimestamp = new Date().toISOString()
-          scheduleReminder(key, newTimestamp, intervalHours, title, bodyPrefix)
-        }
-      }, delayMs)
-    }
-
-    scheduleReminder(
-      'feeding',
-      data?.lastFeeding?.timestamp,
-      settings.feedingInterval,
-      'Пора покормить малыша',
-      'С момента последнего кормления прошло'
-    )
-
-    scheduleReminder(
-      'diaper',
-      data?.lastDiaper?.timestamp,
-      settings.diaperInterval,
-      'Пора сменить подгузник',
-      'С момента последней смены прошло'
-    )
+    reminderConfigsRef.current = nextConfigs
   }, [
     data?.lastFeeding?.timestamp,
     data?.lastDiaper?.timestamp,
     settings.feedingInterval,
     settings.diaperInterval,
     notificationPermission,
-    isNotificationSupported
+    isNotificationSupported,
+    startReminder
   ])
 
   if (loading) {
@@ -605,21 +681,21 @@ export default function Dashboard() {
                   title="Кормление"
                   description="Записать время кормления"
                   icon="🍼"
-                  onClick={() => handleQuickAction('feeding')}
+                  onClick={quickActionHandlers.feeding}
                   variant="primary"
                 />
                 <QuickAction
                   title="Смена подгузника"
                   description="Отметить смену подгузника"
                   icon="💩"
-                  onClick={() => handleQuickAction('diaper')}
+                  onClick={quickActionHandlers.diaper}
                   variant="success"
                 />
                 <QuickAction
                   title="Купание"
                   description="Записать время купания"
                   icon="🛁"
-                  onClick={() => handleQuickAction('bath')}
+                  onClick={quickActionHandlers.bath}
                   variant="warning"
                 />
               </div>
@@ -681,35 +757,19 @@ export default function Dashboard() {
 
               <div className="space-y-4">
                 {historyData ? (
-                  (() => {
-                    const allEvents = [
-                      ...(historyData.feedings || []).map(item => ({ ...item, type: 'feeding' as const })),
-                      ...(historyData.diapers || []).map(item => ({ ...item, type: 'diaper' as const })),
-                      ...(historyData.baths || []).map(item => ({ ...item, type: 'bath' as const }))
-                    ]
-                      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                      .slice(0, MAX_HISTORY_EVENTS)
-
-                    return allEvents.map((item, index) => {
-                      const getTypeInfo = (type: typeof item.type) => {
-                        switch (type) {
-                          case 'feeding':
-                            return { icon: '🍼', label: 'Кормление', color: 'from-blue-500 to-blue-600' }
-                          case 'diaper':
-                            return { icon: '💩', label: 'Смена подгузника', color: 'from-green-500 to-green-600' }
-                          case 'bath':
-                            return { icon: '🛁', label: 'Купание', color: 'from-yellow-500 to-yellow-600' }
-                          default:
-                            return { icon: '⭐', label: 'Событие', color: 'from-gray-500 to-gray-600' }
-                        }
-                      }
-
-                      const typeInfo = getTypeInfo(item.type)
+                  timelineEvents.length > 0 ? (
+                    timelineEvents.map((item, index) => {
+                      const typeInfo = TIMELINE_EVENT_META[item.type]
 
                       return (
-                        <div key={`${item.type}-${item.id}-${index}`} className="flex items-center space-x-4 p-4 rounded-xl border-2 border-gray-700 bg-gray-800/50 transition-all duration-200 hover:shadow-md hover:bg-gray-800/70">
+                        <div
+                          key={`${item.type}-${item.id}-${index}`}
+                          className="flex items-center space-x-4 p-4 rounded-xl border-2 border-gray-700 bg-gray-800/50 transition-all duration-200 hover:shadow-md hover:bg-gray-800/70"
+                        >
                           <div className="flex-shrink-0">
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg bg-gradient-to-r ${typeInfo.color}`}>
+                            <div
+                              className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-lg shadow-lg bg-gradient-to-r ${typeInfo.color}`}
+                            >
                               {typeInfo.icon}
                             </div>
                           </div>
@@ -724,7 +784,12 @@ export default function Dashboard() {
                         </div>
                       )
                     })
-                  })()
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <div className="text-4xl mb-2">🌟</div>
+                      <p>Пока нет записей для отображения.</p>
+                    </div>
+                  )
                 ) : (
                   <div className="text-center py-8 text-gray-400">
                     <div className="text-4xl mb-2">⏳</div>
