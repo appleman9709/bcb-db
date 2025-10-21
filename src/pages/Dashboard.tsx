@@ -116,7 +116,7 @@ const getTypeInfo = (type: string, item: any) => {
         color: 'bg-yellow-100 text-yellow-600',
         bgColor: 'bg-yellow-50',
         description: '',
-        extraInfo: item.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'
+        extraInfo: item.bath_mood === 'Беспокоился' ? '😢 Беспокоился' : '😊 Спокойно'
       }
     case 'activity':
       // Определяем иконку и стили в зависимости от типа активности

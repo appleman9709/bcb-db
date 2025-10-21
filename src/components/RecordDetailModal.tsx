@@ -209,11 +209,11 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Настроение:</span>
                 <span className={`text-sm font-semibold px-2 py-1 rounded-3xl border ${
-                  record.bath_mood === 'Кричал' 
+                  record.bath_mood === 'Беспокоился' 
                     ? 'text-red-600 bg-red-50 border-red-200' 
                     : 'text-green-600 bg-green-50 border-green-200'
                 }`}>
-                  {record.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'}
+                  {record.bath_mood === 'Беспокоился' ? '😢 Беспокоился' : '😊 Спокойно'}
                 </span>
               </div>
             )}

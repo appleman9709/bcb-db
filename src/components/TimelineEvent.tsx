@@ -70,7 +70,7 @@ export default function TimelineEvent({ event, isLast = false, onClick }: Timeli
           extraInfo: event.diaper_type === 'Покакал' ? '💩 Покакал' : '💧 Просто'
         }
       case 'bath':
-        const moodText = event.bath_mood === 'Кричал' ? ' • Беспокоился' : ''
+        const moodText = event.bath_mood === 'Беспокоился' ? ' • Беспокоился' : ''
         return {
           icon: <img src="/icons/bath.png" alt="Купание" className="w-9 h-9 object-contain" />,
           title: 'Купание',
@@ -78,7 +78,7 @@ export default function TimelineEvent({ event, isLast = false, onClick }: Timeli
           color: 'bg-yellow-500',
           bgColor: 'bg-yellow-50',
           borderColor: 'border-yellow-200',
-          extraInfo: event.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'
+          extraInfo: event.bath_mood === 'Беспокоился' ? '😢 Беспокоился' : '😊 Спокойно'
         }
       case 'activity':
         return {

@@ -51,14 +51,14 @@ const getTypeInfo = (type: string, item: any) => {
         extraInfo: item.diaper_type === 'Покакал' ? '💩 Покакал' : '💧 Просто'
       }
     case 'bath':
-      const moodText = item.bath_mood === 'Кричал' ? ' • Беспокоился' : ''
+      const moodText = item.bath_mood === 'Беспокоился' ? ' • Беспокоился' : ''
       return { 
         icon: <img src="/icons/bath.png" alt="Купание" className="w-5 h-5 object-contain" />, 
         label: 'Купание', 
         color: 'bg-yellow-100 text-yellow-600',
         bgColor: 'bg-yellow-50',
         description: '',
-        extraInfo: item.bath_mood === 'Кричал' ? '😢 Беспокоился' : '😊 Спокойно'
+        extraInfo: item.bath_mood === 'Беспокоился' ? '😢 Беспокоился' : '😊 Спокойно'
       }
     case 'activity':
       return { 
