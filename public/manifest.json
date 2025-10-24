@@ -7,6 +7,7 @@
   "background_color": "#d6e7fe",
   "theme_color": "#d6e7fe",
   "orientation": "portrait-primary",
+  "permissions": ["notifications"],
   "icons": [
     {
       "src": "/icons/icon-16x16.png",

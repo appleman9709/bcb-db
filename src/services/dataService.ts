@@ -471,6 +471,25 @@ class DataService {
     return data
   }
 
+  async getFeedingsForDateRange(startDate: Date, endDate: Date): Promise<Feeding[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('feedings')
+      .select('*')
+      .eq('family_id', familyId)
+      .gte('timestamp', startDate.toISOString())
+      .lt('timestamp', endDate.toISOString())
+      .order('timestamp', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching feedings for date range', error)
+      return []
+    }
+
+    return data || []
+  }
+
   async addFeeding(timestamp?: string, ounces?: number): Promise<Feeding | null> {
     const familyId = this.requireFamilyId()
     const { authorId, authorName, authorRole } = this.requireAuthor()
@@ -619,6 +638,25 @@ class DataService {
     return data
   }
 
+  async getDiapersForDateRange(startDate: Date, endDate: Date): Promise<Diaper[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('diapers')
+      .select('*')
+      .eq('family_id', familyId)
+      .gte('timestamp', startDate.toISOString())
+      .lt('timestamp', endDate.toISOString())
+      .order('timestamp', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching diapers for date range', error)
+      return []
+    }
+
+    return data || []
+  }
+
     async addDiaper(timestamp?: string, diaperType?: string): Promise<Diaper | null> {
     const familyId = this.requireFamilyId()
     const { authorId, authorName, authorRole } = this.requireAuthor()
@@ -735,6 +773,25 @@ class DataService {
     return data
   }
 
+  async getBathsForDateRange(startDate: Date, endDate: Date): Promise<Bath[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('baths')
+      .select('*')
+      .eq('family_id', familyId)
+      .gte('timestamp', startDate.toISOString())
+      .lt('timestamp', endDate.toISOString())
+      .order('timestamp', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching baths for date range', error)
+      return []
+    }
+
+    return data || []
+  }
+
   async addBath(timestamp?: string, bathMood?: string): Promise<Bath | null> {
     const familyId = this.requireFamilyId()
     const { authorId, authorName, authorRole } = this.requireAuthor()
@@ -812,6 +869,25 @@ class DataService {
 
     if (error) {
       console.error('Error fetching activities', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  async getActivitiesForDateRange(startDate: Date, endDate: Date): Promise<Activity[]> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('activities')
+      .select('*')
+      .eq('family_id', familyId)
+      .gte('timestamp', startDate.toISOString())
+      .lt('timestamp', endDate.toISOString())
+      .order('timestamp', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching activities for date range', error)
       return []
     }
 
@@ -1168,38 +1244,19 @@ class DataService {
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
 
+    // Получаем все записи за сегодня, а не только последние 50
     const [feedings, diapers, baths, activities] = await Promise.all([
-      this.getFeedings(50),
-      this.getDiapers(50),
-      this.getBaths(50),
-      this.getActivities(50)
+      this.getFeedingsForDateRange(today, tomorrow),
+      this.getDiapersForDateRange(today, tomorrow),
+      this.getBathsForDateRange(today, tomorrow),
+      this.getActivitiesForDateRange(today, tomorrow)
     ])
 
-    const todayFeedings = feedings.filter(item => {
-      const date = new Date(item.timestamp)
-      return date >= today && date < tomorrow
-    })
-
-    const todayDiapers = diapers.filter(item => {
-      const date = new Date(item.timestamp)
-      return date >= today && date < tomorrow
-    })
-
-    const todayBaths = baths.filter(item => {
-      const date = new Date(item.timestamp)
-      return date >= today && date < tomorrow
-    })
-
-    const todayActivities = activities.filter(item => {
-      const date = new Date(item.timestamp)
-      return date >= today && date < tomorrow
-    })
-
     return {
-      feedings: todayFeedings.length,
-      diapers: todayDiapers.length,
-      baths: todayBaths.length,
-      activities: todayActivities.length
+      feedings: feedings.length,
+      diapers: diapers.length,
+      baths: baths.length,
+      activities: activities.length
     }
   }
 

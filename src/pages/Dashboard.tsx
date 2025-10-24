@@ -267,6 +267,19 @@ export default function Dashboard() {
   const [dutyModalOpen, setDutyModalOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [currentDutyMemberFromDB, setCurrentDutyMemberFromDB] = useState<FamilyMember | null>(null)
+  const [todayStats, setTodayStats] = useState<{
+    feedings: number
+    diapers: number
+    baths: number
+    activities: number
+    sleep: string
+  }>({
+    feedings: 0,
+    diapers: 0,
+    baths: 0,
+    activities: 0,
+    sleep: '0м'
+  })
   
   // Tamagotchi modal state
   const [tamagotchiModalOpen, setTamagotchiModalOpen] = useState(false)
@@ -310,7 +323,6 @@ export default function Dashboard() {
     }
   }, [])
 
-  const reminderTimers = useRef<Partial<Record<ReminderType, number>>>({})
   const isNotificationSupported = typeof window !== 'undefined' && 'Notification' in window
 
   const memberDisplayName = member?.name ?? member?.role ?? 'Участник семьи'
@@ -412,21 +424,57 @@ export default function Dashboard() {
 
     try {
       setLoading(true)
-      const [lastFeeding, lastDiaper, lastBath, settingsFromDb] = await Promise.all([
+      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, todayStatsData] = await Promise.all([
         dataService.getLastFeeding(),
         dataService.getLastDiaper(),
         dataService.getLastBath(),
-        dataService.getSettings()
+        dataService.getSettings(),
+        dataService.getTodayStats()
       ])
 
       const babyAgeMonths = settingsFromDb?.baby_age_months || 0
       const dailyTip = await dataService.getRandomTip(babyAgeMonths)
+
+      // Получаем данные о сне за сегодня
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      
+      const sleepData = await dataService.getSleepSessions(50)
+      const todaySleep = sleepData.filter(item => {
+        const startDate = new Date(item.start_time)
+        return startDate >= today && startDate < tomorrow
+      })
+      
+      const totalSleepMinutes = todaySleep.reduce((total, item) => {
+        return total + (item.duration_minutes || 0)
+      }, 0)
+      
+      const formatSleepDuration = (minutes: number): string => {
+        if (minutes === 0) return '0м'
+        const hours = Math.floor(minutes / 60)
+        const remainingMinutes = minutes % 60
+        if (hours > 0) {
+          return `${hours}ч ${remainingMinutes}м`
+        }
+        return `${remainingMinutes}м`
+      }
 
       setData({
         lastFeeding,
         lastDiaper,
         lastBath,
         dailyTip
+      })
+
+      // Обновляем статистику за день
+      setTodayStats({
+        feedings: todayStatsData.feedings,
+        diapers: todayStatsData.diapers,
+        baths: todayStatsData.baths,
+        activities: todayStatsData.activities,
+        sleep: formatSleepDuration(totalSleepMinutes)
       })
 
       if (settingsFromDb) {
@@ -574,13 +622,7 @@ export default function Dashboard() {
 
   // Функция для расчета статистики за день
   const getTodayStats = () => {
-    // Упрощенная версия без истории событий
-    return {
-      feedings: 0,
-      diapers: 0,
-      activities: 0,
-      sleep: '0м'
-    }
+    return todayStats
   }
 
   const handleQuickAction = (action: QuickActionType) => {
@@ -893,6 +935,25 @@ export default function Dashboard() {
     }
   }
 
+  const testNotification = async () => {
+    if (!isNotificationSupported || notificationPermission !== 'granted') {
+      return
+    }
+
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration.active) {
+          registration.active.postMessage({
+            type: 'TEST_NOTIFICATION'
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+    }
+  }
+
   const latestActivityTimestamp = useMemo(() => {
     const timestamps = [
       data?.lastFeeding?.timestamp,
@@ -1108,26 +1169,30 @@ export default function Dashboard() {
 
   useEffect(() => {
     return () => {
-      Object.values(reminderTimers.current).forEach(timerId => {
-        if (typeof timerId === 'number') {
-          window.clearTimeout(timerId)
-        }
-      })
+      // Отменяем все напоминания в Service Worker при размонтировании компонента
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then((registration) => {
+          if (registration.active) {
+            registration.active.postMessage({
+              type: 'CANCEL_REMINDER',
+              key: 'feeding'
+            });
+            registration.active.postMessage({
+              type: 'CANCEL_REMINDER',
+              key: 'diaper'
+            });
+          }
+        });
+      }
     }
   }, [])
 
   useEffect(() => {
     if (!isNotificationSupported || notificationPermission !== 'granted') {
-      Object.values(reminderTimers.current).forEach(timerId => {
-        if (typeof timerId === 'number') {
-          window.clearTimeout(timerId)
-        }
-      })
-      reminderTimers.current = {}
       return
     }
 
-    const scheduleReminder = (
+    const scheduleReminder = async (
       key: ReminderType,
       lastTimestamp: string | undefined,
       intervalHours: number,
@@ -1135,9 +1200,15 @@ export default function Dashboard() {
       bodyPrefix: string
     ) => {
       if (!lastTimestamp || !Number.isFinite(intervalHours) || intervalHours <= 0) {
-        if (reminderTimers.current[key]) {
-          window.clearTimeout(reminderTimers.current[key]!)
-          delete reminderTimers.current[key]
+        // Отменяем напоминание в Service Worker
+        if ('serviceWorker' in navigator) {
+          const registration = await navigator.serviceWorker.ready;
+          if (registration.active) {
+            registration.active.postMessage({
+              type: 'CANCEL_REMINDER',
+              key
+            });
+          }
         }
         return
       }
@@ -1147,37 +1218,24 @@ export default function Dashboard() {
         return
       }
 
-      const nextTime = new Date(lastTime.getTime() + intervalHours * 60 * 60 * 1000)
-      const delayMs = Math.max(0, nextTime.getTime() - Date.now())
-
-      if (reminderTimers.current[key]) {
-        window.clearTimeout(reminderTimers.current[key]!)
-      }
-
-      reminderTimers.current[key] = window.setTimeout(async () => {
+      // Отправляем напоминание в Service Worker для фонового выполнения
+      if ('serviceWorker' in navigator) {
         try {
-          const registration = await navigator.serviceWorker.getRegistration()
-          const elapsedMinutes = Math.round((Date.now() - lastTime.getTime()) / (1000 * 60))
-          const body = `${bodyPrefix} ${formatDuration(Math.max(elapsedMinutes, 0))}`
-          const notificationOptions: NotificationOptions = {
-            body,
-            tag: `babycare-${key}-reminder`,
-            badge: '/icons/icon-96x96.png',
-            icon: '/icons/icon-192x192.png'
-          }
-
-          if (registration) {
-            await registration.showNotification(title, notificationOptions)
-          } else if ('Notification' in window) {
-            new Notification(title, notificationOptions)
+          const registration = await navigator.serviceWorker.ready;
+          if (registration.active) {
+            registration.active.postMessage({
+              type: 'SCHEDULE_REMINDER',
+              key,
+              timestamp: lastTimestamp,
+              intervalHours,
+              title,
+              bodyPrefix
+            });
           }
         } catch (error) {
-          console.error('Unable to show reminder notification:', error)
-        } finally {
-          const newTimestamp = new Date().toISOString()
-          scheduleReminder(key, newTimestamp, intervalHours, title, bodyPrefix)
+          console.error('Failed to schedule reminder in Service Worker:', error);
         }
-      }, delayMs)
+      }
     }
 
     scheduleReminder(
@@ -1340,8 +1398,8 @@ export default function Dashboard() {
                     <div className="text-xs text-gray-600 mb-0.5">Подгузников</div>
                   </div>
                   <div className="text-center p-3 bg-purple-50 rounded-3xl">
-                    <div className="text-xs font-bold text-purple-500 mb-0.5">{getTodayStats().activities}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Активностей</div>
+                    <div className="text-xs font-bold text-purple-500 mb-0.5">{getTodayStats().baths}</div>
+                    <div className="text-xs text-gray-600 mb-0.5">Купаний</div>
                   </div>
                   <div className="text-center p-3 bg-indigo-50 rounded-3xl">
                     <div className="text-xs font-bold text-indigo-500 mb-0.5">{getTodayStats().sleep}</div>
@@ -1553,6 +1611,14 @@ export default function Dashboard() {
                         className="w-full bg-blue-500 text-white font-medium py-1.5 px-3 rounded-3xl hover:bg-blue-600 transition-colors text-xs"
                       >
                         Включить уведомления
+                      </button>
+                    )}
+                    {notificationPermission === 'granted' && (
+                      <button
+                        onClick={testNotification}
+                        className="w-full bg-green-500 text-white font-medium py-1.5 px-3 rounded-3xl hover:bg-green-600 transition-colors text-xs mt-2"
+                      >
+                        Тест уведомления
                       </button>
                     )}
                   </div>
