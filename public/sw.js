@@ -1,50 +1,86 @@
-const CACHE_NAME = 'babycare-dashboard-v1';
-const urlsToCache = [
-  '/',
-  '/src/main.tsx',
-  '/src/App.tsx',
-  '/src/index.css',
-  '/manifest.json'
-];
+const CACHE_NAME = 'babycare-dashboard-v2'
 
-// Установка service worker
+const getBasePath = () => {
+  try {
+    const scope = self.registration?.scope ?? self.location.origin
+    const { pathname } = new URL(scope)
+    if (!pathname || pathname === '/') {
+      return '/'
+    }
+
+    return pathname.endsWith('/') ? pathname : `${pathname}/`
+  } catch (error) {
+    console.error('Unable to resolve service worker base path:', error)
+    const fallbackPath = self.location.pathname.replace(/sw\.js$/, '')
+    if (!fallbackPath) {
+      return '/'
+    }
+
+    return fallbackPath.endsWith('/') ? fallbackPath : `${fallbackPath}/`
+  }
+}
+
+const BASE_PATH = getBasePath()
+
+const withBase = (path) => {
+  if (!path) {
+    return BASE_PATH
+  }
+
+  const normalized = path.startsWith('/') ? path.slice(1) : path
+  return `${BASE_PATH}${normalized}`
+}
+
+const urlsToCache = Array.from(
+  new Set([
+    withBase(''),
+    withBase('index.html'),
+    withBase('manifest.json'),
+    withBase('main.js'),
+    withBase('style.css'),
+    withBase('icons/icon-96x96.png'),
+    withBase('icons/icon-192x192.png')
+  ])
+)
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
-});
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)).catch((error) => {
+      console.error('Failed to pre-cache assets:', error)
+    })
+  )
+})
 
-// Активация service worker
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+            return caches.delete(cacheName)
           }
-        })
-      );
-    })
-  );
-});
 
-// Перехват запросов
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Возвращаем кэшированную версию или загружаем из сети
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
+          return undefined
+        })
+      )
     )
-  );
-});
+  )
+})
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+
+  if (request.method !== 'GET') {
+    return
+  }
+
+  event.respondWith(
+    caches.match(request).then((response) => {
+      if (response) {
+        return response
+      }
+
+      return fetch(request)
+    })
+  )
+})
