@@ -936,18 +936,31 @@ export default function Dashboard() {
   }
 
   const testNotification = async () => {
+    console.log('testNotification called');
+    console.log('isNotificationSupported:', isNotificationSupported);
+    console.log('notificationPermission:', notificationPermission);
+    
     if (!isNotificationSupported || notificationPermission !== 'granted') {
+      console.log('Notifications not supported or permission not granted');
       return
     }
 
     try {
+      console.log('Checking service worker...');
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
+        console.log('Service worker registration:', registration);
+        
         if (registration.active) {
+          console.log('Sending test notification message to service worker');
           registration.active.postMessage({
             type: 'TEST_NOTIFICATION'
           });
+        } else {
+          console.log('No active service worker');
         }
+      } else {
+        console.log('Service worker not supported');
       }
     } catch (error) {
       console.error('Error sending test notification:', error);

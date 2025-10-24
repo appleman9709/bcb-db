@@ -63,13 +63,18 @@ self.addEventListener('sync', (event) => {
 
 // Обработка сообщений от основного приложения
 self.addEventListener('message', (event) => {
+  console.log('Service Worker received message:', event.data);
+  
   if (event.data && event.data.type === 'SCHEDULE_REMINDER') {
     const { key, timestamp, intervalHours, title, bodyPrefix } = event.data;
+    console.log('Scheduling reminder:', { key, timestamp, intervalHours, title, bodyPrefix });
     scheduleReminder(key, timestamp, intervalHours, title, bodyPrefix);
   } else if (event.data && event.data.type === 'CANCEL_REMINDER') {
     const { key } = event.data;
+    console.log('Cancelling reminder:', key);
     cancelReminder(key);
   } else if (event.data && event.data.type === 'TEST_NOTIFICATION') {
+    console.log('Test notification requested');
     showTestNotification();
   }
 });
@@ -146,6 +151,7 @@ function cancelReminder(key) {
 
 // Тестовое уведомление
 async function showTestNotification() {
+  console.log('showTestNotification called');
   try {
     const options = {
       body: 'Это тестовое уведомление для проверки работы PWA',
@@ -168,7 +174,9 @@ async function showTestNotification() {
       ]
     };
 
+    console.log('Showing test notification with options:', options);
     await self.registration.showNotification('Тест уведомлений', options);
+    console.log('Test notification shown successfully');
   } catch (error) {
     console.error('Unable to show test notification:', error);
   }
