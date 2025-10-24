@@ -7,11 +7,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      workbox: {
-        // Отключаем автоматическую генерацию Service Worker
-        // чтобы использовать наш кастомный sw.js
-        disable: true
-      },
+      // Используем injectManifest для использования кастомного sw.js
+      strategies: 'injectManifest',
+      srcDir: 'public',
+      filename: 'sw.js',
       manifest: {
         name: 'BabyCare Dashboard',
         short_name: 'BabyCare',

@@ -1,11 +1,9 @@
+import { precacheAndRoute } from 'workbox-precaching';
+
+// Precache and route all assets
+precacheAndRoute(self.__WB_MANIFEST);
+
 const CACHE_NAME = 'babycare-dashboard-v1';
-const urlsToCache = [
-  '/',
-  '/src/main.tsx',
-  '/src/App.tsx',
-  '/src/index.css',
-  '/manifest.json'
-];
 
 // Хранилище напоминаний
 let reminders = new Map();
