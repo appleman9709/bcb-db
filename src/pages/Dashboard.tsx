@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import StatCard from '../components/StatCard'
 import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
@@ -32,6 +32,7 @@ import {
   type DutySchedule
 } from '../services/dutyScheduleService'
 import { initGradientTimer, getStatusMessage, calculateGradientProgress } from '../lib/gradientUtils'
+import { getServiceWorkerScope } from '../lib/pwaUtils'
 
 type DashboardSection = 'dashboard' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -312,6 +313,14 @@ export default function Dashboard() {
 
   const reminderTimers = useRef<Partial<Record<ReminderType, number>>>({})
   const isNotificationSupported = typeof window !== 'undefined' && 'Notification' in window
+  const [serviceWorkerRegistration, setServiceWorkerRegistration] = useState<ServiceWorkerRegistration | null>(null)
+  const serviceWorkerScope = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return '/'
+    }
+
+    return getServiceWorkerScope()
+  }, [])
 
   const memberDisplayName = member?.name ?? member?.role ?? 'Участник семьи'
 
@@ -324,6 +333,40 @@ export default function Dashboard() {
       window.clearInterval(intervalId)
     }
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) {
+      setServiceWorkerRegistration(null)
+      return
+    }
+
+    let isMounted = true
+
+    const resolveRegistration = async () => {
+      try {
+        const registration = await navigator.serviceWorker.ready
+        if (isMounted) {
+          setServiceWorkerRegistration(registration)
+        }
+      } catch (error) {
+        console.error('Error waiting for service worker readiness:', error)
+        try {
+          const registration = await navigator.serviceWorker.getRegistration(serviceWorkerScope)
+          if (registration && isMounted) {
+            setServiceWorkerRegistration(registration)
+          }
+        } catch (getRegistrationError) {
+          console.error('Error getting existing service worker registration:', getRegistrationError)
+        }
+      }
+    }
+
+    resolveRegistration()
+
+    return () => {
+      isMounted = false
+    }
+  }, [serviceWorkerScope])
 
   // Синхронизируем ref с состоянием recentEventsExpanded
   useEffect(() => {
@@ -1156,7 +1199,17 @@ export default function Dashboard() {
 
       reminderTimers.current[key] = window.setTimeout(async () => {
         try {
-          const registration = await navigator.serviceWorker.getRegistration()
+          let registration = serviceWorkerRegistration
+
+          if (!registration && 'serviceWorker' in navigator) {
+            try {
+              registration = await navigator.serviceWorker.ready
+            } catch (readyError) {
+              console.error('Service worker not ready, attempting to get existing registration:', readyError)
+              registration = await navigator.serviceWorker.getRegistration()
+            }
+          }
+
           const elapsedMinutes = Math.round((Date.now() - lastTime.getTime()) / (1000 * 60))
           const body = `${bodyPrefix} ${formatDuration(Math.max(elapsedMinutes, 0))}`
           const notificationOptions: NotificationOptions = {
@@ -1195,13 +1248,23 @@ export default function Dashboard() {
       'Пора сменить подгузник',
       'С момента последней смены прошло'
     )
+
+    return () => {
+      Object.values(reminderTimers.current).forEach(timerId => {
+        if (typeof timerId === 'number') {
+          window.clearTimeout(timerId)
+        }
+      })
+      reminderTimers.current = {}
+    }
   }, [
     data?.lastFeeding?.timestamp,
     data?.lastDiaper?.timestamp,
     settings.feedingInterval,
     settings.diaperInterval,
     notificationPermission,
-    isNotificationSupported
+    isNotificationSupported,
+    serviceWorkerRegistration
   ])
 
   const handleTabChange = (tab: 'home' | 'settings' | 'tamagotchi' | 'tetris') => {
