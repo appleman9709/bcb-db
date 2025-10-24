@@ -13,6 +13,14 @@ type DashboardSection = 'dashboard' | 'history' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath'
 type ReminderType = 'feeding' | 'diaper'
 
+type ServiceWorkerReminderPayload = {
+  key: ReminderType
+  lastTimestamp: string
+  intervalMs: number
+  title: string
+  bodyPrefix: string
+}
+
 interface DashboardData {
   lastFeeding: Feeding | null
   lastDiaper: Diaper | null
@@ -236,6 +244,28 @@ export default function Dashboard() {
     }
   }
 
+  const syncRemindersWithServiceWorker = useCallback(
+    async (reminders: ServiceWorkerReminderPayload[]) => {
+      if (!('serviceWorker' in navigator)) {
+        return
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.ready
+        const worker = registration.active ?? registration.waiting ?? registration.installing
+
+        worker?.postMessage({
+          type: 'SCHEDULE_REMINDERS',
+          reminders,
+          permission: notificationPermission
+        })
+      } catch (error) {
+        console.error('Failed to sync reminders with service worker:', error)
+      }
+    },
+    [notificationPermission]
+  )
+
   const latestActivityTimestamp = useMemo(() => {
     const timestamps = [
       data?.lastFeeding?.timestamp,
@@ -380,8 +410,11 @@ export default function Dashboard() {
         }
       })
       reminderTimers.current = {}
+      syncRemindersWithServiceWorker([])
       return
     }
+
+    const remindersForWorker: ServiceWorkerReminderPayload[] = []
 
     const scheduleReminder = (
       key: ReminderType,
@@ -434,6 +467,14 @@ export default function Dashboard() {
           scheduleReminder(key, newTimestamp, intervalHours, title, bodyPrefix)
         }
       }, delayMs)
+
+      remindersForWorker.push({
+        key,
+        lastTimestamp: lastTime.toISOString(),
+        intervalMs: intervalHours * 60 * 60 * 1000,
+        title,
+        bodyPrefix
+      })
     }
 
     scheduleReminder(
@@ -451,14 +492,27 @@ export default function Dashboard() {
       'Пора сменить подгузник',
       'С момента последней смены прошло'
     )
+
+    if (remindersForWorker.length > 0) {
+      syncRemindersWithServiceWorker(remindersForWorker)
+    } else {
+      syncRemindersWithServiceWorker([])
+    }
   }, [
     data?.lastFeeding?.timestamp,
     data?.lastDiaper?.timestamp,
     settings.feedingInterval,
     settings.diaperInterval,
     notificationPermission,
-    isNotificationSupported
+    isNotificationSupported,
+    syncRemindersWithServiceWorker
   ])
+
+  useEffect(() => {
+    return () => {
+      syncRemindersWithServiceWorker([])
+    }
+  }, [syncRemindersWithServiceWorker])
 
   if (loading) {
     return <LoadingScreen />
