@@ -84,7 +84,6 @@ animationFrameRef.current = requestAnimationFrame(() => {
 - requestAnimationFrame
 - Touch Events API
 - CSS transforms
-- Vibration API (опционально)
 
 ## Мониторинг производительности
 

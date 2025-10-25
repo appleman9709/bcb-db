@@ -948,10 +948,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     const coin = coins.find(c => c.id === coinId)
     if (!coin || coin.collected) return
 
-    // Добавляем вибрацию при сборе монетки
-    if ('vibrate' in navigator) {
-      navigator.vibrate(50) // Короткая вибрация 50мс
-    }
 
     // Помечаем монетку как собранную
     setCoins(prev => prev.map(c => 

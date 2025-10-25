@@ -35,7 +35,6 @@ import { initGradientTimer, getStatusMessage, calculateGradientProgress } from '
 
 type DashboardSection = 'dashboard' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
-type ReminderType = 'feeding' | 'diaper'
 
 type QuickActionResult = {}
 
@@ -219,13 +218,6 @@ const getTypeInfo = (type: string, item: any) => {
   }
 }
 
-const requestDefaultNotificationPermission = () => {
-  if (typeof window === 'undefined' || !('Notification' in window)) {
-    return 'default' as NotificationPermission
-  }
-
-  return Notification.permission
-}
 
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<DashboardSection>('dashboard')
@@ -241,7 +233,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalAction, setModalAction] = useState<QuickActionType>('feeding')
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(requestDefaultNotificationPermission)
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [activeTab, setActiveTab] = useState<'home' | 'settings' | 'tamagotchi' | 'tetris'>('home')
@@ -323,7 +314,6 @@ export default function Dashboard() {
     }
   }, [])
 
-  const isNotificationSupported = typeof window !== 'undefined' && 'Notification' in window
 
   const memberDisplayName = member?.name ?? member?.role ?? 'Участник семьи'
 
@@ -832,10 +822,6 @@ export default function Dashboard() {
         // Обновляем данные
         fetchData()
         
-        // Вибрация при успешном удалении
-        if ('vibrate' in navigator) {
-          navigator.vibrate([50, 50, 50])
-        }
       } else {
         console.error('Failed to delete record')
       }
@@ -922,50 +908,7 @@ export default function Dashboard() {
     }
   }
 
-  const requestNotificationPermission = async () => {
-    if (!isNotificationSupported) {
-      return
-    }
 
-    try {
-      const permission = await Notification.requestPermission()
-      setNotificationPermission(permission)
-    } catch (error) {
-      console.error('Error requesting notification permission:', error)
-    }
-  }
-
-  const testNotification = async () => {
-    console.log('testNotification called');
-    console.log('isNotificationSupported:', isNotificationSupported);
-    console.log('notificationPermission:', notificationPermission);
-    
-    if (!isNotificationSupported || notificationPermission !== 'granted') {
-      console.log('Notifications not supported or permission not granted');
-      return
-    }
-
-    try {
-      console.log('Checking service worker...');
-      if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        console.log('Service worker registration:', registration);
-        
-        if (registration.active) {
-          console.log('Sending test notification message to service worker');
-          registration.active.postMessage({
-            type: 'TEST_NOTIFICATION'
-          });
-        } else {
-          console.log('No active service worker');
-        }
-      } else {
-        console.log('Service worker not supported');
-      }
-    } catch (error) {
-      console.error('Error sending test notification:', error);
-    }
-  }
 
   const latestActivityTimestamp = useMemo(() => {
     const timestamps = [
@@ -1132,20 +1075,10 @@ export default function Dashboard() {
         animationFrameRef.current = null
       })
       
-      // Тактильная обратная связь при достижении порога
-      if (delta >= PULL_REFRESH_THRESHOLD && pullDistanceRef.current < PULL_REFRESH_THRESHOLD) {
-        if ('vibrate' in navigator) {
-          navigator.vibrate(30)
-        }
-      }
     }
 
     const handleTouchEnd = () => {
       if (pullDistanceRef.current >= PULL_REFRESH_THRESHOLD) {
-        // Тактильная обратная связь при достижении порога
-        if ('vibrate' in navigator) {
-          navigator.vibrate(50)
-        }
         resetPullState()
         handleRefresh()
         return
@@ -1171,109 +1104,9 @@ export default function Dashboard() {
     }
   }, [handleRefresh, updatePullDistance, activeSection, activeTab, recentEventsExpanded])
 
-  useEffect(() => {
-    if (!isNotificationSupported) {
-      return
-    }
-
-    setNotificationPermission(requestDefaultNotificationPermission())
-  }, [isNotificationSupported])
 
 
-  useEffect(() => {
-    return () => {
-      // Отменяем все напоминания в Service Worker при размонтировании компонента
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then((registration) => {
-          if (registration.active) {
-            registration.active.postMessage({
-              type: 'CANCEL_REMINDER',
-              key: 'feeding'
-            });
-            registration.active.postMessage({
-              type: 'CANCEL_REMINDER',
-              key: 'diaper'
-            });
-          }
-        });
-      }
-    }
-  }, [])
 
-  useEffect(() => {
-    if (!isNotificationSupported || notificationPermission !== 'granted') {
-      return
-    }
-
-    const scheduleReminder = async (
-      key: ReminderType,
-      lastTimestamp: string | undefined,
-      intervalHours: number,
-      title: string,
-      bodyPrefix: string
-    ) => {
-      if (!lastTimestamp || !Number.isFinite(intervalHours) || intervalHours <= 0) {
-        // Отменяем напоминание в Service Worker
-        if ('serviceWorker' in navigator) {
-          const registration = await navigator.serviceWorker.ready;
-          if (registration.active) {
-            registration.active.postMessage({
-              type: 'CANCEL_REMINDER',
-              key
-            });
-          }
-        }
-        return
-      }
-
-      const lastTime = new Date(lastTimestamp)
-      if (Number.isNaN(lastTime.getTime())) {
-        return
-      }
-
-      // Отправляем напоминание в Service Worker для фонового выполнения
-      if ('serviceWorker' in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          if (registration.active) {
-            registration.active.postMessage({
-              type: 'SCHEDULE_REMINDER',
-              key,
-              timestamp: lastTimestamp,
-              intervalHours,
-              title,
-              bodyPrefix
-            });
-          }
-        } catch (error) {
-          console.error('Failed to schedule reminder in Service Worker:', error);
-        }
-      }
-    }
-
-    scheduleReminder(
-      'feeding',
-      data?.lastFeeding?.timestamp,
-      settings.feedingInterval,
-      'Пора покормить малыша',
-      'С момента последнего кормления прошло'
-    )
-
-    scheduleReminder(
-      'diaper',
-      data?.lastDiaper?.timestamp,
-      settings.diaperInterval,
-      'Пора сменить подгузник',
-      'С момента последней смены прошло'
-    )
-  }, [
-    data?.lastFeeding?.timestamp,
-    data?.lastDiaper?.timestamp,
-    settings.feedingInterval,
-    settings.diaperInterval,
-    notificationPermission,
-    isNotificationSupported
-  ])
 
   const handleTabChange = (tab: 'home' | 'settings' | 'tamagotchi' | 'tetris') => {
     console.log('Tab changed to:', tab) // Отладочная информация
@@ -1595,48 +1428,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Уведомления */}
-              {isNotificationSupported && (
-                <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 flex items-center justify-center text-sm">
-                      🔔
-                    </div>
-                    <h2 className="text-base font-semibold text-gray-900">Уведомления</h2>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-medium text-gray-900">Push-уведомления</p>
-                        <p className="text-xs text-gray-500">Получайте напоминания о кормлении и смене подгузника</p>
-                      </div>
-                      <div className={`px-2 py-0.5 rounded-3xl text-xs font-medium ${
-                        notificationPermission === 'granted' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-red-100 text-red-700'
-                      }`}>
-                        {notificationPermission === 'granted' ? 'Включено' : 'Отключено'}
-                      </div>
-                    </div>
-                    {notificationPermission !== 'granted' && (
-                      <button
-                        onClick={requestNotificationPermission}
-                        className="w-full bg-blue-500 text-white font-medium py-1.5 px-3 rounded-3xl hover:bg-blue-600 transition-colors text-xs"
-                      >
-                        Включить уведомления
-                      </button>
-                    )}
-                    {notificationPermission === 'granted' && (
-                      <button
-                        onClick={testNotification}
-                        className="w-full bg-green-500 text-white font-medium py-1.5 px-3 rounded-3xl hover:bg-green-600 transition-colors text-xs mt-2"
-                      >
-                        Тест уведомления
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {/* Информация о семье */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
@@ -1753,11 +1544,6 @@ export default function Dashboard() {
                         }}
                       ></div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {data?.lastFeeding ? (
-                        getStatusMessage(calculateGradientProgress(data.lastFeeding.timestamp, settings.feedingInterval), 'feeding')
-                      ) : "Запишите первое кормление"}
-                    </div>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-medium text-gray-700">
@@ -1793,11 +1579,6 @@ export default function Dashboard() {
                         }}
                       ></div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {data?.lastDiaper ? (
-                        getStatusMessage(calculateGradientProgress(data.lastDiaper.timestamp, settings.diaperInterval), 'diaper')
-                      ) : "Запишите первую смену"}
-                    </div>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-medium text-gray-700">
@@ -1832,11 +1613,6 @@ export default function Dashboard() {
                             : 0))}%` 
                         }}
                       ></div>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {data?.lastBath ? (
-                        getStatusMessage(calculateGradientProgress(data.lastBath.timestamp, settings.bathInterval * 24), 'bath')
-                      ) : "Запишите первое купание"}
                     </div>
                   </div>
                   <div className="text-right">
