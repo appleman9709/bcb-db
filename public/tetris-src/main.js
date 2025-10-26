@@ -1455,6 +1455,11 @@ class MobileSudokuTetris {
             return;
         }
 
+        // Если размещение возможно, показываем какие линии будут очищены
+        if (canPlace) {
+            this.drawLinePreview(previewX, previewY);
+        }
+
         // Валидно: зеленоватая подсветка rgba(49,196,141,0.35)
         // Невалидно: розовая rgba(255,90,95,0.35)
         const baseColor = canPlace ? '#31C48D' : '#FF5A5F';
@@ -1469,6 +1474,123 @@ class MobileSudokuTetris {
                 }
             }
         }
+    }
+
+    // Функция для расчета линий, которые будут очищены
+    calculateLinesToClear(previewX, previewY) {
+        if (!this.draggedPiece || !this.canPlacePiece(this.draggedPiece, previewX, previewY)) {
+            return { rows: [], columns: [], regions: [] };
+        }
+
+        // Создаем временную копию доски с размещенной фигурой
+        const tempBoard = this.board.map(row => [...row]);
+        
+        for (let py = 0; py < this.draggedPiece.shape.length; py++) {
+            for (let px = 0; px < this.draggedPiece.shape[py].length; px++) {
+                if (this.draggedPiece.shape[py][px]) {
+                    const boardX = previewX + px;
+                    const boardY = previewY + py;
+                    tempBoard[boardY][boardX] = 1;
+                }
+            }
+        }
+
+        const rowsToClear = [];
+        const columnsToClear = [];
+        const regionsToClear = [];
+
+        // Проверяем строки
+        for (let y = 0; y < this.BOARD_SIZE; y++) {
+            if (tempBoard[y].every(cell => cell === 1)) {
+                rowsToClear.push(y);
+            }
+        }
+
+        // Проверяем столбцы
+        for (let x = 0; x < this.BOARD_SIZE; x++) {
+            if (tempBoard.every(row => row[x] === 1)) {
+                columnsToClear.push(x);
+            }
+        }
+
+        // Проверяем блоки 3x3
+        const regionsToCheck = [
+            { startX: 0, startY: 0 },
+            { startX: 3, startY: 0 },
+            { startX: 6, startY: 0 },
+            { startX: 0, startY: 3 },
+            { startX: 3, startY: 3 },
+            { startX: 6, startY: 3 },
+            { startX: 0, startY: 6 },
+            { startX: 3, startY: 6 },
+            { startX: 6, startY: 6 }
+        ];
+
+        for (let region of regionsToCheck) {
+            let isFilled = true;
+            for (let ry = region.startY; ry < region.startY + 3; ry++) {
+                for (let rx = region.startX; rx < region.startX + 3; rx++) {
+                    if (tempBoard[ry][rx] !== 1) {
+                        isFilled = false;
+                        break;
+                    }
+                }
+                if (!isFilled) break;
+            }
+            if (isFilled) {
+                regionsToClear.push(region);
+            }
+        }
+
+        return { rows: rowsToClear, columns: columnsToClear, regions: regionsToClear };
+    }
+
+    // Функция для отрисовки подсветки линий
+    drawLinePreview(previewX, previewY) {
+        const linesToClear = this.calculateLinesToClear(previewX, previewY);
+        
+        this.ctx.save();
+        
+        // Подсветка строк
+        this.ctx.fillStyle = 'rgba(34, 197, 94, 0.4)';
+        linesToClear.rows.forEach(y => {
+            this.ctx.fillRect(0, y * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
+        });
+
+        // Подсветка столбцов
+        linesToClear.columns.forEach(x => {
+            this.ctx.fillRect(x * this.CELL_SIZE, 0, this.CELL_SIZE, this.canvas.height);
+        });
+
+        // Подсветка блоков 3x3
+        linesToClear.regions.forEach(region => {
+            this.ctx.fillRect(
+                region.startX * this.CELL_SIZE,
+                region.startY * this.CELL_SIZE,
+                3 * this.CELL_SIZE,
+                3 * this.CELL_SIZE
+            );
+        });
+
+        // Обводим контуром
+        this.ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
+        this.ctx.lineWidth = 2;
+        linesToClear.rows.forEach(y => {
+            this.ctx.strokeRect(0, y * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
+        });
+        linesToClear.columns.forEach(x => {
+            this.ctx.strokeRect(x * this.CELL_SIZE, 0, this.CELL_SIZE, this.canvas.height);
+        });
+        linesToClear.regions.forEach(region => {
+            this.ctx.strokeRect(
+                region.startX * this.CELL_SIZE,
+                region.startY * this.CELL_SIZE,
+                3 * this.CELL_SIZE,
+                3 * this.CELL_SIZE
+            );
+        });
+
+        this.ctx.restore();
     }
 
     draw() {

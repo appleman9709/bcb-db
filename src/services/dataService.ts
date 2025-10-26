@@ -1464,6 +1464,11 @@ class DataService {
       .single()
 
     if (error) {
+      // Игнорируем ошибку дубликата (ошибка 409 при попытке сохранить одинаковый score)
+      if (error.code === '23505') {
+        console.log('Tetris record already exists with this score, skipping')
+        return null
+      }
       console.error('Error adding tetris record', error)
       return null
     }

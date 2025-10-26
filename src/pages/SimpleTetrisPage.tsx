@@ -117,6 +117,7 @@ export default function SimpleTetrisPage() {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [gameOver, setGameOver] = useState(false)
   const [familyBestRecord, setFamilyBestRecord] = useState<TetrisRecord | null>(null)
+  const [previewPosition, setPreviewPosition] = useState<{ x: number; y: number } | null>(null)
   
   // Используем хук для кэширования рекордов
   const { loadBestRecord, updateCacheIfBetter, getCachedRecord } = useTetrisRecordCache()
@@ -168,6 +169,95 @@ export default function SimpleTetrisPage() {
     }
     setGameState(prev => ({ ...prev, availablePieces: pieces }))
   }, [])
+
+  // Проверка возможности размещения фигуры
+  const canPlacePiece = useCallback((piece: TetrisPiece, x: number, y: number): boolean => {
+    for (let py = 0; py < piece.shape.length; py++) {
+      for (let px = 0; px < piece.shape[py].length; px++) {
+        if (piece.shape[py][px]) {
+          const boardX = x + px
+          const boardY = y + py
+          
+          if (boardX < 0 || boardX >= BOARD_SIZE || 
+              boardY < 0 || boardY >= BOARD_SIZE || 
+              gameState.board[boardY][boardX]) {
+            return false
+          }
+        }
+      }
+    }
+    return true
+  }, [gameState.board])
+
+  // Вычисление линий, которые будут очищены при размещении фигуры (для preview)
+  const calculatePreviewLines = useCallback((piece: TetrisPiece, x: number, y: number) => {
+    if (!canPlacePiece(piece, x, y)) {
+      return { rows: [], columns: [], regions: [] }
+    }
+
+    // Создаем временную копию доски с размещенной фигурой
+    const tempBoard = gameState.board.map(row => [...row])
+    
+    for (let py = 0; py < piece.shape.length; py++) {
+      for (let px = 0; px < piece.shape[py].length; px++) {
+        if (piece.shape[py][px]) {
+          const boardX = x + px
+          const boardY = y + py
+          tempBoard[boardY][boardX] = 1
+        }
+      }
+    }
+
+    // Проверяем какие линии будут очищены
+    const rowsToClear: number[] = []
+    const columnsToClear: number[] = []
+    const regionsToClear: { startX: number; startY: number }[] = []
+
+    // Проверяем строки
+    for (let y = 0; y < BOARD_SIZE; y++) {
+      if (tempBoard[y].every(cell => cell === 1)) {
+        rowsToClear.push(y)
+      }
+    }
+
+    // Проверяем столбцы
+    for (let x = 0; x < BOARD_SIZE; x++) {
+      if (tempBoard.every(row => row[x] === 1)) {
+        columnsToClear.push(x)
+      }
+    }
+
+    // Проверяем блоки 3x3
+    const regionsToCheck = [
+      { startX: 0, startY: 0 },
+      { startX: 3, startY: 0 },
+      { startX: 6, startY: 0 },
+      { startX: 0, startY: 3 },
+      { startX: 3, startY: 3 },
+      { startX: 6, startY: 3 },
+      { startX: 0, startY: 6 },
+      { startX: 3, startY: 6 },
+      { startX: 6, startY: 6 }
+    ]
+
+    for (let region of regionsToCheck) {
+      let isFilled = true
+      for (let ry = region.startY; ry < region.startY + 3; ry++) {
+        for (let rx = region.startX; rx < region.startX + 3; rx++) {
+          if (tempBoard[ry][rx] !== 1) {
+            isFilled = false
+            break
+          }
+        }
+        if (!isFilled) break
+      }
+      if (isFilled) {
+        regionsToClear.push(region)
+      }
+    }
+
+    return { rows: rowsToClear, columns: columnsToClear, regions: regionsToClear }
+  }, [gameState.board, canPlacePiece])
 
   // Отрисовка доски
   const drawBoard = useCallback(() => {
@@ -231,7 +321,51 @@ export default function SimpleTetrisPage() {
         }
       }
     }
-  }, [gameState.board, gameState.boardColors])
+
+    // Рисуем подсветку линий для preview
+    if (draggedPiece && previewPosition) {
+      const previewLines = calculatePreviewLines(draggedPiece, previewPosition.x, previewPosition.y)
+      
+      // Рисуем подсветку строк
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.4)'
+      previewLines.rows.forEach(y => {
+        ctx.fillRect(0, y * CELL_SIZE, canvas.width, CELL_SIZE)
+      })
+
+      // Рисуем подсветку столбцов
+      previewLines.columns.forEach(x => {
+        ctx.fillRect(x * CELL_SIZE, 0, CELL_SIZE, canvas.height)
+      })
+
+      // Рисуем подсветку блоков 3x3
+      previewLines.regions.forEach(region => {
+        ctx.fillRect(
+          region.startX * CELL_SIZE,
+          region.startY * CELL_SIZE,
+          3 * CELL_SIZE,
+          3 * CELL_SIZE
+        )
+      })
+      
+      // Обводим линии белым контуром для лучшей видимости
+      ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)'
+      ctx.lineWidth = 2
+      previewLines.rows.forEach(y => {
+        ctx.strokeRect(0, y * CELL_SIZE, canvas.width, CELL_SIZE)
+      })
+      previewLines.columns.forEach(x => {
+        ctx.strokeRect(x * CELL_SIZE, 0, CELL_SIZE, canvas.height)
+      })
+      previewLines.regions.forEach(region => {
+        ctx.strokeRect(
+          region.startX * CELL_SIZE,
+          region.startY * CELL_SIZE,
+          3 * CELL_SIZE,
+          3 * CELL_SIZE
+        )
+      })
+    }
+  }, [gameState.board, gameState.boardColors, draggedPiece, previewPosition, calculatePreviewLines])
 
   // Отрисовка клетки
   const drawCell = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) => {
@@ -286,25 +420,6 @@ export default function SimpleTetrisPage() {
     ctx.quadraticCurveTo(x, y + height, x, y + height - r)
     ctx.lineTo(x, y + r)
     ctx.quadraticCurveTo(x, y, x + r, y)
-  }
-
-  // Проверка возможности размещения фигуры
-  const canPlacePiece = (piece: TetrisPiece, x: number, y: number): boolean => {
-    for (let py = 0; py < piece.shape.length; py++) {
-      for (let px = 0; px < piece.shape[py].length; px++) {
-        if (piece.shape[py][px]) {
-          const boardX = x + px
-          const boardY = y + py
-          
-          if (boardX < 0 || boardX >= BOARD_SIZE || 
-              boardY < 0 || boardY >= BOARD_SIZE || 
-              gameState.board[boardY][boardX]) {
-            return false
-          }
-        }
-      }
-    }
-    return true
   }
 
   // Размещение фигуры
@@ -447,24 +562,10 @@ export default function SimpleTetrisPage() {
     }
   }
 
-  // Обработка клика по canvas
+  // Обработка клика по canvas (резервный вариант)
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!draggedPiece) return
-
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const rect = canvas.getBoundingClientRect()
-    const canvasX = event.clientX - rect.left
-    const canvasY = event.clientY - rect.top
-    
-    const gridX = Math.floor(canvasX / CELL_SIZE)
-    const gridY = Math.floor(canvasY / CELL_SIZE)
-    
-    if (placePiece(draggedPiece, gridX, gridY)) {
-      setDraggedPiece(null)
-      setIsDragging(false)
-    }
+    // Клик обрабатывается через handleMouseUp в useEffect
+    event.preventDefault()
   }
 
   // Обработка начала перетаскивания фигуры
@@ -485,15 +586,56 @@ export default function SimpleTetrisPage() {
     const handleMouseMove = (event: MouseEvent) => {
       if (!isDragging || !draggedPiece) return
       
-      // Здесь можно добавить визуальную обратную связь при перетаскивании
-      // Например, показывать полупрозрачную копию фигуры под курсором
+      // Проверяем, находимся ли мы над canvas
+      const canvas = canvasRef.current
+      if (!canvas) return
+      
+      const rect = canvas.getBoundingClientRect()
+      const mouseX = event.clientX
+      const mouseY = event.clientY
+      
+      // Проверяем, что мышь внутри canvas
+      if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
+        const canvasX = mouseX - rect.left
+        const canvasY = mouseY - rect.top
+        
+        const gridX = Math.floor(canvasX / CELL_SIZE)
+        const gridY = Math.floor(canvasY / CELL_SIZE)
+        
+        setPreviewPosition({ x: gridX, y: gridY })
+      } else {
+        // Если мышь вне canvas, сбрасываем preview
+        setPreviewPosition(null)
+      }
     }
 
-    const handleMouseUp = () => {
-      if (isDragging) {
+    const handleMouseUp = (event: MouseEvent) => {
+      if (!isDragging || !draggedPiece) return
+      
+      // Проверяем, отпустили ли мышь над canvas
+      const canvas = canvasRef.current
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect()
+        const mouseX = event.clientX
+        const mouseY = event.clientY
+        
+        // Если мышь внутри canvas, размещаем фигуру
+        if (mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom) {
+          const canvasX = mouseX - rect.left
+          const canvasY = mouseY - rect.top
+          
+          const gridX = Math.floor(canvasX / CELL_SIZE)
+          const gridY = Math.floor(canvasY / CELL_SIZE)
+          
+          // Пытаемся разместить фигуру
+          placePiece(draggedPiece, gridX, gridY)
+        }
+      }
+      
+      // Сбрасываем состояние перетаскивания
         setIsDragging(false)
         setDraggedPiece(null)
-      }
+      setPreviewPosition(null)
     }
 
     if (isDragging) {
@@ -505,7 +647,7 @@ export default function SimpleTetrisPage() {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDragging, draggedPiece])
+  }, [isDragging, draggedPiece, placePiece])
 
   // Отрисовка фигуры в слоте
   const renderPiece = (piece: TetrisPiece) => {
@@ -687,11 +829,11 @@ export default function SimpleTetrisPage() {
               {gameState.availablePieces.map((piece, index) => (
                 <div
                   key={piece.id}
-                  className={`w-16 h-16 border-2 border-dashed border-gray-300 rounded-3xl flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors ${
+                  className={`w-16 h-16 border-2 border-dashed border-gray-300 rounded-3xl flex items-center justify-center cursor-grab hover:border-blue-400 transition-colors ${
                     draggedPiece?.id === piece.id ? 'border-blue-500 bg-blue-50' : ''
                   }`}
                   onMouseDown={(e) => handlePieceMouseDown(piece, e)}
-                  title={`Кликните по фигуре, затем по полю для размещения`}
+                  title={`Выберите фигуру, наведите на поле - подсветятся линии, которые сгорят при размещении. Кликните для размещения.`}
                 >
                   {renderPiece(piece)}
                 </div>
@@ -703,10 +845,10 @@ export default function SimpleTetrisPage() {
           <div className="text-center text-sm text-gray-600">
             {draggedPiece ? (
               <p className="text-blue-600 font-medium">
-                Выбрана фигура "{draggedPiece.name}". Кликните по игровому полю для размещения.
+                Выбрана фигура "{draggedPiece.name}". Ведите курсор по полю - подсветятся линии, которые сгорят при размещении. Кликните для размещения.
               </p>
             ) : (
-              <p>Кликните по фигуре, затем по игровому полю для размещения</p>
+              <p>Кликните на фигуру, затем ведите курсор по полю для preview</p>
             )}
           </div>
         </div>

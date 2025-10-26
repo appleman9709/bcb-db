@@ -40,8 +40,6 @@ class MobileSudokuTetris {
         this.lines = 0;
         this.gameRunning = true;
         this.record = this.loadRecord();
-        this.gameStartTime = Date.now();
-        this.piecesPlaced = 0;
         
         // Состояние перетаскивания
         this.draggedPiece = null;
@@ -414,32 +412,6 @@ class MobileSudokuTetris {
         return false;
     }
     
-    // Отправка рекорда в родительское приложение
-    sendRecordToParent(score, level, lines, duration, piecesPlaced) {
-        try {
-            const recordData = {
-                type: 'TETRIS_RECORD',
-                data: {
-                    player_name: 'Игрок',
-                    score: score,
-                    level: level,
-                    lines_cleared: lines,
-                    game_duration_seconds: duration,
-                    pieces_placed: piecesPlaced,
-                    game_mode: 'classic'
-                }
-            };
-            
-            // Отправляем данные в родительское окно
-            if (window.parent && window.parent !== window) {
-                window.parent.postMessage(recordData, '*');
-                console.log('Tetris record sent to parent:', recordData);
-            }
-        } catch (error) {
-            console.error('Error sending tetris record to parent:', error);
-        }
-    }
-    
     // Функции для сохранения и загрузки состояния игры
     saveGameState() {
         const gameState = {
@@ -724,8 +696,7 @@ class MobileSudokuTetris {
                     cells.push({
                         x: x + px,
                         y: y + py,
-                        startTime: performance.now(),
-                        color: piece.color // Сохраняем цвет фигуры для анимации
+                        startTime: performance.now()
                     });
                 }
             }
@@ -1264,9 +1235,6 @@ class MobileSudokuTetris {
         // Удаляем использованную фигуру
         this.availablePieces = this.availablePieces.filter(p => p.uniqueId !== piece.uniqueId);
         
-        // Увеличиваем счетчик размещенных фигур
-        this.piecesPlaced++;
-        
         // Убираем выделение с размещенной фигуры
         this.clearSelection();
         
@@ -1487,6 +1455,11 @@ class MobileSudokuTetris {
             return;
         }
 
+        // Если размещение возможно, показываем какие линии будут очищены
+        if (canPlace) {
+            this.drawLinePreview(previewX, previewY);
+        }
+
         // Валидно: зеленоватая подсветка rgba(49,196,141,0.35)
         // Невалидно: розовая rgba(255,90,95,0.35)
         const baseColor = canPlace ? '#31C48D' : '#FF5A5F';
@@ -1501,6 +1474,123 @@ class MobileSudokuTetris {
                 }
             }
         }
+    }
+
+    // Функция для расчета линий, которые будут очищены
+    calculateLinesToClear(previewX, previewY) {
+        if (!this.draggedPiece || !this.canPlacePiece(this.draggedPiece, previewX, previewY)) {
+            return { rows: [], columns: [], regions: [] };
+        }
+
+        // Создаем временную копию доски с размещенной фигурой
+        const tempBoard = this.board.map(row => [...row]);
+        
+        for (let py = 0; py < this.draggedPiece.shape.length; py++) {
+            for (let px = 0; px < this.draggedPiece.shape[py].length; px++) {
+                if (this.draggedPiece.shape[py][px]) {
+                    const boardX = previewX + px;
+                    const boardY = previewY + py;
+                    tempBoard[boardY][boardX] = 1;
+                }
+            }
+        }
+
+        const rowsToClear = [];
+        const columnsToClear = [];
+        const regionsToClear = [];
+
+        // Проверяем строки
+        for (let y = 0; y < this.BOARD_SIZE; y++) {
+            if (tempBoard[y].every(cell => cell === 1)) {
+                rowsToClear.push(y);
+            }
+        }
+
+        // Проверяем столбцы
+        for (let x = 0; x < this.BOARD_SIZE; x++) {
+            if (tempBoard.every(row => row[x] === 1)) {
+                columnsToClear.push(x);
+            }
+        }
+
+        // Проверяем блоки 3x3
+        const regionsToCheck = [
+            { startX: 0, startY: 0 },
+            { startX: 3, startY: 0 },
+            { startX: 6, startY: 0 },
+            { startX: 0, startY: 3 },
+            { startX: 3, startY: 3 },
+            { startX: 6, startY: 3 },
+            { startX: 0, startY: 6 },
+            { startX: 3, startY: 6 },
+            { startX: 6, startY: 6 }
+        ];
+
+        for (let region of regionsToCheck) {
+            let isFilled = true;
+            for (let ry = region.startY; ry < region.startY + 3; ry++) {
+                for (let rx = region.startX; rx < region.startX + 3; rx++) {
+                    if (tempBoard[ry][rx] !== 1) {
+                        isFilled = false;
+                        break;
+                    }
+                }
+                if (!isFilled) break;
+            }
+            if (isFilled) {
+                regionsToClear.push(region);
+            }
+        }
+
+        return { rows: rowsToClear, columns: columnsToClear, regions: regionsToClear };
+    }
+
+    // Функция для отрисовки подсветки линий
+    drawLinePreview(previewX, previewY) {
+        const linesToClear = this.calculateLinesToClear(previewX, previewY);
+        
+        this.ctx.save();
+        
+        // Подсветка строк
+        this.ctx.fillStyle = 'rgba(34, 197, 94, 0.4)';
+        linesToClear.rows.forEach(y => {
+            this.ctx.fillRect(0, y * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
+        });
+
+        // Подсветка столбцов
+        linesToClear.columns.forEach(x => {
+            this.ctx.fillRect(x * this.CELL_SIZE, 0, this.CELL_SIZE, this.canvas.height);
+        });
+
+        // Подсветка блоков 3x3
+        linesToClear.regions.forEach(region => {
+            this.ctx.fillRect(
+                region.startX * this.CELL_SIZE,
+                region.startY * this.CELL_SIZE,
+                3 * this.CELL_SIZE,
+                3 * this.CELL_SIZE
+            );
+        });
+
+        // Обводим контуром
+        this.ctx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
+        this.ctx.lineWidth = 2;
+        linesToClear.rows.forEach(y => {
+            this.ctx.strokeRect(0, y * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
+        });
+        linesToClear.columns.forEach(x => {
+            this.ctx.strokeRect(x * this.CELL_SIZE, 0, this.CELL_SIZE, this.canvas.height);
+        });
+        linesToClear.regions.forEach(region => {
+            this.ctx.strokeRect(
+                region.startX * this.CELL_SIZE,
+                region.startY * this.CELL_SIZE,
+                3 * this.CELL_SIZE,
+                3 * this.CELL_SIZE
+            );
+        });
+
+        this.ctx.restore();
     }
 
     draw() {
@@ -1584,10 +1674,11 @@ class MobileSudokuTetris {
             return;
         }
 
+        const baseColor = '#3BA3FF'; // Синий цвет для размещенных фигур
+
         this.placementAnimations.forEach(cell => {
             const pixelX = cell.x * this.CELL_SIZE;
             const pixelY = cell.y * this.CELL_SIZE;
-            const baseColor = cell.color || '#3BA3FF'; // Используем цвет фигуры или синий по умолчанию
             
             if (cell.progress !== undefined) {
                 // Анимация масштабирования
@@ -1620,14 +1711,14 @@ class MobileSudokuTetris {
             return;
         }
 
+        const baseColor = '#3BA3FF'; // Синий цвет для анимаций очистки
+
         this.clearAnimations.forEach(effect => {
             const progress = effect.progress ?? 0;
             effect.cells.forEach(cell => {
                 const pixelX = cell.x * this.CELL_SIZE;
                 const pixelY = cell.y * this.CELL_SIZE;
-                // Используем сохраненный цвет клетки или синий по умолчанию
-                const cellColor = cell.color || '#3BA3FF';
-                this.drawClearBurst(pixelX, pixelY, progress, cellColor);
+                this.drawClearBurst(pixelX, pixelY, progress, baseColor);
             });
         });
     }
@@ -1670,11 +1761,7 @@ class MobileSudokuTetris {
         }
 
         const effect = {
-            cells: cells.map(cell => ({ 
-                x: cell.x, 
-                y: cell.y,
-                color: this.boardColors[cell.y] && this.boardColors[cell.y][cell.x] || '#3BA3FF'
-            })),
+            cells: cells.map(cell => ({ x: cell.x, y: cell.y })),
             startTime: performance.now(),
             progress: 0
         };
@@ -1941,10 +2028,6 @@ class MobileSudokuTetris {
         // Проверяем рекорд
         const isNewRecord = this.saveRecord(this.score);
         
-        // Отправляем рекорд в родительское приложение
-        const gameDuration = Math.floor((Date.now() - this.gameStartTime) / 1000);
-        this.sendRecordToParent(this.score, this.level, this.lines, gameDuration, this.piecesPlaced);
-        
         const gameOverElement = document.getElementById('gameOver');
         
         // Обновляем интерфейс в зависимости от того, установлен ли новый рекорд
@@ -1987,8 +2070,6 @@ class MobileSudokuTetris {
         this.level = 1;
         this.lines = 0;
         this.gameRunning = true;
-        this.gameStartTime = Date.now();
-        this.piecesPlaced = 0;
         this.draggedPiece = null;
         this.isDragging = false;
         
