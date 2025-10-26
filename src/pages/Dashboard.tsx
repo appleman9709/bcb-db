@@ -31,7 +31,7 @@ import {
   saveDutyScheduleHybrid,
   type DutySchedule
 } from '../services/dutyScheduleService'
-import { initGradientTimer, getStatusMessage, calculateGradientProgress } from '../lib/gradientUtils'
+import { initGradientTimer } from '../lib/gradientUtils'
 
 type DashboardSection = 'dashboard' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
