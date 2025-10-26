@@ -4,14 +4,28 @@
   "installCommand": "npm install",
   "framework": null,
   "outputDirectory": "dist",
-  "public": true,
+  "rewrites": [
+    {
+      "source": "/tetris.html",
+      "destination": "/tetris.html"
+    }
+  ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/tetris.html",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/tetris-src/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
         }
       ]
     }
