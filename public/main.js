@@ -1238,8 +1238,8 @@ class MobileSudokuTetris {
         // Убираем выделение с размещенной фигуры
         this.clearSelection();
         
-        // Добавляем анимацию размещения фигуры
-        this.animatePiecePlacement(x, y, piece);
+        // Добавляем анимацию размещения фигуры (отключена для корректного отображения цветов)
+        // this.animatePiecePlacement(x, y, piece);
         
         // Проверяем заполненные линии
         this.checkLines();
@@ -1674,11 +1674,14 @@ class MobileSudokuTetris {
             return;
         }
 
-        const baseColor = '#3BA3FF'; // Синий цвет для размещенных фигур
-
         this.placementAnimations.forEach(cell => {
             const pixelX = cell.x * this.CELL_SIZE;
             const pixelY = cell.y * this.CELL_SIZE;
+            // Берем цвет ИЗ ДОСКИ - фигура уже размещена с правильным цветом
+            const cellColor = this.boardColors[cell.y] && this.boardColors[cell.y][cell.x];
+            
+            // Если цвет не найден на доске, просто не рисуем анимацию
+            if (!cellColor) return;
             
             if (cell.progress !== undefined) {
                 // Анимация масштабирования
@@ -1687,7 +1690,7 @@ class MobileSudokuTetris {
                 this.ctx.translate(pixelX + this.CELL_SIZE / 2, pixelY + this.CELL_SIZE / 2);
                 this.ctx.scale(scale, scale);
                 this.ctx.translate(-this.CELL_SIZE / 2, -this.CELL_SIZE / 2);
-                this.drawModernCell(this.ctx, 0, 0, this.CELL_SIZE, baseColor);
+                this.drawModernCell(this.ctx, 0, 0, this.CELL_SIZE, cellColor);
                 this.ctx.restore();
             } else if (cell.flashProgress !== undefined) {
                 // Анимация вспышки
@@ -1711,14 +1714,14 @@ class MobileSudokuTetris {
             return;
         }
 
-        const baseColor = '#3BA3FF'; // Синий цвет для анимаций очистки
-
         this.clearAnimations.forEach(effect => {
             const progress = effect.progress ?? 0;
             effect.cells.forEach(cell => {
                 const pixelX = cell.x * this.CELL_SIZE;
                 const pixelY = cell.y * this.CELL_SIZE;
-                this.drawClearBurst(pixelX, pixelY, progress, baseColor);
+                // Используем сохраненный цвет клетки
+                const cellColor = cell.color || '#3BA3FF';
+                this.drawClearBurst(pixelX, pixelY, progress, cellColor);
             });
         });
     }
