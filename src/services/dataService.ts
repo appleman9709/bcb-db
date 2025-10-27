@@ -1144,6 +1144,90 @@ class DataService {
     return { isSleeping: true, sleepSession: data }
   }
 
+  // Optimized method to fetch all tamagotchi data in parallel
+  async getTamagotchiData(): Promise<{
+    lastFeeding: Feeding | null
+    lastDiaper: Diaper | null
+    lastBath: Bath | null
+    parentCoins: ParentCoins | null
+    currentSleepSession: SleepSession | null
+    familySleepStatus: { isSleeping: boolean; sleepSession: SleepSession | null }
+    inventory: FamilyInventory | null
+  }> {
+    const familyId = this.requireFamilyId()
+
+    // Fetch all data in parallel with optimized queries
+    const [
+      { data: feedingData, error: feedingError },
+      { data: diaperData, error: diaperError },
+      { data: bathData, error: bathError },
+      { data: coinsData, error: coinsError },
+      { data: sleepSessionData, error: sleepSessionError },
+      { data: inventoryData, error: inventoryError }
+    ] = await Promise.all([
+      supabase
+        .from('feedings')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('diapers')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('baths')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('parent_coins')
+        .select('*')
+        .eq('family_id', familyId)
+        .single(),
+      supabase
+        .from('sleep_sessions')
+        .select('*')
+        .eq('family_id', familyId)
+        .is('end_time', null)
+        .order('start_time', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('family_inventory')
+        .select('*')
+        .eq('family_id', familyId)
+        .maybeSingle()
+    ])
+
+    const lastFeeding = feedingError || !feedingData ? null : feedingData
+    const lastDiaper = diaperError || !diaperData ? null : diaperData
+    const lastBath = bathError || !bathData ? null : bathData
+    const parentCoins = coinsError || !coinsData ? null : coinsData
+    const sleepSession = sleepSessionError || !sleepSessionData ? null : sleepSessionData
+    const inventory = inventoryError || !inventoryData ? null : inventoryData
+
+    const familySleepStatus = sleepSession
+      ? { isSleeping: true, sleepSession }
+      : { isSleeping: false, sleepSession: null }
+
+    return {
+      lastFeeding,
+      lastDiaper,
+      lastBath,
+      parentCoins,
+      currentSleepSession: sleepSession,
+      familySleepStatus,
+      inventory
+    }
+  }
+
   async getSleepSessionsWithinDays(days: number = 7): Promise<SleepSession[]> {
     const familyId = this.requireFamilyId()
 

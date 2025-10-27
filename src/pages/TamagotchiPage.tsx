@@ -2,7 +2,6 @@
 import { createPortal } from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
-import CategoryPreloader from '../components/CategoryPreloader'
 import { useCoinAnimationLimiter } from '../hooks/useAnimationLimiter'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
@@ -46,7 +45,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     wakeOnActivityEnabled: true
   })
   const [loading, setLoading] = useState(true)
-  const [backgroundLoading, setBackgroundLoading] = useState(false)
+  // backgroundLoading больше не используется - убрано для улучшения UX
+  // const [backgroundLoading, setBackgroundLoading] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState<string>('')
   const [babyState, setBabyState] = useState<BabyState>('ok')
   const [justWokeUp, setJustWokeUp] = useState(false)
   const [scoreAnimation, setScoreAnimation] = useState(false)
@@ -409,43 +410,36 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
     try {
       // Устанавливаем соответствующее состояние загрузки
-      if (isBackgroundUpdate) {
-        setBackgroundLoading(true)
-      } else {
+      // Для фонового обновления не показываем индикатор
+      // if (isBackgroundUpdate) {
+      //   setBackgroundLoading(true)
+      // } else {
+      //   setLoading(true)
+      // }
+      if (!isBackgroundUpdate) {
         setLoading(true)
       }
       
       // Сохраняем предыдущее состояние сна из useRef
       const wasSleeping = previousSleepModeRef.current
       
-      const [
-        lastFeeding,
-        lastDiaper,
-        lastBath,
-        settingsFromDb,
-        parentCoins,
-        currentSleepSession,
-        familySleepStatus,
-        inventory
-      ] = await Promise.all([
-        dataService.getLastFeeding(),
-        dataService.getLastDiaper(),
-        dataService.getLastBath(),
-        dataService.getSettings(),
-        dataService.getParentCoins(),
-        dataService.getCurrentSleepSession(),
-        dataService.getFamilySleepStatus(),
-        dataService.getFamilyInventory()
+      // Use optimized method to fetch tamagotchi data and settings in parallel
+      setLoadingProgress('Загружаем данные...')
+      const [tamagotchiData, settingsFromDb] = await Promise.all([
+        dataService.getTamagotchiData(),
+        dataService.getSettings()
       ])
+      
+      setLoadingProgress('Готовим интерфейс...')
 
       setData({
-        lastFeeding,
-        lastDiaper,
-        lastBath,
-        parentCoins,
-        currentSleepSession,
-        familySleepStatus,
-        inventory: inventory ?? null
+        lastFeeding: tamagotchiData.lastFeeding,
+        lastDiaper: tamagotchiData.lastDiaper,
+        lastBath: tamagotchiData.lastBath,
+        parentCoins: tamagotchiData.parentCoins,
+        currentSleepSession: tamagotchiData.currentSleepSession,
+        familySleepStatus: tamagotchiData.familySleepStatus,
+        inventory: tamagotchiData.inventory
       })
 
       if (settingsFromDb) {
@@ -459,7 +453,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       }
 
       // Обновляем состояние сна
-      const isCurrentlySleeping = familySleepStatus?.isSleeping ?? false
+      const isCurrentlySleeping = tamagotchiData.familySleepStatus?.isSleeping ?? false
       setIsSleepMode(isCurrentlySleeping)
       
       // Если малыш был в режиме сна и теперь не спит, показываем сообщение о пробуждении
@@ -477,9 +471,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       console.error('Error fetching tamagotchi data:', error)
     } finally {
       // Сбрасываем соответствующее состояние загрузки
-      if (isBackgroundUpdate) {
-        setBackgroundLoading(false)
-      } else {
+      // if (isBackgroundUpdate) {
+      //   setBackgroundLoading(false)
+      // } else {
+      //   setLoading(false)
+      // }
+      if (!isBackgroundUpdate) {
         setLoading(false)
       }
     }
@@ -654,9 +651,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       return // Пропускаем создание монеты, если достигнут лимит анимаций
     }
     
-    // Ограничиваем количество монет на экране (максимум 3 вместо 5)
+    // Ограничиваем количество монет на экране (максимум 5)
     setCoins(prev => {
-      if (prev.filter(coin => !coin.collected).length >= 3) {
+      if (prev.filter(coin => !coin.collected).length >= 5) {
         return prev
       }
       
@@ -734,11 +731,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }, [])
 
-  // Автоматическое появление монет каждые 30-60 секунд (увеличено для экономии ресурсов)
+  // Автоматическое появление монет каждые 10-20 секунд
   useEffect(() => {
     const startCoinSpawning = () => {
       const spawnInterval = () => {
-        const delay = Math.random() * 30000 + 30000 // 30-60 секунд
+        const delay = Math.random() * 10000 + 10000 // 10-20 секунд
         const timeout = window.setTimeout(() => {
           spawnCoin()
           spawnInterval() // Рекурсивно планируем следующую монетку
@@ -963,8 +960,8 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         // console.log('Coins updated successfully:', updatedCoins) // Отключено для экономии ресурсов
         // Обновляем данные в состоянии локально для быстрого отклика
         setData(prev => prev ? { ...prev, parentCoins: updatedCoins } : null)
-        // Дополнительно обновляем данные в фоновом режиме для синхронизации
-        fetchData(true)
+        // Фоновое обновление убрано - обновляем данные локально
+        // fetchData(true)
       } else {
         console.warn('Failed to update coins in database')
       }
@@ -1025,7 +1022,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-3xl animate-spin animation-priority-high mx-auto mb-2"></div>
-          <p className="text-sm text-gray-600">Загружаем малыша...</p>
+          <p className="text-sm text-gray-600">{loadingProgress || 'Загружаем малыша...'}</p>
         </div>
       </div>
     )
@@ -1033,16 +1030,16 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
   return (
     <div className="tamagotchi-container relative">
-      {/* Предзагрузка изображений для тамагочи */}
-      <CategoryPreloader category="tamagotchi" priority="high" delay={300} />
+      {/* Предзагрузка изображений для тамагочи - убрана для ускорения */}
+      {/* <CategoryPreloader category="tamagotchi" priority="high" delay={300} /> */}
       
-      {/* Индикатор фонового обновления */}
-      {backgroundLoading && (
+      {/* Индикатор фонового обновления - убран для улучшения UX */}
+      {/* {backgroundLoading && (
         <div className="absolute top-2 right-2 z-30 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
           <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin animation-priority-high"></div>
           <span>Обновление...</span>
         </div>
-      )}
+      )} */}
 
       {/* Монетки для сбора - позиционированы относительно всего контейнера */}
       {coins.map(coin => (
@@ -1152,6 +1149,8 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
               src={getGifSource(babyState)}
               alt={`Малыш в состоянии ${babyState}`}
               className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
+              loading="lazy"
+              decoding="async"
             />
           )}
           

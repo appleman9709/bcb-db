@@ -65,8 +65,8 @@ export const useAnimationLimiter = (options: AnimationLimiterOptions = {}) => {
  */
 export const useCoinAnimationLimiter = () => {
   const { canAnimate, startAnimation, endAnimation } = useAnimationLimiter({
-    maxConcurrent: 3, // Максимум 3 монеты одновременно
-    enableOnMobile: false // На мобильных отключаем анимации монет
+    maxConcurrent: 5, // Максимум 5 монет одновременно
+    enableOnMobile: true // На мобильных разрешаем анимации монет
   })
   
   const animateCoin = useCallback((callback: () => void) => {

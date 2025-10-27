@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useRef, useState, useCallback, type CSSProperties } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, type TetrisRecord } from '../services/dataService'
 import TetrisLeaderboard from '../components/TetrisLeaderboard'
@@ -26,77 +26,114 @@ interface GameState {
 
 const BOARD_SIZE = 9
 const CELL_SIZE = 36
+const PREVIEW_CELL_SIZE = 20
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
+
+const adjustColor = (hex: string, amount: number) => {
+  const normalized = hex.trim().replace('#', '')
+  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+    return hex
+  }
+
+  const numeric = parseInt(normalized, 16)
+  const r = (numeric >> 16) & 0xff
+  const g = (numeric >> 8) & 0xff
+  const b = numeric & 0xff
+
+  const mixTarget = amount >= 0 ? 255 : 0
+  const weight = clamp(Math.abs(amount), 0, 1)
+
+  const mixChannel = (channel: number) =>
+    clamp(Math.round(channel + (mixTarget - channel) * weight), 0, 255)
+
+  const mixedR = mixChannel(r)
+  const mixedG = mixChannel(g)
+  const mixedB = mixChannel(b)
+
+  return `#${((1 << 24) + (mixedR << 16) + (mixedG << 8) + mixedB).toString(16).slice(1)}`
+}
+
+const createCatStyle = (color: string): CSSProperties => ({
+  '--cat-color': color,
+  '--cat-light-color': adjustColor(color, 0.25),
+  '--cat-shadow-color': adjustColor(color, -0.2),
+  '--cat-ear-color': adjustColor(color, 0.4)
+} as CSSProperties)
 
 const TETRIS_PIECES: TetrisPiece[] = [
   {
-    id: 'I',
-    name: 'Линия',
+    id: 'stretch-cat',
+    name: 'Stretch Cat',
     shape: [[1, 1, 1, 1]],
-    color: '#3BA3FF',
+    color: '#F2A5C9',
     size: 4
   },
   {
-    id: 'O',
-    name: 'Квадрат',
+    id: 'loaf-cat',
+    name: 'Loaf Cat',
     shape: [
       [1, 1],
       [1, 1]
     ],
-    color: '#31C48D',
+    color: '#F7C873',
     size: 2
   },
   {
-    id: 'T',
-    name: 'Т-образная',
+    id: 'sitting-cat',
+    name: 'Sitting Cat',
     shape: [
-      [0, 1, 0],
-      [1, 1, 1]
+      [1, 0, 1],
+      [1, 1, 1],
+      [0, 1, 0]
     ],
-    color: '#FF8A34',
+    color: '#9EC7F2',
     size: 3
   },
   {
-    id: 'S',
-    name: 'S-образная',
-    shape: [
-      [0, 1, 1],
-      [1, 1, 0]
-    ],
-    color: '#7C5CFF',
-    size: 3
-  },
-  {
-    id: 'Z',
-    name: 'Z-образная',
+    id: 'playful-tail',
+    name: 'Playful Tail',
     shape: [
       [1, 1, 0],
-      [0, 1, 1]
+      [0, 1, 1],
+      [0, 1, 0]
     ],
-    color: '#FF5A5F',
+    color: '#B9E3A8',
     size: 3
   },
   {
-    id: 'J',
-    name: 'J-образная',
+    id: 'curious-kitten',
+    name: 'Curious Kitten',
     shape: [
-      [1, 0, 0],
+      [1, 1, 0],
       [1, 1, 1]
     ],
-    color: '#FFC145',
+    color: '#F4B68C',
     size: 3
   },
   {
-    id: 'L',
-    name: 'L-образная',
+    id: 'crouching-cat',
+    name: 'Crouching Cat',
     shape: [
-      [0, 0, 1],
-      [1, 1, 1]
+      [0, 1],
+      [0, 1],
+      [1, 1]
     ],
-    color: '#7AD53A',
+    color: '#D7AFF1',
+    size: 3
+  },
+  {
+    id: 'pouncing-cat',
+    name: 'Pouncing Cat',
+    shape: [
+      [1, 0],
+      [1, 0],
+      [1, 1]
+    ],
+    color: '#FF9F7C',
     size: 3
   }
 ]
-
 export default function SimpleTetrisPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const { family, member } = useAuth()
@@ -369,58 +406,132 @@ export default function SimpleTetrisPage() {
 
   // Отрисовка клетки
   const drawCell = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number, color: string) => {
-    const radius = 8
-    const padding = 1
-
     ctx.save()
-    
-    // Основная заливка
-    ctx.fillStyle = color
+
+    const padding = size * 0.1
+    const centerX = x + size / 2
+    const centerY = y + size / 2 + size * 0.05
+    const faceRadius = (size / 2) - padding
+    const earWidth = faceRadius * 0.85
+    const earHeight = faceRadius
+
+    const earOuterColor = adjustColor(color, -0.15)
+    const earInnerColor = adjustColor(color, 0.45)
+    const faceHighlight = adjustColor(color, 0.3)
+    const faceShadow = adjustColor(color, -0.25)
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.18)'
     ctx.beginPath()
-    roundRectPath(ctx, x + padding, y + padding, size - padding * 2, size - padding * 2, radius)
+    ctx.ellipse(centerX, y + size - padding * 0.6, faceRadius * 0.85, faceRadius * 0.35, 0, 0, Math.PI * 2)
     ctx.fill()
 
-    // Внутренний блик
-    const innerGradient = ctx.createRadialGradient(
-      x + size * 0.3, y + size * 0.3, 0,
-      x + size * 0.3, y + size * 0.3, size * 0.6
+    ctx.fillStyle = earOuterColor
+    ctx.beginPath()
+    ctx.moveTo(centerX - earWidth * 0.75, centerY - faceRadius * 0.95)
+    ctx.lineTo(centerX - earWidth, centerY - faceRadius - earHeight)
+    ctx.lineTo(centerX - earWidth * 0.25, centerY - faceRadius * 0.65)
+    ctx.closePath()
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.moveTo(centerX + earWidth * 0.75, centerY - faceRadius * 0.95)
+    ctx.lineTo(centerX + earWidth, centerY - faceRadius - earHeight)
+    ctx.lineTo(centerX + earWidth * 0.25, centerY - faceRadius * 0.65)
+    ctx.closePath()
+    ctx.fill()
+
+    ctx.fillStyle = earInnerColor
+    ctx.beginPath()
+    ctx.moveTo(centerX - earWidth * 0.65, centerY - faceRadius * 0.95)
+    ctx.lineTo(centerX - earWidth * 0.85, centerY - faceRadius - earHeight * 0.65)
+    ctx.lineTo(centerX - earWidth * 0.2, centerY - faceRadius * 0.62)
+    ctx.closePath()
+    ctx.fill()
+
+    ctx.beginPath()
+    ctx.moveTo(centerX + earWidth * 0.65, centerY - faceRadius * 0.95)
+    ctx.lineTo(centerX + earWidth * 0.85, centerY - faceRadius - earHeight * 0.65)
+    ctx.lineTo(centerX + earWidth * 0.2, centerY - faceRadius * 0.62)
+    ctx.closePath()
+    ctx.fill()
+
+    const faceGradient = ctx.createLinearGradient(centerX, centerY - faceRadius, centerX, centerY + faceRadius)
+    faceGradient.addColorStop(0, faceHighlight)
+    faceGradient.addColorStop(1, color)
+    ctx.fillStyle = faceGradient
+    ctx.beginPath()
+    ctx.arc(centerX, centerY, faceRadius, 0, Math.PI * 2)
+    ctx.fill()
+
+    const shadowGradient = ctx.createRadialGradient(
+      centerX,
+      centerY + faceRadius * 0.4,
+      faceRadius * 0.2,
+      centerX,
+      centerY + faceRadius * 0.4,
+      faceRadius
     )
-    innerGradient.addColorStop(0, 'rgba(255, 255, 255, 0.1)')
-    innerGradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
-    
-    ctx.fillStyle = innerGradient
+    shadowGradient.addColorStop(0, 'rgba(0, 0, 0, 0)')
+    shadowGradient.addColorStop(1, 'rgba(0, 0, 0, 0.08)')
+    ctx.fillStyle = shadowGradient
     ctx.beginPath()
-    roundRectPath(ctx, x + padding, y + padding, size - padding * 2, size - padding * 2, radius)
+    ctx.arc(centerX, centerY, faceRadius, 0, Math.PI * 2)
     ctx.fill()
 
-    // Тень
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.1)'
-    ctx.shadowBlur = 2
-    ctx.shadowOffsetX = 0
-    ctx.shadowOffsetY = 1
-    
-    ctx.strokeStyle = color + 'CC'
-    ctx.lineWidth = 1
+    const eyeOffsetX = faceRadius * 0.5
+    const eyeOffsetY = faceRadius * 0.15
+    const eyeRadius = faceRadius * 0.18
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.9)'
     ctx.beginPath()
-    roundRectPath(ctx, x + padding, y + padding, size - padding * 2, size - padding * 2, radius)
+    ctx.arc(centerX - eyeOffsetX, centerY - eyeOffsetY, eyeRadius, 0, Math.PI * 2)
+    ctx.arc(centerX + eyeOffsetX, centerY - eyeOffsetY, eyeRadius, 0, Math.PI * 2)
+    ctx.fill()
+
+    const sparkleRadius = eyeRadius * 0.45
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'
+    ctx.beginPath()
+    ctx.arc(centerX - eyeOffsetX + sparkleRadius * 0.5, centerY - eyeOffsetY - sparkleRadius * 0.2, sparkleRadius, 0, Math.PI * 2)
+    ctx.arc(centerX + eyeOffsetX + sparkleRadius * 0.5, centerY - eyeOffsetY - sparkleRadius * 0.2, sparkleRadius, 0, Math.PI * 2)
+    ctx.fill()
+
+    ctx.fillStyle = adjustColor(color, -0.3)
+    ctx.beginPath()
+    ctx.moveTo(centerX, centerY + faceRadius * 0.05)
+    ctx.lineTo(centerX - faceRadius * 0.12, centerY + faceRadius * 0.25)
+    ctx.lineTo(centerX + faceRadius * 0.12, centerY + faceRadius * 0.25)
+    ctx.closePath()
+    ctx.fill()
+
+    ctx.strokeStyle = faceShadow
+    ctx.lineWidth = size * 0.04
+    ctx.lineCap = 'round'
+    ctx.beginPath()
+    ctx.moveTo(centerX - faceRadius * 0.18, centerY + faceRadius * 0.3)
+    ctx.quadraticCurveTo(centerX, centerY + faceRadius * 0.45, centerX + faceRadius * 0.18, centerY + faceRadius * 0.3)
     ctx.stroke()
-    
+
+    ctx.strokeStyle = 'rgba(71, 85, 105, 0.6)'
+    ctx.lineWidth = size * 0.035
+    ctx.beginPath()
+    ctx.moveTo(centerX - faceRadius * 0.2, centerY + faceRadius * 0.05)
+    ctx.lineTo(centerX - faceRadius * 0.85, centerY + faceRadius * 0.02)
+    ctx.moveTo(centerX - faceRadius * 0.2, centerY + faceRadius * 0.2)
+    ctx.lineTo(centerX - faceRadius * 0.9, centerY + faceRadius * 0.25)
+    ctx.moveTo(centerX + faceRadius * 0.2, centerY + faceRadius * 0.05)
+    ctx.lineTo(centerX + faceRadius * 0.85, centerY + faceRadius * 0.02)
+    ctx.moveTo(centerX + faceRadius * 0.2, centerY + faceRadius * 0.2)
+    ctx.lineTo(centerX + faceRadius * 0.9, centerY + faceRadius * 0.25)
+    ctx.stroke()
+
+    ctx.fillStyle = 'rgba(255, 182, 193, 0.45)'
+    ctx.beginPath()
+    ctx.ellipse(centerX - faceRadius * 0.45, centerY + faceRadius * 0.08, faceRadius * 0.25, faceRadius * 0.13, 0, 0, Math.PI * 2)
+    ctx.ellipse(centerX + faceRadius * 0.45, centerY + faceRadius * 0.08, faceRadius * 0.25, faceRadius * 0.13, 0, 0, Math.PI * 2)
+    ctx.fill()
+
     ctx.restore()
   }
 
-  // Функция для рисования скругленного прямоугольника
-  const roundRectPath = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
-    const r = Math.max(0, Math.min(radius, width / 2, height / 2))
-    ctx.moveTo(x + r, y)
-    ctx.lineTo(x + width - r, y)
-    ctx.quadraticCurveTo(x + width, y, x + width, y + r)
-    ctx.lineTo(x + width, y + height - r)
-    ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height)
-    ctx.lineTo(x + r, y + height)
-    ctx.quadraticCurveTo(x, y + height, x, y + height - r)
-    ctx.lineTo(x, y + r)
-    ctx.quadraticCurveTo(x, y, x + r, y)
-  }
 
   // Размещение фигуры
   const placePiece = (piece: TetrisPiece, x: number, y: number): boolean => {
@@ -651,24 +762,41 @@ export default function SimpleTetrisPage() {
 
   // Отрисовка фигуры в слоте
   const renderPiece = (piece: TetrisPiece) => {
+    const catStyle = createCatStyle(piece.color)
+
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <div className="grid gap-0.5" style={{
-          gridTemplateColumns: `repeat(${piece.shape[0].length}, 1fr)`,
-          gridTemplateRows: `repeat(${piece.shape.length}, 1fr)`
-        }}>
+        <div
+          className="grid cat-piece-preview"
+          style={{
+            gridTemplateColumns: `repeat(${piece.shape[0].length}, ${PREVIEW_CELL_SIZE}px)`,
+            gridTemplateRows: `repeat(${piece.shape.length}, ${PREVIEW_CELL_SIZE}px)`
+          }}
+        >
           {piece.shape.map((row, y) =>
-            row.map((cell, x) => (
+            row.map((cell, x) =>
               cell ? (
+                <div key={`${y}-${x}`} className="cat-cell" style={catStyle}>
+                  <span className="cat-ear cat-ear-left" />
+                  <span className="cat-ear cat-ear-right" />
+                  <span className="cat-face">
+                    <span className="cat-eye cat-eye-left" />
+                    <span className="cat-eye cat-eye-right" />
+                    <span className="cat-nose" />
+                    <span className="cat-blush cat-blush-left" />
+                    <span className="cat-blush cat-blush-right" />
+                  </span>
+                  <span className="cat-whiskers cat-whiskers-left" />
+                  <span className="cat-whiskers cat-whiskers-right" />
+                </div>
+              ) : (
                 <div
                   key={`${y}-${x}`}
-                  className="w-3 h-3 rounded-sm"
-                  style={{ backgroundColor: piece.color }}
+                  className="cat-cell-placeholder"
+                  style={{ width: PREVIEW_CELL_SIZE, height: PREVIEW_CELL_SIZE }}
                 />
-              ) : (
-                <div key={`${y}-${x}`} className="w-3 h-3" />
               )
-            ))
+            )
           )}
         </div>
       </div>

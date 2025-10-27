@@ -14,6 +14,7 @@ import CategoryPreloader from '../components/CategoryPreloader'
 import TamagotchiPage from './TamagotchiPage'
 import TetrisPage from './TetrisPage'
 import GrowthChartCard, { WHO_HEIGHT_CURVES, WHO_WEIGHT_CURVES } from '../components/GrowthChartCard'
+import WeeklyStatsChart from '../components/WeeklyStatsChart'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService } from '../services/dataService'
 import type { Feeding, Diaper, Bath, Activity, Tip, SleepSession, FamilyMember } from '../services/dataService'
@@ -239,6 +240,8 @@ export default function Dashboard() {
   const [recordDetailModalOpen, setRecordDetailModalOpen] = useState(false)
   const [growthChartModalOpen, setGrowthChartModalOpen] = useState(false)
   const [growthChartType, setGrowthChartType] = useState<'height' | 'weight'>('height')
+  const [weeklyStatsChartOpen, setWeeklyStatsChartOpen] = useState(false)
+  const [weeklyStatsChartType, setWeeklyStatsChartType] = useState<'feedings' | 'diapers' | 'poo'>('feedings')
   const [selectedRecord, setSelectedRecord] = useState<{
     type: 'feeding' | 'diaper' | 'bath' | 'activity' | 'sleep'
     id: number
@@ -676,8 +679,8 @@ export default function Dashboard() {
   }
 
   const handleModalSuccess = async (result?: QuickActionResult) => {
-    // Перезагружаем данные после быстрого действия и обновляем историю при необходимости
-    await fetchData()
+    // Не перезагружаем данные - закрываем модальное окно без обновления
+    // Данные обновятся автоматически при следующем открытии или при pull-to-refresh
     setModalOpen(false)
   }
 
@@ -688,8 +691,8 @@ export default function Dashboard() {
   }
 
   const handleTamagotchiModalSuccess = async (result?: QuickActionResult) => {
-    // Перезагружаем данные после быстрого действия
-    await fetchData()
+    // Не перезагружаем все данные - TamagotchiPage обновит себя сам
+    // Просто закрываем модальное окно
     setTamagotchiModalOpen(false)
   }
 
@@ -849,6 +852,12 @@ export default function Dashboard() {
     if (!selectedRecord) return
     
     await handleDeleteRecord(selectedRecord.type, selectedRecord.id)
+    
+    // Локально удаляем запись из recentEvents без перезагрузки страницы
+    setRecentEvents(prevEvents => prevEvents.filter(event => 
+      event.id !== selectedRecord.id || event.type !== selectedRecord.type
+    ))
+    
     setRecordDetailModalOpen(false)
     setSelectedRecord(null)
   }
@@ -1230,29 +1239,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
-
-              {/* Статистика за день */}
-              <div className="">
-                <h2 className="text-lg font-semibold text-gray-900 mt-2 mb-2 text-center">Статистика за день</h2>
-                <div className="grid grid-cols-2 gap-0.5">
-                  <div className="text-center p-3 bg-blue-50 rounded-3xl">
-                    <div className="text-xs font-bold text-blue-500 mb-0.5">{getTodayStats().feedings}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Кормлений</div>
-                  </div>
-                  <div className="text-center p-3 bg-green-50 rounded-3xl">
-                    <div className="text-xs font-bold text-green-500 mb-0.5">{getTodayStats().diapers}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Подгузников</div>
-                  </div>
-                  <div className="text-center p-3 bg-purple-50 rounded-3xl">
-                    <div className="text-xs font-bold text-purple-500 mb-0.5">{getTodayStats().baths}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Купаний</div>
-                  </div>
-                  <div className="text-center p-3 bg-indigo-50 rounded-3xl">
-                    <div className="text-xs font-bold text-indigo-500 mb-0.5">{getTodayStats().sleep}</div>
-                    <div className="text-xs text-gray-600 mb-0.5">Сон</div>
-                  </div>
-                </div>
-              </div>
 
               {/* Профиль малыша */}
               <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
@@ -1664,11 +1650,112 @@ export default function Dashboard() {
                 {/* Таймлайн недавних событий */}
                 {recentEventsExpanded && (
                   <div className="mt-4" data-recent-events>
+                    {/* Кнопки графиков статистики */}
+                    <div className="flex items-center justify-center gap-3 mb-4">
+                      <button
+                        onClick={() => {
+                          setWeeklyStatsChartType('feedings')
+                          setWeeklyStatsChartOpen(true)
+                        }}
+                        className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-2xl">🍼</span>
+                          <span className="text-xs font-semibold">Кормление</span>
+                        </div>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setWeeklyStatsChartType('diapers')
+                          setWeeklyStatsChartOpen(true)
+                        }}
+                        className="flex-1 bg-green-50 hover:bg-green-100 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-2xl">🧷</span>
+                          <span className="text-xs font-semibold">Подгузник</span>
+                        </div>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          setWeeklyStatsChartType('poo')
+                          setWeeklyStatsChartOpen(true)
+                        }}
+                        className="flex-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
+                      >
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-2xl">💩</span>
+                          <span className="text-xs font-semibold">Покакал</span>
+                        </div>
+                      </button>
+                    </div>
+                    
                     <div className="text-center mb-3">
                       <h3 className="text-lg font-bold text-gray-900">
                         Недавние события
                       </h3>
                     </div>
+                    
+                    {/* Статистика за день */}
+                    {!recentEventsLoading && recentEvents.length > 0 && (
+                      <div className="mb-4 px-2">
+                        <div className="flex items-center justify-center gap-2 flex-wrap text-xs text-gray-600">
+                          {(() => {
+                            const today = new Date().toDateString()
+                            const todaysEvents = recentEvents.filter(event => {
+                              const eventDate = new Date(event.timestamp).toDateString()
+                              return eventDate === today
+                            })
+                            
+                            const feedingsCount = todaysEvents.filter(e => e.type === 'feeding').length
+                            const diapersCount = todaysEvents.filter(e => e.type === 'diaper').length
+                            const pooCount = todaysEvents.filter(e => e.type === 'diaper' && e.diaper_type === 'Покакал').length
+                            
+                            // Считаем общую продолжительность сна в минутах
+                            const sleepMinutes = todaysEvents
+                              .filter(e => e.type === 'sleep')
+                              .reduce((sum, e) => sum + (e.duration_minutes || 0), 0)
+                            
+                            // Форматируем сон в формат "6ч15м"
+                            let sleepDisplay = ''
+                            if (sleepMinutes > 0) {
+                              const hours = Math.floor(sleepMinutes / 60)
+                              const minutes = sleepMinutes % 60
+                              sleepDisplay = minutes > 0 
+                                ? `${hours}ч${minutes}м`
+                                : `${hours}ч`
+                            }
+                            
+                            return (
+                              <>
+                                {feedingsCount > 0 && (
+                                  <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-full font-medium">
+                                    🍼 {feedingsCount}
+                                  </span>
+                                )}
+                                {diapersCount > 0 && (
+                                  <span className="bg-amber-50 text-amber-600 px-2 py-1 rounded-full font-medium">
+                                    🧷 {diapersCount}
+                                  </span>
+                                )}
+                                {pooCount > 0 && (
+                                  <span className="bg-orange-50 text-orange-600 px-2 py-1 rounded-full font-medium">
+                                    💩 {pooCount}
+                                  </span>
+                                )}
+                                {sleepMinutes > 0 && (
+                                  <span className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full font-medium">
+                                    😴 {sleepDisplay}
+                                  </span>
+                                )}
+                              </>
+                            )
+                          })()}
+                        </div>
+                      </div>
+                    )}
                     
                     {recentEventsLoading ? (
                       <div className="flex items-center justify-center py-4">
@@ -1833,6 +1920,13 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Модальное окно графика статистики по неделям */}
+        {weeklyStatsChartOpen && (
+          <WeeklyStatsChart
+            type={weeklyStatsChartType}
+            onClose={() => setWeeklyStatsChartOpen(false)}
+          />
+        )}
 
         {process.env.NODE_ENV === 'development' && <DebugPanel />}
       </div>

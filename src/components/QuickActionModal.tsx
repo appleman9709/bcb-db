@@ -292,13 +292,15 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     try {
       const result = await dataService.addDiaper(timestamp, diaperTypeValue)
 
-
-      onSuccess?.({})
+      setLoading(false)
       onClose()
+      // Вызываем onSuccess после закрытия модального окна
+      setTimeout(() => {
+        onSuccess?.({})
+      }, 10)
     } catch (submitError) {
       console.error('Error adding diaper record:', submitError)
       setError('Не удалось сохранить запись, попробуйте еще раз позже')
-    } finally {
       setLoading(false)
     }
   }
@@ -323,13 +325,15 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     try {
       const result = await dataService.addBath(timestamp, bathMoodValue)
 
-
-      onSuccess?.({})
+      setLoading(false)
       onClose()
+      // Вызываем onSuccess после закрытия модального окна
+      setTimeout(() => {
+        onSuccess?.({})
+      }, 10)
     } catch (submitError) {
       console.error('Error adding bath record:', submitError)
       setError('Не удалось сохранить запись, попробуйте еще раз позже')
-    } finally {
       setLoading(false)
     }
   }
@@ -354,13 +358,15 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     try {
       const result = await dataService.addActivity(activityTypeValue, timestamp)
 
-
-      onSuccess?.({})
+      setLoading(false)
       onClose()
+      // Вызываем onSuccess после закрытия модального окна
+      setTimeout(() => {
+        onSuccess?.({})
+      }, 10)
     } catch (submitError) {
       console.error('Error adding activity record:', submitError)
       setError('Не удалось сохранить запись, попробуйте еще раз позже')
-    } finally {
       setLoading(false)
     }
   }
