@@ -54,7 +54,7 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 rounded-3xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
+          className="absolute top-4 right-4 z-10 rounded-3xl p-2 text-gray-400 transition-colors	duration-200 hover:bg-gray-100 hover:text-gray-600"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -62,7 +62,7 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
         </button>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6" style={{ maxHeight: 'calc(100vh - 2rem)' }}>
+        <div className="flex-1 overflow-y-auto p-5 sm:p-6" style={{ maxHeight: size === 'lg' ? 'calc(100vh - 1rem)' : 'calc(100vh - 2rem)' }}>
           {children}
         </div>
       </div>

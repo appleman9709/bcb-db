@@ -139,10 +139,10 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       if (actionType === 'activity') {
         setSelectedActivity('Прогулка')
       }
-      // Сброс дополнительных опций (кроме унций)
+      // Сбрасываем значения по умолчанию (чистый подгузник и т.д.)
       setDiaperType('Просто')
-      setBathMood('Спокойное')
-      // feedingOunces не сбрасываем - сохраняем предыдущее значение
+      setBathMood('Спокойное купание')
+      // feedingOunces не сбрасываем - сохраняем последнее значение
     }
   }, [isOpen, actionType])
 
@@ -193,7 +193,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
   const handleFeedingOuncesChange = (value: number) => {
     setFeedingOunces(value)
-    // Сохраняем значение в localStorage
+    // Сохраняем значение последнего кормления в localStorage
     localStorage.setItem('lastFeedingOunces', value.toString())
   }
 
@@ -206,7 +206,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
-      return 'Неверная дата'
+      return 'Некорректная дата'
     }
 
     return eventDate.toLocaleString('ru-RU', {
@@ -219,13 +219,13 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
   const handleSubmit = async () => {
     if (!selectedDateTime) {
-      setError('Выберите дату и время обязательно')
+      setError('Выберите дату и время события')
       return
     }
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
-      setError('Не удалось распознать выбранную дату')
+      setError('Не удалось распознать дату')
       return
     }
 
@@ -239,8 +239,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
       
       switch (actionType) {
         case 'feeding':
-          // Всегда передаем значение унций, даже если оно 0
-          // dataService.addFeeding теперь обрабатывает случай, когда унции не указаны
           result = await dataService.addFeeding(timestamp, feedingOunces)
           break
         case 'diaper':
@@ -252,35 +250,30 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
         case 'activity':
           result = await dataService.addActivity(selectedActivity, timestamp)
           break
-        default:
-          break
       }
 
-
-      // Сохраняем последнее значение унций для кормления
-      if (actionType === 'feeding' && feedingOunces > 0) {
-        localStorage.setItem('lastFeedingOunces', feedingOunces.toString())
-      }
-
-      onSuccess?.({})
+      setLoading(false)
       onClose()
+
+      setTimeout(() => {
+        onSuccess?.(result)
+      }, 10)
     } catch (submitError) {
       console.error('Error adding record:', submitError)
-      setError('Не удалось сохранить запись, попробуйте еще раз позже')
-    } finally {
+      setError('Не удалось сохранить запись, попробуйте позже')
       setLoading(false)
     }
   }
 
   const handleDiaperSubmit = async (diaperTypeValue: string) => {
     if (!selectedDateTime) {
-      setError('Выберите дату и время обязательно')
+      setError('Выберите дату и время события')
       return
     }
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
-      setError('Не удалось распознать выбранную дату')
+      setError('Не удалось распознать дату')
       return
     }
 
@@ -294,26 +287,25 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
       setLoading(false)
       onClose()
-      // Вызываем onSuccess после закрытия модального окна
       setTimeout(() => {
-        onSuccess?.({})
+        onSuccess?.(result)
       }, 10)
     } catch (submitError) {
       console.error('Error adding diaper record:', submitError)
-      setError('Не удалось сохранить запись, попробуйте еще раз позже')
+      setError('Не удалось сохранить запись, попробуйте позже')
       setLoading(false)
     }
   }
 
   const handleBathSubmit = async (bathMoodValue: string) => {
     if (!selectedDateTime) {
-      setError('Выберите дату и время обязательно')
+      setError('Выберите дату и время события')
       return
     }
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
-      setError('Не удалось распознать выбранную дату')
+      setError('Не удалось распознать дату')
       return
     }
 
@@ -327,26 +319,25 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
       setLoading(false)
       onClose()
-      // Вызываем onSuccess после закрытия модального окна
       setTimeout(() => {
         onSuccess?.({})
       }, 10)
     } catch (submitError) {
       console.error('Error adding bath record:', submitError)
-      setError('Не удалось сохранить запись, попробуйте еще раз позже')
+      setError('Не удалось сохранить запись, попробуйте позже')
       setLoading(false)
     }
   }
 
   const handleActivitySubmit = async (activityTypeValue: string) => {
     if (!selectedDateTime) {
-      setError('Выберите дату и время обязательно')
+      setError('Выберите дату и время события')
       return
     }
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
-      setError('Не удалось распознать выбранную дату')
+      setError('Не удалось распознать дату')
       return
     }
 
@@ -360,21 +351,20 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
       setLoading(false)
       onClose()
-      // Вызываем onSuccess после закрытия модального окна
       setTimeout(() => {
         onSuccess?.({})
       }, 10)
     } catch (submitError) {
       console.error('Error adding activity record:', submitError)
-      setError('Не удалось сохранить запись, попробуйте еще раз позже')
+      setError('Не удалось сохранить запись, попробуйте позже')
       setLoading(false)
     }
   }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <div className={`quick-action-modal space-y-4 ${actionType === 'activity' ? 'sm:space-y-4' : 'sm:space-y-6'}`}>
-        {/* Изображение только для кормления, подгузника и купания */}
+      <div className={`quick-action-modal space-y-3 ${actionType === 'activity' ? 'sm:space-y-3' : 'sm:space-y-4'}`}>
+        {/* Иллюстрация внутри модального окна */}
         {actionType !== 'activity' && (
           <img 
             src={
@@ -383,19 +373,27 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
               '/icons/eat.png'
             } 
             alt={config.title} 
-            className="w-32 h-32 object-contain mx-auto" 
+            className="w-24 h-24 object-contain mx-auto" 
           />
         )}
 
-        <div className="space-y-3 sm:space-y-4">
+        <div className="space-y-2 sm:space-y-3">
+          <div className="text-center space-y-0.5">
+            <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+              {config.title}
+            </h2>
+            {actionType !== 'feeding' && (
+              <p className="text-xs text-gray-500 sm:text-sm">
+                {config.description}
+              </p>
+            )}
+          </div>
 
-
-
-          {/* Ползунок для кормления */}
+          {/* Выбор времени через слайдер */}
           {actionType === 'feeding' && (
             <div className="space-y-2">
               <span className="text-lg font-semibold text-blue-600 text-center block">
-                {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
+                {feedingOunces > 0 ? `${feedingOunces} мл` : 'Не указано'}
               </span>
               <div className="slider-wrapper">
                 <div className="slider-track-container">
@@ -419,9 +417,9 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             </div>
           )}
 
-          {/* Поля даты и времени - адаптивный макет */}
+          {/* Раздел для даты и времени */}
           <div className="space-y-3">
-            {/* Поле даты - максимально компактное */}
+            {/* Поле даты - компактное оформление */}
             <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1">
               <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
               <input
@@ -440,7 +438,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
               </svg>
             </div>
             
-            {/* Поле времени - компактное */}
+            {/* Поле времени - акцентное оформление */}
             <div className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-2 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
               <label className="text-[9px] font-medium uppercase tracking-wide text-blue-600 block mb-0.5">Время</label>
               <div className="flex items-center gap-1.5">
@@ -463,7 +461,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             </div>
           </div>
 
-          {/* Компактные кнопки быстрого времени */}
+          {/* Быстрые кнопки временных смещений */}
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {QUICK_OFFSETS.map(option => {
               const active = isQuickOptionActive(option.minutes)
@@ -484,7 +482,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             })}
           </div>
 
-          {/* Компактный предварительный просмотр */}
           <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
             <span className="font-medium text-gray-900">{formattedPreview}</span>
           </div>
@@ -492,7 +489,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
         </div>
 
-        {/* Кнопки выбора типа смены подгузника */}
+        {/* Кнопки выбора типа подгузника */}
         {actionType === 'diaper' && (
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -601,7 +598,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     await handleActivitySubmit(activity.id)
                   }}
                   disabled={loading}
-                  className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                  className={`p-4 rounded-3xl border-2 transition-all	duration-200 flex flex-col items-center space-y-2 ${
                     loading
                       ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                       : `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg hover:shadow-xl hover:scale-105`
@@ -646,3 +643,4 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     </Modal>
   )
 }
+

@@ -181,12 +181,6 @@ body {
     box-shadow: none;
 }
 
-/* Активный слот (выбранная фигура) */
-[id^="slot"].active {
-    border: 2px solid rgba(31, 41, 55, 0.2);
-    box-shadow: 0 2px 8px rgba(31, 41, 55, 0.15), 0 0 0 1px rgba(31, 41, 55, 0.1);
-}
-
 /* Пустой слот (фигура уже размещена) */
 [id^="slot"].empty {
     opacity: 0.5;

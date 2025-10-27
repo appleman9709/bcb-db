@@ -675,7 +675,7 @@ class DataService {
         timestamp: eventDate.toISOString(),
         author_role: authorRole,
         author_name: authorName,
-        diaper_type: diaperType || '����'
+        diaper_type: diaperType || 'Просто'
       })
       .select()
       .single()
