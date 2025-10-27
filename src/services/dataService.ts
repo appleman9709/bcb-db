@@ -1228,6 +1228,208 @@ class DataService {
     }
   }
 
+  // Optimized method to fetch dashboard data in one call
+  async getDashboardData(): Promise<{
+    lastFeeding: Feeding | null
+    lastDiaper: Diaper | null
+    lastBath: Bath | null
+    settings: Settings | null
+    todayStats: {
+      feedings: number
+      diapers: number
+      baths: number
+      activities: number
+    }
+    todaySleepMinutes: number
+  }> {
+    const familyId = this.requireFamilyId()
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    // Fetch all data in parallel
+    const [
+      { data: lastFeeding, error: feedingError },
+      { data: lastDiaper, error: diaperError },
+      { data: lastBath, error: bathError },
+      { data: settings, error: settingsError },
+      { data: todayFeedings, error: feedingsError },
+      { data: todayDiapers, error: diapersError },
+      { data: todayBaths, error: bathsError },
+      { data: todayActivities, error: activitiesError },
+      { data: todaySleepSessions, error: sleepError }
+    ] = await Promise.all([
+      supabase
+        .from('feedings')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('diapers')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('baths')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('settings')
+        .select('*')
+        .eq('family_id', familyId)
+        .single(),
+      supabase
+        .from('feedings')
+        .select('id')
+        .eq('family_id', familyId)
+        .gte('timestamp', today.toISOString())
+        .lt('timestamp', tomorrow.toISOString()),
+      supabase
+        .from('diapers')
+        .select('id')
+        .eq('family_id', familyId)
+        .gte('timestamp', today.toISOString())
+        .lt('timestamp', tomorrow.toISOString()),
+      supabase
+        .from('baths')
+        .select('id')
+        .eq('family_id', familyId)
+        .gte('timestamp', today.toISOString())
+        .lt('timestamp', tomorrow.toISOString()),
+      supabase
+        .from('activities')
+        .select('id')
+        .eq('family_id', familyId)
+        .gte('timestamp', today.toISOString())
+        .lt('timestamp', tomorrow.toISOString()),
+      supabase
+        .from('sleep_sessions')
+        .select('duration_minutes')
+        .eq('family_id', familyId)
+        .gte('start_time', today.toISOString())
+        .lt('start_time', tomorrow.toISOString())
+        .not('duration_minutes', 'is', null)
+    ])
+
+    const todayStats = {
+      feedings: todayFeedings?.length || 0,
+      diapers: todayDiapers?.length || 0,
+      baths: todayBaths?.length || 0,
+      activities: todayActivities?.length || 0
+    }
+
+    const todaySleepMinutes = (todaySleepSessions || []).reduce(
+      (total, session) => total + (session.duration_minutes || 0),
+      0
+    )
+
+    return {
+      lastFeeding: feedingError ? null : lastFeeding,
+      lastDiaper: diaperError ? null : lastDiaper,
+      lastBath: bathError ? null : lastBath,
+      settings: settingsError ? null : settings,
+      todayStats,
+      todaySleepMinutes
+    }
+  }
+
+  // Optimized method to fetch recent events in one call
+  async getRecentEvents(limit: number = 10): Promise<{
+    feedings: Feeding[]
+    diapers: Diaper[]
+    baths: Bath[]
+    activities: Activity[]
+    sleepSessions: SleepSession[]
+  }> {
+    const familyId = this.requireFamilyId()
+
+    const [
+      { data: feedings, error: feedingsError },
+      { data: diapers, error: diapersError },
+      { data: baths, error: bathsError },
+      { data: activities, error: activitiesError },
+      { data: sleepSessions, error: sleepError }
+    ] = await Promise.all([
+      supabase
+        .from('feedings')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(limit),
+      supabase
+        .from('diapers')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(limit),
+      supabase
+        .from('baths')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(limit),
+      supabase
+        .from('activities')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('timestamp', { ascending: false })
+        .limit(limit),
+      supabase
+        .from('sleep_sessions')
+        .select('*')
+        .eq('family_id', familyId)
+        .order('start_time', { ascending: false })
+        .limit(limit)
+    ])
+
+    return {
+      feedings: feedings || [],
+      diapers: diapers || [],
+      baths: baths || [],
+      activities: activities || [],
+      sleepSessions: sleepSessions || []
+    }
+  }
+
+  // Optimized method to fetch data for weekly stats in one call
+  async getWeeklyStatsData(startDate: Date, endDate: Date): Promise<{
+    feedings: Feeding[]
+    diapers: Diaper[]
+  }> {
+    const familyId = this.requireFamilyId()
+
+    const [{ data: feedings, error: feedingsError }, { data: diapers, error: diapersError }] = await Promise.all([
+      supabase
+        .from('feedings')
+        .select('*')
+        .eq('family_id', familyId)
+        .gte('timestamp', startDate.toISOString())
+        .lt('timestamp', endDate.toISOString())
+        .order('timestamp', { ascending: false }),
+      supabase
+        .from('diapers')
+        .select('*')
+        .eq('family_id', familyId)
+        .gte('timestamp', startDate.toISOString())
+        .lt('timestamp', endDate.toISOString())
+        .order('timestamp', { ascending: false })
+    ])
+
+    return {
+      feedings: feedings || [],
+      diapers: diapers || []
+    }
+  }
+
   async getSleepSessionsWithinDays(days: number = 7): Promise<SleepSession[]> {
     const familyId = this.requireFamilyId()
 

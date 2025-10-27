@@ -89,30 +89,76 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
   const fetchDailyData = async () => {
     try {
       setLoading(true)
+      
+      // Calculate date range for the last 14 days
       const now = new Date()
-      const days: DailyData[] = []
+      const startDate = new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000)
+      startDate.setHours(0, 0, 0, 0)
+      const endDate = new Date(now)
+      endDate.setHours(23, 59, 59, 999)
 
+      // Fetch all data for the date range in one optimized call
+      const { feedings, diapers } = await dataService.getWeeklyStatsData(startDate, endDate)
+
+      // Group data by day
+      const daysMap = new Map<string, { feedings: number; diapers: number; poo: number }>()
+      
+      // Initialize days map
       for (let i = 13; i >= 0; i--) {
         const dayStart = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
         dayStart.setHours(0, 0, 0, 0)
+        const dayKey = dayStart.toDateString()
+        
+        daysMap.set(dayKey, { feedings: 0, diapers: 0, poo: 0 })
+      }
 
-        const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1)
+      // Count feedings by day
+      feedings.forEach(feeding => {
+        const feedingDate = new Date(feeding.timestamp)
+        feedingDate.setHours(0, 0, 0, 0)
+        const dayKey = feedingDate.toDateString()
+        
+        const dayData = daysMap.get(dayKey)
+        if (dayData) {
+          dayData.feedings++
+        }
+      })
 
+      // Count diapers and poo by day
+      diapers.forEach(diaper => {
+        const diaperDate = new Date(diaper.timestamp)
+        diaperDate.setHours(0, 0, 0, 0)
+        const dayKey = diaperDate.toDateString()
+        
+        const dayData = daysMap.get(dayKey)
+        if (dayData) {
+          dayData.diapers++
+          if (diaper.diaper_type === 'Покакал') {
+            dayData.poo++
+          }
+        }
+      })
+
+      // Convert map to array for display
+      const days: DailyData[] = []
+      for (let i = 13; i >= 0; i--) {
+        const dayStart = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
+        dayStart.setHours(0, 0, 0, 0)
+        const dayKey = dayStart.toDateString()
+        
         const today = new Date()
         today.setHours(0, 0, 0, 0)
         const dayLabel = i === 0
           ? 'Сегодня'
           : dayStart.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' })
-
-        const feedings = await dataService.getFeedingsForDateRange(dayStart, dayEnd)
-        const diapers = await dataService.getDiapersForDateRange(dayStart, dayEnd)
-        const poo = diapers.filter(d => d.diaper_type === 'Покакал').length
-
+        
+        const data = daysMap.get(dayKey) || { feedings: 0, diapers: 0, poo: 0 }
+        
         days.push({
           day: dayLabel,
-          feedings: feedings.length,
-          diapers: diapers.length,
-          poo,
+          feedings: data.feedings,
+          diapers: data.diapers,
+          poo: data.poo,
           date: new Date(dayStart)
         })
       }
@@ -302,7 +348,6 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
               </div>
               <div className="flex-1">
                 <h2 className="text-base font-semibold leading-tight sm:text-lg">{getTitle()}</h2>
-                <p className="mt-0.5 text-xs text-white/80 sm:text-sm">Актуальные записи за 14 дней</p>
               </div>
             </div>
           </header>

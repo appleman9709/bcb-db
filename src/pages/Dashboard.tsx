@@ -417,33 +417,13 @@ export default function Dashboard() {
 
     try {
       setLoading(true)
-      const [lastFeeding, lastDiaper, lastBath, settingsFromDb, todayStatsData] = await Promise.all([
-        dataService.getLastFeeding(),
-        dataService.getLastDiaper(),
-        dataService.getLastBath(),
-        dataService.getSettings(),
-        dataService.getTodayStats()
-      ])
-
-      const babyAgeMonths = settingsFromDb?.baby_age_months || 0
+      
+      // Use optimized method to fetch all dashboard data in parallel
+      const dashboardData = await dataService.getDashboardData()
+      
+      const babyAgeMonths = dashboardData.settings?.baby_age_months || 0
       const dailyTip = await dataService.getRandomTip(babyAgeMonths)
 
-      // Получаем данные о сне за сегодня
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      
-      const sleepData = await dataService.getSleepSessions(50)
-      const todaySleep = sleepData.filter(item => {
-        const startDate = new Date(item.start_time)
-        return startDate >= today && startDate < tomorrow
-      })
-      
-      const totalSleepMinutes = todaySleep.reduce((total, item) => {
-        return total + (item.duration_minutes || 0)
-      }, 0)
-      
       const formatSleepDuration = (minutes: number): string => {
         if (minutes === 0) return '0м'
         const hours = Math.floor(minutes / 60)
@@ -455,29 +435,30 @@ export default function Dashboard() {
       }
 
       setData({
-        lastFeeding,
-        lastDiaper,
-        lastBath,
+        lastFeeding: dashboardData.lastFeeding,
+        lastDiaper: dashboardData.lastDiaper,
+        lastBath: dashboardData.lastBath,
         dailyTip
       })
 
       // Обновляем статистику за день
       setTodayStats({
-        feedings: todayStatsData.feedings,
-        diapers: todayStatsData.diapers,
-        baths: todayStatsData.baths,
-        activities: todayStatsData.activities,
-        sleep: formatSleepDuration(totalSleepMinutes)
+        feedings: dashboardData.todayStats.feedings,
+        diapers: dashboardData.todayStats.diapers,
+        baths: dashboardData.todayStats.baths,
+        activities: dashboardData.todayStats.activities,
+        sleep: formatSleepDuration(dashboardData.todaySleepMinutes)
       })
 
-      if (settingsFromDb) {
+      if (dashboardData.settings) {
+        const settings = dashboardData.settings
         setSettings(prev => ({
           ...prev,
-          birthDate: settingsFromDb.baby_birth_date || settingsFromDb.birth_date || prev.birthDate,
-          feedingInterval: settingsFromDb.feed_interval ?? prev.feedingInterval,
-          diaperInterval: settingsFromDb.diaper_interval ?? prev.diaperInterval,
-          bathInterval: settingsFromDb.bath_reminder_period ?? prev.bathInterval,
-          wakeOnActivityEnabled: settingsFromDb.wake_on_activity_enabled ?? prev.wakeOnActivityEnabled
+          birthDate: settings.baby_birth_date || settings.birth_date || prev.birthDate,
+          feedingInterval: settings.feed_interval ?? prev.feedingInterval,
+          diaperInterval: settings.diaper_interval ?? prev.diaperInterval,
+          bathInterval: settings.bath_reminder_period ?? prev.bathInterval,
+          wakeOnActivityEnabled: settings.wake_on_activity_enabled ?? prev.wakeOnActivityEnabled
         }))
       }
     } catch (error) {
@@ -679,9 +660,9 @@ export default function Dashboard() {
   }
 
   const handleModalSuccess = async (result?: QuickActionResult) => {
-    // Не перезагружаем данные - закрываем модальное окно без обновления
-    // Данные обновятся автоматически при следующем открытии или при pull-to-refresh
+    // Обновляем данные после записи активности
     setModalOpen(false)
+    fetchData()
   }
 
   // Tamagotchi modal handlers
@@ -691,9 +672,9 @@ export default function Dashboard() {
   }
 
   const handleTamagotchiModalSuccess = async (result?: QuickActionResult) => {
-    // Не перезагружаем все данные - TamagotchiPage обновит себя сам
-    // Просто закрываем модальное окно
+    // Обновляем данные после записи активности из Tamagotchi
     setTamagotchiModalOpen(false)
+    fetchData()
   }
 
   // Функция для загрузки недавних событий
@@ -704,13 +685,9 @@ export default function Dashboard() {
 
     try {
       setRecentEventsLoading(true)
-      const [feedings, diapers, baths, activities, sleepSessions] = await Promise.all([
-        dataService.getFeedings(10),
-        dataService.getDiapers(10),
-        dataService.getBaths(10),
-        dataService.getActivities(10),
-        dataService.getSleepSessions(10)
-      ])
+      
+      // Use optimized method to fetch all recent events in parallel
+      const { feedings, diapers, baths, activities, sleepSessions } = await dataService.getRecentEvents(10)
 
       // Фильтруем активности: оставляем только реальные активности малыша
       const realActivities = activities.filter(activity => {
@@ -1657,7 +1634,7 @@ export default function Dashboard() {
                           setWeeklyStatsChartType('feedings')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
+                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-2xl">🍼</span>
@@ -1670,7 +1647,7 @@ export default function Dashboard() {
                           setWeeklyStatsChartType('diapers')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex-1 bg-green-50 hover:bg-green-100 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
+                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-green-50 hover:bg-green-100 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-2xl">🧷</span>
@@ -1683,7 +1660,7 @@ export default function Dashboard() {
                           setWeeklyStatsChartType('poo')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
+                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-2xl">💩</span>
