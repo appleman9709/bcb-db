@@ -1,12 +1,7 @@
 ﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import QuickAction from '../components/QuickAction'
 import QuickActionModal from '../components/QuickActionModal'
-import Card from '../components/Card'
-import Button from '../components/Button'
 import LoadingScreen from '../components/LoadingScreen'
-import DebugPanel from '../components/DebugPanel'
 import BabyIllustration from '../components/BabyIllustration'
-import ActivityCard from '../components/ActivityCard'
 import BottomNavigation from '../components/BottomNavigation'
 import BackgroundElements from '../components/BackgroundElements'
 import CategoryPreloader from '../components/CategoryPreloader'
@@ -18,7 +13,6 @@ import { useAuth } from '../contexts/AuthContext'
 import { dataService } from '../services/dataService'
 import type { Feeding, Diaper, Bath, Activity, Tip, SleepSession, FamilyMember } from '../services/dataService'
 import RecordDetailModal from '../components/RecordDetailModal'
-import EventGroup from '../components/EventGroup'
 import DutyScheduleModal from '../components/DutyScheduleModal'
 import { calculateAgeInMonths, formatDuration, formatTime, getTypeInfo } from '../utils/dashboardHelpers'
 import type { SettingsState } from '../types/dashboard'
@@ -1486,8 +1480,6 @@ export default function Dashboard() {
             onClose={() => setWeeklyStatsChartOpen(false)}
           />
         )}
-
-        {process.env.NODE_ENV === 'development' && <DebugPanel />}
       </div>
 
   )

@@ -1,4 +1,4 @@
-
+import React from 'react'
 import { useImagePreloadContext } from '../contexts/ImagePreloadContext'
 
 const features = [

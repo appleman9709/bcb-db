@@ -2,7 +2,6 @@
 import Modal from './Modal'
 import Button from './Button'
 import { dataService } from '../services/dataService'
-import { CompactButton, CompactField, QuickOptionButton, CompactSlider } from './ModalUtils'
 
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
 

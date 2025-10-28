@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import type { FamilyMember } from '../services/dataService'
 import Modal from './Modal'
 import Button from './Button'
