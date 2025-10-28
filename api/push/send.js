@@ -23,12 +23,22 @@
 
 const webpush = require('web-push')
 
-// Инициализация VAPID
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || 'mailto:noreply@babycare.app',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-)
+// Проверка VAPID ключей
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:noreply@babycare.app'
+
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  // Инициализация VAPID
+  webpush.setVapidDetails(
+    VAPID_SUBJECT,
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  )
+  console.log('VAPID keys configured successfully')
+} else {
+  console.error('VAPID keys are missing!')
+}
 
 module.exports = async (req, res) => {
   // Разрешаем только POST запросы
@@ -36,15 +46,32 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  // Проверка наличия VAPID ключей
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+    console.error('VAPID keys not configured')
+    return res.status(500).json({ 
+      error: 'Server configuration error',
+      message: 'VAPID keys not configured. Please check environment variables.'
+    })
+  }
+
   try {
     const { subscription, title, body, icon, tag, data } = req.body
 
+    console.log('Received push request:', { 
+      hasSubscription: !!subscription, 
+      title, 
+      body 
+    })
+
     // Валидация обязательных полей
     if (!subscription || !subscription.endpoint || !subscription.keys) {
+      console.error('Invalid subscription data:', subscription)
       return res.status(400).json({ error: 'Invalid subscription data' })
     }
 
     if (!title || !body) {
+      console.error('Missing title or body')
       return res.status(400).json({ error: 'Title and body are required' })
     }
 
@@ -57,6 +84,8 @@ module.exports = async (req, res) => {
       data: data || {},
       timestamp: Date.now()
     })
+
+    console.log('Sending notification to:', subscription.endpoint)
 
     // Отправка уведомления
     await webpush.sendNotification(
@@ -102,7 +131,8 @@ module.exports = async (req, res) => {
 
     return res.status(500).json({ 
       error: 'Failed to send notification',
-      message: error.message
+      message: error.message,
+      details: error.toString()
     })
   }
 }

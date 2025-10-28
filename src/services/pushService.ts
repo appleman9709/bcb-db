@@ -253,8 +253,10 @@ class PushService {
 
     for (const subscription of subscriptions) {
       try {
-        // API endpoint URL (работает с относительным путем для Vercel)
-        const apiUrl = '/api/push/send'
+        // API endpoint URL
+        const apiUrl = import.meta.env.PROD 
+          ? 'https://bcb-db.vercel.app/api/push/send'
+          : '/api/push/send'
         
         const response = await fetch(apiUrl, {
           method: 'POST',
