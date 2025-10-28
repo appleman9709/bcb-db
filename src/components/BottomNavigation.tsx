@@ -21,6 +21,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
               className="w-8 h-8"
             />
           </div>
+          <span className="liquid-glass-tab-label">Никола</span>
         </button>
 
 
@@ -36,6 +37,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
               className="w-8 h-8"
             />
           </div>
+          <span className="liquid-glass-tab-label">Тамагочи</span>
         </button>
 
         {/* Тетрис */}
@@ -50,6 +52,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
               className="w-8 h-8"
             />
           </div>
+          <span className="liquid-glass-tab-label">Тетрис</span>
         </button>
 
         {/* Настройки */}
@@ -64,6 +67,7 @@ export default function BottomNavigation({ activeTab, onTabChange }: BottomNavig
               className="w-8 h-8"
             />
           </div>
+          <span className="liquid-glass-tab-label">Настройки</span>
         </button>
       </div>
     </div>

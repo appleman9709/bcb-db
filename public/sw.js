@@ -7,13 +7,7 @@ const CACHE_NAME = 'babycare-dashboard-v1';
 
 // Установка service worker
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
+  console.log('Service Worker: Installing');
   self.skipWaiting();
 });
 
@@ -32,6 +26,7 @@ self.addEventListener('activate', (event) => {
     })
   );
   self.clients.claim();
+  console.log('Service Worker: Activated');
 });
 
 // Перехват запросов
@@ -47,6 +42,100 @@ self.addEventListener('fetch', (event) => {
       }
     )
   );
+});
+
+// Push notification listener
+self.addEventListener('push', (event) => {
+  console.log('Service Worker: Push notification received', event);
+  
+  let notificationData = {
+    title: 'BabyCare Dashboard',
+    body: 'У вас новое уведомление',
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-96x96.png',
+    tag: 'babycare-notification',
+    requireInteraction: false,
+    data: {}
+  };
+
+  try {
+    if (event.data) {
+      const data = event.data.json();
+      notificationData = {
+        ...notificationData,
+        title: data.title || notificationData.title,
+        body: data.body || notificationData.body,
+        icon: data.icon || notificationData.icon,
+        data: data.data || {}
+      };
+    }
+  } catch (error) {
+    console.error('Error parsing push notification data:', error);
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, {
+      body: notificationData.body,
+      icon: notificationData.icon,
+      badge: notificationData.badge,
+      tag: notificationData.tag,
+      requireInteraction: notificationData.requireInteraction,
+      data: notificationData.data,
+      vibrate: [200, 100, 200],
+      actions: [
+        {
+          action: 'open',
+          title: 'Открыть'
+        },
+        {
+          action: 'close',
+          title: 'Закрыть'
+        }
+      ]
+    })
+  );
+});
+
+// Notification click listener
+self.addEventListener('notificationclick', (event) => {
+  console.log('Service Worker: Notification clicked', event);
+  
+  event.notification.close();
+
+  if (event.action === 'open') {
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        // Check if there's already a window/tab open with the target URL
+        const urlToOpen = self.location.origin + '/';
+        
+        for (let i = 0; i < clients.length; i++) {
+          const client = clients[i];
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        
+        // If not found, open a new window/tab
+        if (self.clients.openWindow) {
+          return self.clients.openWindow(urlToOpen);
+        }
+      })
+    );
+  } else if (event.action === 'close') {
+    // Just close the notification, do nothing
+    return;
+  } else {
+    // Default behavior - open the app
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        if (clients.length > 0) {
+          return clients[0].focus();
+        } else if (self.clients.openWindow) {
+          return self.clients.openWindow(self.location.origin + '/');
+        }
+      })
+    );
+  }
 });
 
 // Background Sync для надежности

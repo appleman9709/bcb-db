@@ -597,7 +597,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     await handleActivitySubmit(activity.id)
                   }}
                   disabled={loading}
-                  className={`p-4 rounded-3xl border-2 transition-all	duration-200 flex flex-col items-center space-y-2 ${
+                  className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                     loading
                       ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                       : `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg hover:shadow-xl hover:scale-105`

@@ -30,3 +30,7 @@ Thumbs.db
 
 # Embedded repositories
 openai-gpt-image-mcp/
+
+# VAPID private key - NEVER commit this!
+.vapid_private_key.txt
+**/vapid-keys*.txt

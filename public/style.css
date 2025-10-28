@@ -191,7 +191,6 @@ body {
 /* Эффекты при наведении */
 [id^="slot"]:hover:not(.empty) {
     transform: scale(1.02);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 [id^="slot"]:active:not(.empty) {

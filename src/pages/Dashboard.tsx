@@ -827,8 +827,8 @@ export default function Dashboard() {
         return
       }
 
-      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе, тамагочи и когда открыт таймлайн
-      if (activeTab === 'settings' || activeTab === 'tetris' || activeTab === 'tamagotchi' || recentEventsExpanded) {
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе, тамагочи, когда открыт таймлайн или когда открыто любое модальное окно
+      if (activeTab === 'settings' || activeTab === 'tetris' || activeTab === 'tamagotchi' || recentEventsExpanded || modalOpen || tamagotchiModalOpen || recordDetailModalOpen || dutyModalOpen || growthChartModalOpen || weeklyStatsChartOpen) {
         resetPullState()
         return
       }
@@ -842,8 +842,8 @@ export default function Dashboard() {
         return
       }
 
-      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе, тамагочи и когда открыт таймлайн
-      if (activeTab === 'settings' || activeTab === 'tetris' || activeTab === 'tamagotchi' || recentEventsExpanded) {
+      // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе, тамагочи, когда открыт таймлайн или когда открыто любое модальное окно
+      if (activeTab === 'settings' || activeTab === 'tetris' || activeTab === 'tamagotchi' || recentEventsExpanded || modalOpen || tamagotchiModalOpen || recordDetailModalOpen || dutyModalOpen || growthChartModalOpen || weeklyStatsChartOpen) {
         resetPullState()
         return
       }
@@ -902,7 +902,7 @@ export default function Dashboard() {
       window.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('touchcancel', handleTouchCancel)
     }
-  }, [handleRefresh, updatePullDistance, activeSection, activeTab, recentEventsExpanded])
+  }, [handleRefresh, updatePullDistance, activeSection, activeTab, recentEventsExpanded, modalOpen, tamagotchiModalOpen, recordDetailModalOpen, dutyModalOpen, growthChartModalOpen, weeklyStatsChartOpen])
 
 
 
@@ -997,7 +997,12 @@ export default function Dashboard() {
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content'} ${activeTab === 'settings' ? 'overflow-y-auto overflow-x-hidden' : 'overflow-y-auto overflow-x-hidden'}`}>
+        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content'} ${
+          // Оставляем прокрутку только для settings или когда открыты недавние события на home
+          activeTab === 'settings' ? 'overflow-y-auto overflow-x-hidden' : 
+          (activeTab === 'home' && recentEventsExpanded) ? 'overflow-y-auto overflow-x-hidden' : 
+          'overflow-hidden'
+        }`}>
           {activeTab === 'tamagotchi' ? (
             <TamagotchiPage 
               onModalOpen={handleTamagotchiModalOpen}

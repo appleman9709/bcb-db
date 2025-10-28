@@ -2,6 +2,7 @@
 import { ThemeProvider } from './contexts/ThemeContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ImagePreloadProvider } from './contexts/ImagePreloadContext'
+import { NotificationProvider } from './contexts/NotificationContext'
 import Dashboard from './pages/Dashboard'
 import AuthPage from './pages/AuthPage'
 import LoadingScreen from './components/LoadingScreen'
@@ -26,7 +27,9 @@ export default function App() {
     <ThemeProvider>
       <ImagePreloadProvider>
         <AuthProvider>
-          <AppContent />
+          <NotificationProvider>
+            <AppContent />
+          </NotificationProvider>
         </AuthProvider>
       </ImagePreloadProvider>
     </ThemeProvider>

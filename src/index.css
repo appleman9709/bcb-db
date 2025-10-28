@@ -2585,16 +2585,18 @@ canvas {
   .liquid-glass-tab-button {
     position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 80px;
-    height: 80px;
+    height: 100px;
     border: none;
     border-radius: 0;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: transparent;
     overflow: visible;
+    gap: 6px;
   }
 
   .liquid-glass-tab-button::before {
@@ -2664,6 +2666,23 @@ canvas {
     transform: scale(1.05);
   }
 
+  /* Стили для подписей кнопок */
+  .liquid-glass-tab-label {
+    position: relative;
+    z-index: 2;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .liquid-glass-tab-active .liquid-glass-tab-label {
+    color: #3b82f6;
+    font-weight: 600;
+  }
+
   /* Hover эффекты */
   .liquid-glass-tab-button:hover::before {
     /* Убираем подложку у hover для неактивных кнопок */
@@ -2683,6 +2702,10 @@ canvas {
     /* Фильтр для более темного цвета при hover */
     filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.8) contrast(1);
     transform: scale(1.08);
+  }
+
+  .liquid-glass-tab-button:hover .liquid-glass-tab-label {
+    color: rgba(0, 0, 0, 0.9);
   }
 
   /* Press эффекты */
@@ -2724,6 +2747,10 @@ canvas {
     transform: scale(1.1);
   }
 
+  .liquid-glass-tab-active:hover .liquid-glass-tab-label {
+    color: #2563eb;
+  }
+
   /* Адаптивность для разных размеров экранов */
   @media (max-width: 640px) {
     :root {
@@ -2742,7 +2769,7 @@ canvas {
     
     .liquid-glass-tab-button {
       width: 70px;
-      height: 70px;
+      height: 90px;
     }
     
     .liquid-glass-tab-button::before {
@@ -2775,7 +2802,7 @@ canvas {
     
     .liquid-glass-tab-container {
       gap: 12px;
-      padding: 12px;
+      padding: 2px;
       border-radius: 22px;
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
@@ -2783,7 +2810,7 @@ canvas {
     
     .liquid-glass-tab-button {
       width: 60px;
-      height: 60px;
+      height: 80px;
     }
     
     .liquid-glass-tab-button::before {
@@ -2804,6 +2831,11 @@ canvas {
     .liquid-glass-tab-icon img {
       width: 32px;
       height: 32px;
+    }
+
+    /* Уменьшаем размер подписей на мобильных */
+    .liquid-glass-tab-label {
+      font-size: 9px;
     }
   }
 
@@ -2827,6 +2859,10 @@ canvas {
       filter: brightness(0) saturate(100%) invert(27%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.6) contrast(1);
       transform: scale(1);
     }
+
+    .liquid-glass-tab-button:hover .liquid-glass-tab-label {
+      color: rgba(0, 0, 0, 0.6);
+    }
     
     .liquid-glass-tab-button:active::before {
       /* Убираем подложку у неактивных кнопок на touch */
@@ -2840,6 +2876,10 @@ canvas {
     
     .liquid-glass-tab-button:active .liquid-glass-tab-icon {
       transform: scale(0.9);
+    }
+
+    .liquid-glass-tab-button:active .liquid-glass-tab-label {
+      transform: scale(0.95);
     }
     
     .liquid-glass-tab-active:hover::before {
@@ -2856,6 +2896,10 @@ canvas {
     .liquid-glass-tab-active:hover .liquid-glass-tab-icon img {
       filter: brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1234%) hue-rotate(213deg) brightness(98%) contrast(101%);
       transform: scale(1.05);
+    }
+
+    .liquid-glass-tab-active:hover .liquid-glass-tab-label {
+      color: #3b82f6;
     }
   }
 
