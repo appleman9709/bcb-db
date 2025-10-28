@@ -1,5 +1,5 @@
 
-import { useImagePreloader } from './ImagePreloader'
+import { useImagePreloadContext } from '../contexts/ImagePreloadContext'
 
 const features = [
   'Умные напоминания',
@@ -8,7 +8,7 @@ const features = [
 ]
 
 export default function LoadingScreen() {
-  const { isPreloading, preloadProgress } = useImagePreloader()
+  const { isPreloading, preloadProgress } = useImagePreloadContext()
   
   return (
     <div className="h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center px-4 sm:px-6 text-gray-900 overflow-hidden">

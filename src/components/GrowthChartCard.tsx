@@ -308,7 +308,7 @@ export default function GrowthChartCard({
   const formatValue = (value: number) => value.toFixed(valuePrecision)
 
   return (
-    <div className={compact ? "space-y-2" : "bg-white rounded-3xl p-3 shadow-sm border border-gray-100 space-y-3 iphone14-card"}>
+    <div className={compact ? "space-y-2 overflow-x-hidden" : "bg-white rounded-3xl p-3 shadow-sm border border-gray-100 space-y-3 iphone14-card"}>
       {!compact && (
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
@@ -327,12 +327,14 @@ export default function GrowthChartCard({
         </div>
       ) : (
         <>
-        <svg
-          viewBox={`0 0 ${chartDimensions.width} ${chartDimensions.height}`}
-          className="h-64 w-full"
-          role="img"
-          aria-label={`${title}. Шкала ${yAxisLabel}`}
-        >
+        <div className="w-full overflow-x-hidden">
+          <svg
+            viewBox={`0 0 ${chartDimensions.width} ${chartDimensions.height}`}
+            className="h-64 w-full max-w-full"
+            role="img"
+            aria-label={`${title}. Шкала ${yAxisLabel}`}
+            preserveAspectRatio="xMidYMid meet"
+          >
           <rect
             x={chartDimensions.padding.left}
             y={chartDimensions.padding.top}
@@ -477,6 +479,7 @@ export default function GrowthChartCard({
             </g>
           ))}
         </svg>
+        </div>
 
         <div className="flex flex-wrap gap-2">
           {whoCurves.map(curve => (

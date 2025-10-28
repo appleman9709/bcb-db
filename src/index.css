@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap&subset=cyrillic');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -2255,6 +2255,27 @@
     max-height: none !important;
     height: auto !important;
   }
+}
+
+/* Предотвращение горизонтальной прокрутки в модальных окнах с графиками */
+.modal-content {
+  overflow-x: hidden !important;
+}
+
+.modal-content > * {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+/* SVG графики должны правильно масштабироваться */
+svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+canvas {
+  max-width: 100% !important;
+  display: block !important;
 }
 
 /* CSS-переменные для контейнера Тамагочи */

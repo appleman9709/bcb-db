@@ -1,11 +1,11 @@
-import { useImagePreloader } from './ImagePreloader'
+import { useImagePreloadContext } from '../contexts/ImagePreloadContext'
 
 interface PreloadProgressProps {
   className?: string
 }
 
 export default function PreloadProgress({ className = '' }: PreloadProgressProps) {
-  const { isPreloading, preloadProgress } = useImagePreloader()
+  const { isPreloading, preloadProgress } = useImagePreloadContext()
 
   if (!isPreloading) return null
 

@@ -340,20 +340,20 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
           <span className="text-sm font-medium text-gray-500">Загружаем данные...</span>
         </div>
       ) : (
-        <div className="space-y-4">
-          <header className={`rounded-3xl bg-gradient-to-br ${palette.gradient} p-4 text-white shadow-lg sm:p-5`}>
+        <div className="space-y-3">
+          <header className={`rounded-3xl bg-gradient-to-br ${palette.gradient} p-3 text-white shadow-lg sm:p-4`}>
             <div className="flex items-start gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-2xl shadow-inner backdrop-blur">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20 text-2xl shadow-inner backdrop-blur">
                 {palette.emoji}
               </div>
               <div className="flex-1">
-                <h2 className="text-base font-semibold leading-tight sm:text-lg">{getTitle()}</h2>
+                <h2 className="text-sm font-semibold leading-tight sm:text-base">{getTitle()}</h2>
               </div>
             </div>
           </header>
 
           {summary && (
-            <section className="grid grid-cols-3 gap-2 rounded-3xl border border-gray-100 bg-white/95 p-3 text-center shadow-sm sm:gap-3 sm:p-4">
+            <section className="grid grid-cols-3 gap-2 rounded-3xl border border-gray-100 bg-white/95 p-2 text-center shadow-sm sm:gap-2 sm:p-3">
               <div className="space-y-0.5">
                 <span className="block text-[10px] font-semibold uppercase tracking-wide text-gray-400">Итого</span>
                 <span className="text-base font-semibold text-gray-900 sm:text-lg">{summary.total}</span>
@@ -372,11 +372,13 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
             </section>
           )}
 
-          <section ref={containerRef} className="rounded-3xl border border-gray-100 bg-white p-3 shadow-sm sm:p-5">
-            <canvas ref={canvasRef} />
+          <section ref={containerRef} className="rounded-3xl border border-gray-100 bg-white p-2 shadow-sm sm:p-3 overflow-x-hidden">
+            <div className="w-full overflow-x-hidden">
+              <canvas ref={canvasRef} className="w-full" />
+            </div>
           </section>
 
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-3 text-xs text-blue-700 shadow-inner sm:text-sm">
+          <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-2 text-xs text-blue-700 shadow-inner sm:text-sm">
             {summary && summary.last > 0
               ? `Вчера записано ${summary.last} ${palette.legend.toLowerCase()} — отличный результат!`
               : 'За последние сутки нет новых записей — самое время добавить свежие данные.'}

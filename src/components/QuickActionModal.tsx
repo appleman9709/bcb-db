@@ -393,7 +393,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           {actionType === 'feeding' && (
             <div className="space-y-2">
               <span className="text-lg font-semibold text-blue-600 text-center block">
-                {feedingOunces > 0 ? `${feedingOunces} мл` : 'Не указано'}
+                {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
               </span>
               <div className="slider-wrapper">
                 <div className="slider-track-container">
