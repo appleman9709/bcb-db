@@ -103,7 +103,7 @@ export default function NotificationSender() {
                 onChange={() => setTargetUsers([])}
                 className="mr-2 rounded"
               />
-              Всем членам семьи
+              Всем членам семьи (включая меня)
             </label>
             {familyMembers
               .filter(m => m.user_id !== member?.user_id)
@@ -130,7 +130,8 @@ export default function NotificationSender() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Заголовок уведомления"
-            className="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500"
+            style={{ fontSize: '16px' }}
           />
         </div>
         
@@ -143,7 +144,8 @@ export default function NotificationSender() {
             onChange={(e) => setBody(e.target.value)}
             placeholder="Текст уведомления"
             rows={3}
-            className="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500"
+            style={{ fontSize: '16px' }}
           />
         </div>
         
