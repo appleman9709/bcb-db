@@ -1,310 +1,211 @@
-# Push-уведомления для BabyCare Dashboard
+# Push Notifications Guide
 
 ## Обзор
 
-Этот документ описывает систему push-уведомлений, реализованную в BabyCare Dashboard PWA. Система использует Service Worker + Push API + VAPID ключи + Notifications API.
+Приложение BabyCare Dashboard теперь поддерживает push-уведомления, которые позволяют:
+- Получать уведомления о важных событиях
+- Отправлять уведомления членам семьи прямо из приложения
+- Делиться важной информацией о ребенке между членами семьи
 
-## Компоненты системы
+## Установка и настройка
 
-### 1. Service Worker (`public/sw.js`)
-- Обрабатывает push-события
-- Показывает уведомления
-- Управляет кликами по уведомлениям
+### 1. Добавление таблицы в базу данных
 
-### 2. Push Notification Service (`src/services/pushNotificationService.ts`)
-- Подписка/отписка от push-уведомлений
-- Управление VAPID ключами
-- Работа с базой данных
-
-### 3. Notification Context (`src/contexts/NotificationContext.tsx`)
-- React Context для управления состоянием уведомлений
-- Хук `useNotification()` для доступа к функциям
-
-### 4. Notification Settings Component (`src/components/NotificationSettings.tsx`)
-- UI для включения/выключения уведомлений
-- Показ статуса разрешений
-- Обработка ошибок
-
-## Установка
-
-### 1. Настройка базы данных
-
-Выполните миграцию базы данных:
+Выполните следующие SQL-команды для создания таблицы push-уведомлений:
 
 ```sql
--- Запустите содержимое файла database_push_notifications.sql
--- в вашей базе данных Supabase
+-- Таблица для хранения push-подписок
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(family_id, user_id)
+);
+
+-- Индексы для оптимизации
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_family_id ON push_subscriptions(family_id);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);
+
+-- Включение RLS
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- Политика RLS
+CREATE POLICY "Enable all operations for authenticated users" ON push_subscriptions FOR ALL USING (true);
+
+-- Триггер для обновления updated_at
+CREATE TRIGGER update_push_subscriptions_updated_at 
+    BEFORE UPDATE ON push_subscriptions 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 ```
 
-### 2. Генерация VAPID ключей
+### 2. Настройка VAPID ключей
 
-#### Вариант 1: Использование веб-сервиса
-1. Откройте https://web-push-codelab.glitch.me/
-2. Скопируйте сгенерированные Public Key и Private Key
+Для работы push-уведомлений необходимо сгенерировать VAPID ключи.
 
-#### Вариант 2: Использование Node.js
+1. Установите библиотеку для генерации VAPID ключей:
 ```bash
-# Установите веб-push библиотеку
-npm install web-push --save-dev
-
-# Сгенерируйте ключи
-npx web-push generate-vapid-keys
+npm install -g web-push
 ```
 
-#### Вариант 3: Использование PowerShell скрипта
-```powershell
-# Создайте файл generate-vapid.ps1
+2. Сгенерируйте ключи:
+```bash
+web-push generate-vapid-keys
 ```
 
-```powershell
-# generate-vapid.ps1
-$npxPath = "npx"
-$command = "web-push generate-vapid-keys"
-
-Write-Host "Generating VAPID keys..." -ForegroundColor Green
-$output = & $npxPath $command 2>&1
-
-if ($LASTEXITCODE -eq 0) {
-    $output | Out-File -FilePath "vapid-keys.txt"
-    Write-Host "`nVAPID keys saved to vapid-keys.txt" -ForegroundColor Green
-    Get-Content "vapid-keys.txt"
-} else {
-    Write-Host "Error: $output" -ForegroundColor Red
-}
+3. Добавьте публичный ключ в файл `.env`:
+```env
+VITE_VAPID_PUBLIC_KEY=your_public_key_here
 ```
 
-### 3. Настройка VAPID ключей
+**Важно:** Приватный ключ должен храниться в секрете и использоваться только на сервере для отправки уведомлений.
 
-Обновите файл `src/services/pushNotificationService.ts`:
+### 3. Настройка Service Worker
 
-```typescript
-// Замените этот публичный ключ на ваш
-const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE'
-```
+Service Worker уже настроен в файле `public/sw.js` и включает обработку:
+- Событий push-уведомлений
+- Кликов по уведомлениям
+- Открытия приложения при клике на уведомление
 
-**ВАЖНО:** Публичный ключ должен совпадать с приватным ключом на вашем сервере!
+### 4. API endpoint для отправки уведомлений
 
-### 4. Добавление компонента в приложение
+Вам необходимо создать API endpoint для отправки push-уведомлений на сервере. Пример реализации для Node.js:
 
-```tsx
-import NotificationSettings from './components/NotificationSettings'
+```javascript
+const webpush = require('web-push');
 
-function SettingsPage() {
-  return (
-    <div>
-      <h1>Настройки</h1>
-      <NotificationSettings />
-      {/* другие настройки */}
-    </div>
-  )
-}
+webpush.setVapidDetails(
+  'mailto:your-email@example.com',
+  process.env.VAPID_PUBLIC_KEY,
+  process.env.VAPID_PRIVATE_KEY
+);
+
+app.post('/api/push/send', async (req, res) => {
+  const { subscription, title, body, icon, tag, data } = req.body;
+
+  try {
+    await webpush.sendNotification(subscription, JSON.stringify({
+      title,
+      body,
+      icon,
+      tag,
+      data
+    }));
+    
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error sending push notification:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 ```
 
 ## Использование
 
-### Включение уведомлений пользователем
+### Подписка на push-уведомления
 
-1. Пользователь открывает настройки
-2. Нажимает кнопку "Включить" в разделе "Push-уведомления"
-3. Браузер запрашивает разрешение
-4. Пользователь подтверждает разрешение
-5. Подписка сохраняется в базе данных
+1. Откройте приложение BabyCare Dashboard
+2. Перейдите в раздел "Настройки"
+3. Найдите секцию "🔔 Push-уведомления"
+4. Нажмите кнопку "Подписаться на уведомления"
+5. Разрешите отправку уведомлений в браузере
 
-### Отправка push-уведомлений
+### Отправка уведомлений членам семьи
 
-#### Пример 1: Через Supabase Edge Function
+1. Откройте раздел "Настройки"
+2. Найдите секцию "📤 Отправить уведомление"
+3. Выберите получателей (или оставьте "Всем членам семьи")
+4. Введите заголовок и текст уведомления
+5. Нажмите "Отправить уведомление"
 
-Создайте Edge Function в Supabase:
+## Компоненты
 
-```typescript
-// supabase/functions/send-push-notification/index.ts
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+### PushNotificationManager
 
-const VAPID_PUBLIC_KEY = "YOUR_VAPID_PUBLIC_KEY"
-const VAPID_PRIVATE_KEY = "YOUR_VAPID_PRIVATE_KEY"
+Компонент для управления подпиской на push-уведомления:
+- Подписка на уведомления
+- Отписка от уведомлений
+- Отображение статуса подписки
 
-serve(async (req) => {
-  try {
-    const { familyId, title, body, icon } = await req.json()
+### NotificationSender
 
-    // Получаем подписки из базы данных
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    )
+Компонент для отправки push-уведомлений членам семьи:
+- Выбор получателей (все или конкретные пользователи)
+- Ввод заголовка и текста уведомления
+- Отправка уведомлений
 
-    const { data: subscriptions, error } = await supabaseClient
-      .from("push_subscriptions")
-      .select("*")
-      .eq("family_id", familyId)
+## Архитектура
 
-    if (error) throw error
+### PushService
 
-    // Отправляем уведомления каждой подписке
-    for (const subscription of subscriptions || []) {
-      const { data, error: sendError } = await fetch(
-        subscription.endpoint,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `vapid t=${VAPID_PUBLIC_KEY}, k=${VAPID_PRIVATE_KEY}`,
-          },
-          body: JSON.stringify({
-            title,
-            body,
-            icon,
-          }),
-        }
-      )
+Сервис `pushService` предоставляет методы:
+- `subscribe(familyId, userId)` - подписка на уведомления
+- `unsubscribe(familyId, userId)` - отписка от уведомлений
+- `getSubscription(familyId, userId)` - получение подписки
+- `getFamilySubscriptions(familyId)` - получение всех подписок семьи
+- `sendNotificationToFamily(familyId, title, body)` - отправка всем членам семьи
+- `sendNotificationToUsers(familyId, userIds, title, body)` - отправка конкретным пользователям
 
-      if (sendError) console.error("Error sending push:", sendError)
-    }
+### База данных
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { headers: { "Content-Type": "application/json" } }
-    )
-  } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    )
-  }
-})
-```
+Таблица `push_subscriptions` хранит:
+- `family_id` - ID семьи
+- `user_id` - ID пользователя (члена семьи)
+- `endpoint` - URL endpoint для отправки уведомлений
+- `p256dh` - Ключ P256DH
+- `auth` - Ключ аутентификации
 
-#### Пример 2: Прямая отправка с сервера
+### Service Worker
 
-```typescript
-// Используйте библиотеку web-push на вашем сервере
-import webpush from 'web-push'
-
-webpush.setVapidDetails(
-  'mailto:your-email@example.com',
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-)
-
-// Получите подписку из базы данных
-const subscription = {
-  endpoint: 'https://...',
-  keys: {
-    p256dh: '...',
-    auth: '...'
-  }
-}
-
-// Отправьте уведомление
-webpush.sendNotification(subscription, JSON.stringify({
-  title: 'Новое уведомление',
-  body: 'Текст уведомления',
-  icon: '/icons/icon-192x192.png'
-}))
-```
+Обрабатывает события:
+- `push` - получение push-уведомления
+- `notificationclick` - клик по уведомлению
 
 ## Безопасность
 
-### VAPID ключи
-- **Приватный ключ:** Храните только на сервере, никогда не отправляйте клиенту
-- **Публичный ключ:** Безопасно использовать в клиентском коде
+1. **VAPID ключи**: Приватный ключ должен храниться в секрете
+2. **HTTPS**: Push-уведомления работают только через HTTPS
+3. **RLS**: Row Level Security защищает данные в базе
+4. **Валидация**: Все данные проходят валидацию перед отправкой
 
-### Row Level Security (RLS)
-Все политики RLS настроены для таблицы `push_subscriptions`
+## Ограничения
 
-### Endpoint URL
-Endpoint URL содержит уникальный идентификатор пользователя. Не делитесь своим endpoint публично.
+1. Push-уведомления работают только в поддерживаемых браузерах
+2. Требуется HTTPS соединение (локально можно использовать localhost)
+3. Пользователь должен дать разрешение на отправку уведомлений
 
-## Отладка
+## Поддержка браузеров
 
-### Проверка поддержки push-уведомлений
+Push-уведомления поддерживаются в:
+- Chrome/Edge 42+
+- Firefox 44+
+- Safari 16+ (macOS)
+- Opera 29+
+- Samsung Internet 4.0+
 
-```javascript
-console.log('Service Worker:', 'serviceWorker' in navigator)
-console.log('Push Manager:', 'PushManager' in window)
-console.log('Notification:', 'Notification' in window)
-```
+## Устранение неполадок
 
-### Проверка разрешений
+### Уведомления не приходят
 
-```javascript
-console.log('Notification permission:', Notification.permission)
-```
-
-### Проверка подписки
-
-```javascript
-navigator.serviceWorker.ready.then(reg => {
-  reg.pushManager.getSubscription().then(sub => {
-    console.log('Subscription:', sub)
-  })
-})
-```
-
-### Проверка Service Worker
-
-```javascript
-navigator.serviceWorker.getRegistration().then(reg => {
-  console.log('Service Worker registered:', reg)
-})
-```
-
-## Ограничения браузеров
-
-### Chrome/Edge
-- ✅ Полная поддержка
-- ✅ Поддерживает VAPID
-
-### Firefox
-- ✅ Полная поддержка
-- ✅ Поддерживает VAPID
-
-### Safari
-- ❌ Не поддерживает push-уведомления на desktop
-- ✅ Поддерживает на iOS с ограничениями
-
-### Opera
-- ✅ Полная поддержка
-
-## Часто задаваемые вопросы
-
-### Q: Почему я не получаю уведомления?
-A: Проверьте:
-1. Разрешения браузера включены
-2. Подписка сохранена в базе данных
-3. VAPID ключи правильно настроены
-4. Service Worker зарегистрирован
-
-### Q: Как отключить уведомления для всех пользователей?
-A: Используйте SQL команду в Supabase:
-
-```sql
-DELETE FROM push_subscriptions WHERE family_id = YOUR_FAMILY_ID;
-```
-
-### Q: Можно ли отправить уведомление конкретному пользователю?
-A: Да, фильтруйте по `user_id` в запросе к `push_subscriptions`:
-
-```sql
-SELECT * FROM push_subscriptions WHERE family_id = ? AND user_id = ?;
-```
-
-### Q: Как обновить подписку после истечения срока?
-A: Service Worker автоматически обновит подписку при необходимости.
-
-## Полезные ресурсы
-
-- [MDN: Push API](https://developer.mozilla.org/en-US/docs/Web/API/Push_API)
-- [MDN: Notifications API](https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API)
-- [Web Push Protocol](https://datatracker.ietf.org/doc/html/rfc8030)
-- [web-push library](https://github.com/web-push-libs/web-push)
-
-## Поддержка
-
-Если у вас возникли проблемы:
-1. Проверьте консоль браузера
-2. Проверьте логи Service Worker
-3. Проверьте настройки базы данных
+1. Проверьте, разрешены ли уведомления в настройках браузера
+2. Убедитесь, что используется HTTPS или localhost
+3. Проверьте консоль браузера на наличие ошибок
 4. Убедитесь, что VAPID ключи настроены правильно
+
+### Ошибка при подписке
+
+1. Проверьте, поддерживает ли браузер push-уведомления
+2. Убедитесь, что Service Worker зарегистрирован
+3. Проверьте настройки VAPID ключей
+
+### Уведомления не отправляются
+
+1. Проверьте API endpoint `/api/push/send`
+2. Убедитесь, что подписки сохранены в базе данных
+3. Проверьте логи сервера на наличие ошибок
 

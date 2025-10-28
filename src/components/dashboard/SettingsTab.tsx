@@ -2,6 +2,8 @@ import React from 'react'
 import type { Tip } from '../../services/dataService'
 import { calculateAgeInMonths } from '../../utils/dashboardHelpers'
 import type { SettingsState } from '../../types/dashboard'
+import PushNotificationManager from '../PushNotificationManager'
+import NotificationSender from '../NotificationSender'
 
 interface SettingsTabProps {
   dailyTip: Tip | null
@@ -188,6 +190,18 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Push уведомления */}
+      <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+        <h2 className="text-base font-semibold text-gray-900 mb-3">🔔 Push-уведомления</h2>
+        <PushNotificationManager />
+      </div>
+
+      {/* Отправить уведомление */}
+      <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+        <h2 className="text-base font-semibold text-gray-900 mb-3">📤 Отправить уведомление</h2>
+        <NotificationSender />
       </div>
 
       {/* Семья и профиль */}

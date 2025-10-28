@@ -218,6 +218,19 @@ CREATE TABLE IF NOT EXISTS growth_measurements (
     UNIQUE(family_id, measurement_type, month)
 );
 
+-- Table for storing push notification subscriptions
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+    id SERIAL PRIMARY KEY,
+    family_id INTEGER NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
+    endpoint TEXT NOT NULL UNIQUE,
+    p256dh TEXT NOT NULL,
+    auth TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(family_id, user_id)
+);
+
 -- =====================================================
 -- SECTION 7: INDEXES FOR OPTIMIZATION
 -- =====================================================
@@ -272,6 +285,10 @@ CREATE INDEX IF NOT EXISTS idx_growth_measurements_type ON growth_measurements(m
 CREATE INDEX IF NOT EXISTS idx_growth_measurements_month ON growth_measurements(month);
 CREATE INDEX IF NOT EXISTS idx_growth_measurements_created_at ON growth_measurements(created_at DESC);
 
+-- Push subscriptions indexes
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_family_id ON push_subscriptions(family_id);
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);
+
 -- =====================================================
 -- SECTION 8: HELPER FUNCTION
 -- =====================================================
@@ -320,6 +337,11 @@ CREATE TRIGGER update_growth_measurements_updated_at
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_push_subscriptions_updated_at 
+    BEFORE UPDATE ON push_subscriptions 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Sleep sync trigger
 CREATE TRIGGER sleep_sync_trigger
     AFTER INSERT OR UPDATE ON sleep_sessions
@@ -352,6 +374,7 @@ ALTER TABLE tetris_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE duty_schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE duty_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE growth_measurements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for all tables
 CREATE POLICY "Enable all operations for authenticated users" ON families FOR ALL USING (true);
@@ -369,6 +392,7 @@ CREATE POLICY "Enable all operations for authenticated users" ON tetris_records 
 CREATE POLICY "Enable all operations for authenticated users" ON duty_schedules FOR ALL USING (true);
 CREATE POLICY "Enable all operations for authenticated users" ON duty_assignments FOR ALL USING (true);
 CREATE POLICY "Enable all operations for authenticated users" ON growth_measurements FOR ALL USING (true);
+CREATE POLICY "Enable all operations for authenticated users" ON push_subscriptions FOR ALL USING (true);
 
 -- =====================================================
 -- SECTION 11: SLEEP FUNCTIONS
@@ -956,6 +980,7 @@ COMMENT ON TABLE tetris_records IS 'Table for storing Tetris game records';
 COMMENT ON TABLE duty_schedules IS 'Duty schedules for families';
 COMMENT ON TABLE duty_assignments IS 'Duty assignments by time blocks';
 COMMENT ON TABLE growth_measurements IS 'Table for storing growth measurements';
+COMMENT ON TABLE push_subscriptions IS 'Table for storing push notification subscriptions';
 
 COMMENT ON COLUMN family_inventory.portion_size_ounces IS 'Portion size in ounces (default 1.0)';
 COMMENT ON COLUMN diapers.diaper_type IS 'Type of diaper change: Просто or Покакал';
