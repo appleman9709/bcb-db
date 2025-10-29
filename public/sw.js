@@ -1,108 +1,200 @@
 import { precacheAndRoute } from 'workbox-precaching';
 
-// Precache and route all assets
 precacheAndRoute(self.__WB_MANIFEST);
 
 const CACHE_NAME = 'babycare-dashboard-v1';
+const DEFAULT_ICON = '/icons/icon-192x192.png';
+const DEFAULT_BADGE = '/icons/icon-96x96.png';
+const DEFAULT_SNOOZE_MS = 5 * 60 * 1000;
 
-// Push notification event listener
-self.addEventListener('push', (event) => {
-  console.log('Push notification received:', event);
-  
-  const data = event.data ? event.data.json() : {};
-  const title = data.title || 'BabyCare';
+self.addEventListener('push', handlePush);
+self.addEventListener('notificationclick', handleNotificationClick);
+self.addEventListener('notificationclose', handleNotificationClose);
+self.addEventListener('install', handleInstall);
+self.addEventListener('activate', handleActivate);
+self.addEventListener('fetch', handleFetch);
+self.addEventListener('sync', handleSync);
+
+function handlePush(event) {
+  console.log('[sw] push payload received');
+
+  let payload = {};
+  if (event.data) {
+    try {
+      payload = event.data.json();
+    } catch (error) {
+      console.error('[sw] failed to parse push payload:', error);
+    }
+  }
+
+  const title = payload.title || 'BabyCare reminder';
+  const options = buildNotificationOptions(title, payload);
+
+  event.waitUntil(self.registration.showNotification(title, options));
+}
+
+function buildNotificationOptions(title, payload = {}) {
+  const baseData = payload.data && typeof payload.data === 'object' ? payload.data : {};
+  const actions =
+    Array.isArray(payload.actions) && payload.actions.length > 0
+      ? payload.actions
+      : [
+          { action: 'open', title: 'Open' },
+          { action: 'snooze', title: 'Snooze 5 min' }
+        ];
+
   const options = {
-    body: data.body || 'У вас новое уведомление',
-    icon: data.icon || '/icons/icon-192x192.png',
-    badge: '/icons/icon-96x96.png',
-    tag: data.tag || 'default',
-    requireInteraction: data.requireInteraction || false,
-    data: data.data || {}
+    body: payload.body || 'Stay on top of BabyCare routines together.',
+    icon: payload.icon || DEFAULT_ICON,
+    badge: payload.badge || DEFAULT_BADGE,
+    tag: payload.tag || 'babycare-reminder',
+    requireInteraction: payload.requireInteraction ?? false,
+    renotify: payload.renotify ?? true,
+    data: {
+      url: baseData.url || '/',
+      snoozeMs: Number(baseData.snoozeMs) || DEFAULT_SNOOZE_MS,
+      ...baseData
+    },
+    actions
   };
 
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
-});
+  const original = {
+    title,
+    body: options.body,
+    icon: options.icon,
+    badge: options.badge,
+    tag: options.tag,
+    requireInteraction: options.requireInteraction,
+    renotify: options.renotify,
+    actions: options.actions
+  };
 
-// Notification click event listener
-self.addEventListener('notificationclick', (event) => {
-  console.log('Notification clicked:', event);
-  
+  options.data.original = original;
+
+  return options;
+}
+
+function handleNotificationClick(event) {
+  console.log('[sw] notification click', { action: event.action });
+
+  const action = event.action || 'open';
   event.notification.close();
-  
-  const urlToOpen = event.notification.data.url || '/';
-  
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Check if a window with this URL is already open
-      for (const client of clientList) {
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      
-      // If not, open a new window
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
-      }
-    })
-  );
-});
 
-// Установка service worker
-self.addEventListener('install', (event) => {
+  if (action === 'snooze') {
+    event.waitUntil(scheduleSnoozedNotification(event.notification));
+    return;
+  }
+
+  event.waitUntil(openNotificationTarget(event.notification));
+}
+
+function handleNotificationClose(event) {
+  console.log('[sw] notification closed', {
+    tag: event.notification?.tag,
+    topic: event.notification?.data?.topic
+  });
+}
+
+function openNotificationTarget(notification) {
+  const urlToOpen = notification?.data?.url || '/';
+  const targetUrl = new URL(urlToOpen, self.location.origin).href;
+
+  return clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+    for (const client of clientList) {
+      if (client.url === targetUrl && 'focus' in client) {
+        return client.focus();
+      }
+    }
+
+    if (clients.openWindow) {
+      return clients.openWindow(targetUrl);
+    }
+
+    return undefined;
+  });
+}
+
+function scheduleSnoozedNotification(notification) {
+  const original = notification?.data?.original;
+  const snoozeMs = Number(notification?.data?.snoozeMs) || DEFAULT_SNOOZE_MS;
+
+  if (!original) {
+    console.warn('[sw] snooze requested but original payload is missing');
+    return Promise.resolve();
+  }
+
+  const nextData = Object.assign({}, notification.data, {
+    snoozed: true,
+    snoozedAt: Date.now(),
+    original
+  });
+
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      self.registration
+        .showNotification(original.title, {
+          body: original.body,
+          icon: original.icon,
+          badge: original.badge,
+          tag: original.tag,
+          requireInteraction: original.requireInteraction,
+          renotify: true,
+          actions: original.actions,
+          data: nextData
+        })
+        .then(resolve)
+        .catch((error) => {
+          console.error('[sw] failed to show snoozed notification:', error);
+          resolve();
+        });
+    }, snoozeMs);
+  });
+}
+
+function handleInstall(event) {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Opened cache');
-      })
+    caches.open(CACHE_NAME).then(() => {
+      console.log('[sw] cache opened during install');
+    })
   );
   self.skipWaiting();
-});
+}
 
-// Активация service worker
-self.addEventListener('activate', (event) => {
+function handleActivate(event) {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
+            console.log('[sw] deleting old cache', cacheName);
             return caches.delete(cacheName);
           }
+          return undefined;
         })
-      );
-    })
-  );
-  self.clients.claim();
-});
-
-// Перехват запросов
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Возвращаем кэшированную версию или загружаем из сети
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
+      )
     )
   );
-});
+  self.clients.claim();
+}
 
-// Background Sync для надежности
-self.addEventListener('sync', (event) => {
+function handleFetch(event) {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      if (response) {
+        return response;
+      }
+      return fetch(event.request);
+    })
+  );
+}
+
+function handleSync(event) {
   if (event.tag === 'background-sync') {
     event.waitUntil(doBackgroundSync());
   }
-});
+}
 
-// Background Sync функция
 async function doBackgroundSync() {
-  console.log('Background sync triggered');
-  // Здесь можно добавить логику для синхронизации данных
-  // когда устройство вернется в онлайн
+  console.log('[sw] background sync placeholder');
+  // Extend with offline-aware data sync when ready.
 }

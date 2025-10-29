@@ -85,7 +85,7 @@ export const getTypeInfo = (type: string, item: any): TypeInfo => {
         color: 'bg-green-100 text-green-600',
         bgColor: 'bg-green-50',
         description: '',
-        extraInfo: item.diaper_type === 'Мокрый' ? '💧 Мокрый' : '💩 Грязный'
+        extraInfo: item.diaper_type === 'Покакал' ? '💩 Покакал' : '💧 Просто'
       }
     case 'bath':
       return {

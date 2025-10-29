@@ -39,6 +39,38 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return btoa(binary)
 }
 
+const PUSH_API_BASE_URL = (() => {
+  const override = import.meta.env.VITE_PUSH_API_BASE_URL?.trim()
+  if (override) {
+    return override.replace(/\/$/, '')
+  }
+
+  if (import.meta.env.PROD) {
+    return ''
+  }
+
+  if (typeof window !== 'undefined') {
+    const origin = window.location.origin
+    if (origin.includes('localhost:3000') || origin.includes('127.0.0.1:3000')) {
+      return ''
+    }
+    if (origin.includes('5173') || origin.includes('5174')) {
+      return 'http://localhost:3000'
+    }
+  }
+
+  return 'http://localhost:3000'
+})()
+
+function buildPushApiUrl(path: string): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  if (!PUSH_API_BASE_URL) {
+    return normalizedPath
+  }
+
+  return `${PUSH_API_BASE_URL}${normalizedPath}`
+}
+
 class PushService {
   /**
    * Request permission for push notifications
@@ -70,6 +102,38 @@ class PushService {
       return null
     }
 
+    // Check VAPID key
+    const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+    
+    if (!vapidKey || vapidKey.trim() === '') {
+      console.error('VAPID_PUBLIC_KEY is not configured.')
+      console.log('Please create .env file with:')
+      console.log('VITE_VAPID_PUBLIC_KEY=your_public_key_here')
+      throw new Error('VAPID ключи не настроены. Создайте файл .env и добавьте VITE_VAPID_PUBLIC_KEY')
+    }
+    
+    // Check if key is in correct format
+    const keyLength = vapidKey.length
+    const expectedLength = 87
+    
+    console.log('VAPID key info:', {
+      length: keyLength,
+      expectedLength,
+      startsWith: vapidKey.substring(0, 3),
+      firstChars: vapidKey.substring(0, 10) + '...'
+    })
+    
+    if (keyLength !== expectedLength) {
+      console.error(`Invalid VAPID key length: ${keyLength}, expected: ${expectedLength}`)
+      throw new Error(`Неверная длина VAPID ключа: ${keyLength} символов (должно быть ${expectedLength}). Генерируйте новые ключи через: web-push generate-vapid-keys`)
+    }
+    
+    // Check format (URL-safe base64)
+    if (!vapidKey.match(/^[A-Za-z0-9_-]+$/)) {
+      console.error('Invalid VAPID key format: contains invalid characters')
+      throw new Error('VAPID ключ содержит недопустимые символы. Используйте только буквы, цифры, дефисы и подчеркивания')
+    }
+
     // Request permission
     const permission = await this.requestPermission()
     if (permission !== 'granted') {
@@ -84,9 +148,7 @@ class PushService {
       // Subscribe to push manager
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(
-          import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
-        )
+        applicationServerKey: urlBase64ToUint8Array(vapidKey)
       })
 
       // Extract keys
@@ -221,6 +283,11 @@ class PushService {
     url?: string
   ): Promise<number> {
     const subscriptions = await this.getFamilySubscriptions(familyId)
+    
+    if (subscriptions.length === 0) {
+      throw new Error('Нет подписчиков для отправки уведомлений')
+    }
+    
     return this.sendNotifications(subscriptions, title, body, icon, url)
   }
 
@@ -236,6 +303,11 @@ class PushService {
     url?: string
   ): Promise<number> {
     const subscriptions = await this.getUserSubscriptions(familyId, userIds)
+    
+    if (subscriptions.length === 0) {
+      throw new Error('Нет подписчиков для отправки уведомлений')
+    }
+    
     return this.sendNotifications(subscriptions, title, body, icon, url)
   }
 
@@ -254,10 +326,8 @@ class PushService {
     for (const subscription of subscriptions) {
       try {
         // API endpoint URL
-        const apiUrl = import.meta.env.PROD 
-          ? 'https://bcb-db.vercel.app/api/push/send'
-          : '/api/push/send'
-        
+        const apiUrl = buildPushApiUrl('/api/push/send')
+
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
@@ -282,12 +352,26 @@ class PushService {
         })
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+          const errorText = await response.text()
+          let errorMessage = `HTTP ${response.status}`
+          
+          try {
+            const errorData = JSON.parse(errorText)
+            if (errorData.message) {
+              errorMessage = errorData.message
+            }
+          } catch {
+            errorMessage = errorText || errorMessage
+          }
+          
+          throw new Error(errorMessage)
         }
 
         sentCount++
       } catch (error) {
         console.error('Error sending push notification:', error)
+        // Пробрасываем ошибку дальше
+        throw error
       }
     }
 

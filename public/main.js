@@ -52,6 +52,18 @@ class MobileSudokuTetris {
         this.TOUCH_LIFT_BASE = this.CELL_SIZE * 0.85;
         this.MIN_TOUCH_LIFT = this.CELL_SIZE * 0.3;
         this.touchLiftOffset = this.TOUCH_LIFT_BASE;
+        this.previewOffsetY = 28; // Смещение превью выше пальца
+
+        // Плавающий canvas для превью фигуры под/над пальцем
+        this.dragCanvas = document.createElement('canvas');
+        this.dragCanvasCtx = this.dragCanvas.getContext('2d');
+        this.dragCanvas.style.position = 'fixed';
+        this.dragCanvas.style.left = '0px';
+        this.dragCanvas.style.top = '0px';
+        this.dragCanvas.style.pointerEvents = 'none';
+        this.dragCanvas.style.display = 'none';
+        this.dragCanvas.style.zIndex = '9999';
+        document.body.appendChild(this.dragCanvas);
         
         // Состояние выбранной фигуры
         this.selectedPiece = null;
@@ -1004,6 +1016,38 @@ class MobileSudokuTetris {
         document.addEventListener('mousemove', (e) => this.handlePieceMouseMove(e));
         document.addEventListener('mouseup', (e) => this.handlePieceMouseEnd(e));
     }
+
+    // Управление плавающим превью фигуры (над пальцем)
+    showDragPreview(piece) {
+        if (!piece) return;
+        const pieceWidth = piece.shape[0].length;
+        const pieceHeight = piece.shape.length;
+        const cellSize = Math.max(20, Math.min(44, this.CELL_SIZE));
+        const gap = 2;
+        const padding = 4;
+        const canvasWidth = pieceWidth * cellSize + (pieceWidth - 1) * gap + padding * 2;
+        const canvasHeight = pieceHeight * cellSize + (pieceHeight - 1) * gap + padding * 2;
+        this.dragCanvas.width = canvasWidth;
+        this.dragCanvas.height = canvasHeight;
+        const ctx = this.dragCanvasCtx;
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        this.drawPieceOnCanvas(ctx, piece, cellSize, padding);
+        this.dragCanvas.style.display = 'block';
+    }
+
+    moveDragPreview(clientX, clientY) {
+        if (this.dragCanvas.style.display === 'none') return;
+        // Смещение чуть выше пальца, чтобы видно было фигуру
+        const offsetY = this.previewOffsetY;
+        const left = Math.round(clientX - this.dragCanvas.width / 2);
+        const top = Math.round(clientY - this.dragCanvas.height / 2 - offsetY);
+        this.dragCanvas.style.left = left + 'px';
+        this.dragCanvas.style.top = top + 'px';
+    }
+
+    hideDragPreview() {
+        this.dragCanvas.style.display = 'none';
+    }
     
     handlePieceTouchStart(e) {
         const pieceElement = e.target.closest('.piece-item');
@@ -1031,6 +1075,10 @@ class MobileSudokuTetris {
             this.touchStartX = touch.clientX;
             this.touchStartY = touch.clientY;
             this.touchMoved = false;
+
+            // Включаем плавающий превью-канвас и позиционируем его
+            this.showDragPreview(piece);
+            this.moveDragPreview(touch.clientX, touch.clientY);
             
             e.preventDefault();
         }
@@ -1048,9 +1096,12 @@ class MobileSudokuTetris {
             this.touchMoved = true;
         }
         
+        // Обновляем позицию плавающего превью
+        this.moveDragPreview(touch.clientX, touch.clientY);
+
         const canvasX = touch.clientX - canvasRect.left;
-        const effectiveLift = this.getEffectiveTouchLift(touch.clientY, canvasRect);
-        const rawCanvasY = touch.clientY - canvasRect.top - effectiveLift;
+        // Тень должна быть прямо под превью → вычитаем то же смещение, что и у превью
+        const rawCanvasY = touch.clientY - canvasRect.top - this.previewOffsetY;
         const adjustedCanvasY = Math.max(0, rawCanvasY);
         
         const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
@@ -1067,13 +1118,12 @@ class MobileSudokuTetris {
         const touch = e.changedTouches[0];
         const canvasRect = this.canvas.getBoundingClientRect();
         
-        const effectiveLift = this.getEffectiveTouchLift(touch.clientY, canvasRect);
-        const dynamicMargin = Math.max(10, effectiveLift + this.CELL_SIZE * 0.5);
+        const dynamicMargin = Math.max(10, this.previewOffsetY + this.CELL_SIZE * 0.5);
         if (touch.clientX >= canvasRect.left - dynamicMargin && touch.clientX <= canvasRect.right + dynamicMargin &&
             touch.clientY >= canvasRect.top - dynamicMargin && touch.clientY <= canvasRect.bottom + dynamicMargin) {
             
             const canvasX = touch.clientX - canvasRect.left;
-            const rawCanvasY = touch.clientY - canvasRect.top - effectiveLift;
+            const rawCanvasY = touch.clientY - canvasRect.top - this.previewOffsetY;
             const adjustedCanvasY = Math.max(0, rawCanvasY);
             
             const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
@@ -1089,6 +1139,9 @@ class MobileSudokuTetris {
         this.touchMoved = false;
         this.isTouchDragging = false;
         this.touchLiftOffset = this.TOUCH_LIFT_BASE;
+
+        // Скрываем плавающее превью
+        this.hideDragPreview();
         
         document.querySelectorAll('.piece-item').forEach(el => {
             el.classList.remove('dragging');
@@ -1134,6 +1187,10 @@ class MobileSudokuTetris {
                 x: e.offsetX,
                 y: e.offsetY
             };
+
+            // Показать превью при перетаскивании мышью
+            this.showDragPreview(piece);
+            this.moveDragPreview(e.clientX, e.clientY);
             
             e.preventDefault();
         }
@@ -1142,17 +1199,20 @@ class MobileSudokuTetris {
     handlePieceMouseMove(e) {
         if (!this.isDragging || !this.draggedPiece) return;
         
+        this.moveDragPreview(e.clientX, e.clientY);
+
         const canvasRect = this.canvas.getBoundingClientRect();
         
         // Вычисляем позицию на canvas
         const canvasX = e.clientX - canvasRect.left;
-        const canvasY = e.clientY - canvasRect.top;
+        // Тень точно под превью: учитываем смещение превью
+        const canvasY = e.clientY - canvasRect.top - this.previewOffsetY;
         
         // Конвертируем в координаты сетки с проверкой границ
         const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
         const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasY / this.CELL_SIZE)));
         
-        // Всегда показываем полупрозрачную фигуру, независимо от возможности размещения
+        // Показываем призрак только если можно поставить
         this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
         
         e.preventDefault();
@@ -1184,6 +1244,9 @@ class MobileSudokuTetris {
         // Сбрасываем состояние
         this.isDragging = false;
         this.draggedPiece = null;
+
+        // Скрыть превью
+        this.hideDragPreview();
         
         // Убираем класс dragging со всех элементов
         document.querySelectorAll('.piece-item').forEach(el => {
@@ -1455,21 +1518,21 @@ class MobileSudokuTetris {
             return;
         }
 
-        // Если размещение возможно, показываем какие линии будут очищены
-        if (canPlace) {
-            this.drawLinePreview(previewX, previewY);
+        // Если нельзя поставить — не рисуем никакой тени
+        if (!canPlace) {
+            return;
         }
 
-        // Валидно: зеленоватая подсветка rgba(49,196,141,0.35)
-        // Невалидно: розовая rgba(255,90,95,0.35)
-        const baseColor = canPlace ? '#31C48D' : '#FF5A5F';
+        // Показываем подсветку потенциальных линий и зелёный призрак
+        this.drawLinePreview(previewX, previewY);
+
+        const baseColor = '#31C48D';
 
         for (let py = 0; py < this.draggedPiece.shape.length; py++) {
             for (let px = 0; px < this.draggedPiece.shape[py].length; px++) {
                 if (this.draggedPiece.shape[py][px]) {
                     const x = (previewX + px) * this.CELL_SIZE;
                     const y = (previewY + py) * this.CELL_SIZE;
-                    
                     this.drawModernCellPreview(this.ctx, x, y, this.CELL_SIZE, baseColor);
                 }
             }

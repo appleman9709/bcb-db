@@ -62,7 +62,21 @@ export default function NotificationSender() {
       setTargetUsers([])
     } catch (err) {
       console.error('Error sending notification:', err)
-      setError('Произошла ошибка при отправке уведомления')
+      
+      let errorMessage = 'Произошла ошибка при отправке уведомления'
+      
+      if (err instanceof Error) {
+        // Обработка различных ошибок
+        if (err.message.includes('configuration error') || err.message.includes('VAPID keys not configured')) {
+          errorMessage = '❌ Push-уведомления не настроены на сервере.\n\n📋 Добавьте VAPID ключи в Vercel:\nSettings → Environment Variables\n\n📖 См. VERCEL_VAPID_SETUP.md'
+        } else if (err.message.includes('подписчиков')) {
+          errorMessage = 'Нет подписчиков для отправки уведомлений. Попросите членов семьи подписаться на уведомления.'
+        } else {
+          errorMessage = err.message
+        }
+      }
+      
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -79,7 +93,7 @@ export default function NotificationSender() {
   return (
     <div className="space-y-3">
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 rounded-3xl text-sm border border-red-200">
+        <div className="p-3 bg-red-50 text-red-700 rounded-3xl text-sm border border-red-200 whitespace-pre-line">
           {error}
         </div>
       )}

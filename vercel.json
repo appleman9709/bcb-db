@@ -29,6 +29,12 @@
         }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/push/reminders",
+      "schedule": "*/5 * * * *"
+    }
   ]
 }
 

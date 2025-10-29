@@ -2548,6 +2548,7 @@ canvas {
     align-items: center;
     gap: 20px;
     padding: 20px;
+    width: 100%;
     
     /* Подложка для контейнера - эффект жидкого стекла */
     background: rgba(255, 255, 255, 0.25);
@@ -2588,7 +2589,8 @@ canvas {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 80px;
+    flex: 1 1 0;
+    min-width: 0;
     height: 100px;
     border: none;
     border-radius: 0;
@@ -2643,16 +2645,17 @@ canvas {
 
   /* Активное состояние */
   .liquid-glass-tab-active::before {
-    background: rgba(59, 130, 246, 0.15);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
+    background: rgba(59, 130, 246, 0.18);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
     
-    /* Усиленный спекулярный эффект */
+    /* Более мощная тень в стиле Apple liquid glass */
     box-shadow: 
-      0 8px 16px rgba(59, 130, 246, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.15),
-      0 0 0 1px rgba(59, 130, 246, 0.3);
+      0 14px 28px rgba(59, 130, 246, 0.30),
+      0 40px 80px rgba(59, 130, 246, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.18),
+      0 0 0 1px rgba(59, 130, 246, 0.35);
   }
 
   .liquid-glass-tab-active .liquid-glass-tab-icon {
@@ -2768,7 +2771,8 @@ canvas {
     }
     
     .liquid-glass-tab-button {
-      width: 70px;
+      flex: 1 1 0;
+      min-width: 0;
       height: 90px;
     }
     
@@ -2809,7 +2813,8 @@ canvas {
     }
     
     .liquid-glass-tab-button {
-      width: 60px;
+      flex: 1 1 0;
+      min-width: 0;
       height: 80px;
     }
     

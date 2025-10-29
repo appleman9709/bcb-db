@@ -27,7 +27,8 @@ export default function PushNotificationManager() {
       }
     } catch (err) {
       console.error('Error subscribing:', err)
-      setError('Произошла ошибка при подписке')
+      const errorMessage = err instanceof Error ? err.message : 'Произошла ошибка при подписке'
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
