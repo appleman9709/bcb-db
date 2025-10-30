@@ -52,7 +52,6 @@ class MobileSudokuTetris {
         this.TOUCH_LIFT_BASE = this.CELL_SIZE * 0.85;
         this.MIN_TOUCH_LIFT = this.CELL_SIZE * 0.3;
         this.touchLiftOffset = this.TOUCH_LIFT_BASE;
-        this.previewOffsetY = 28; // Смещение превью выше пальца
 
         // Плавающий canvas для превью фигуры под/над пальцем
         this.dragCanvas = document.createElement('canvas');
@@ -1038,7 +1037,7 @@ class MobileSudokuTetris {
     moveDragPreview(clientX, clientY) {
         if (this.dragCanvas.style.display === 'none') return;
         // Смещение чуть выше пальца, чтобы видно было фигуру
-        const offsetY = this.previewOffsetY;
+        const offsetY = 16;
         const left = Math.round(clientX - this.dragCanvas.width / 2);
         const top = Math.round(clientY - this.dragCanvas.height / 2 - offsetY);
         this.dragCanvas.style.left = left + 'px';
@@ -1099,13 +1098,12 @@ class MobileSudokuTetris {
         // Обновляем позицию плавающего превью
         this.moveDragPreview(touch.clientX, touch.clientY);
 
+        // Тень точно под пальцем, без смещений
         const canvasX = touch.clientX - canvasRect.left;
-        // Тень должна быть прямо под превью → вычитаем то же смещение, что и у превью
-        const rawCanvasY = touch.clientY - canvasRect.top - this.previewOffsetY;
-        const adjustedCanvasY = Math.max(0, rawCanvasY);
+        const canvasY = touch.clientY - canvasRect.top;
         
         const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
-        const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(adjustedCanvasY / this.CELL_SIZE)));
+        const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasY / this.CELL_SIZE)));
         
         this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
         
@@ -1118,16 +1116,17 @@ class MobileSudokuTetris {
         const touch = e.changedTouches[0];
         const canvasRect = this.canvas.getBoundingClientRect();
         
-        const dynamicMargin = Math.max(10, this.previewOffsetY + this.CELL_SIZE * 0.5);
-        if (touch.clientX >= canvasRect.left - dynamicMargin && touch.clientX <= canvasRect.right + dynamicMargin &&
-            touch.clientY >= canvasRect.top - dynamicMargin && touch.clientY <= canvasRect.bottom + dynamicMargin) {
+        // Проверяем, был ли touch в области canvas
+        const margin = 10;
+        if (touch.clientX >= canvasRect.left - margin && touch.clientX <= canvasRect.right + margin &&
+            touch.clientY >= canvasRect.top - margin && touch.clientY <= canvasRect.bottom + margin) {
             
+            // Размещение точно под пальцем, без смещений
             const canvasX = touch.clientX - canvasRect.left;
-            const rawCanvasY = touch.clientY - canvasRect.top - this.previewOffsetY;
-            const adjustedCanvasY = Math.max(0, rawCanvasY);
+            const canvasY = touch.clientY - canvasRect.top;
             
             const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
-            const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(adjustedCanvasY / this.CELL_SIZE)));
+            const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasY / this.CELL_SIZE)));
             
             if (this.touchMoved && this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
                 this.placePiece(this.draggedPiece, gridX, gridY);
@@ -1205,8 +1204,7 @@ class MobileSudokuTetris {
         
         // Вычисляем позицию на canvas
         const canvasX = e.clientX - canvasRect.left;
-        // Тень точно под превью: учитываем смещение превью
-        const canvasY = e.clientY - canvasRect.top - this.previewOffsetY;
+        const canvasY = e.clientY - canvasRect.top;
         
         // Конвертируем в координаты сетки с проверкой границ
         const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
