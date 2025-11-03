@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS scheduled_reminders (
     id SERIAL PRIMARY KEY,
     family_id INTEGER NOT NULL REFERENCES families(id) ON DELETE CASCADE,
-    reminder_type TEXT NOT NULL CHECK (reminder_type IN ('feeding', 'diaper')),
+    reminder_type TEXT NOT NULL CHECK (reminder_type IN ('feeding', 'diaper', 'bath')),
     scheduled_time TIMESTAMP WITH TIME ZONE NOT NULL,
     event_time TIMESTAMP WITH TIME ZONE NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'cancelled')),
@@ -85,11 +85,11 @@ CREATE POLICY "Users can delete reminders for their family"
     );
 
 -- Комментарии к таблице и столбцам
-COMMENT ON TABLE scheduled_reminders IS 'Таблица для хранения запланированных push-уведомлений о кормлении и смене подгузников';
+COMMENT ON TABLE scheduled_reminders IS 'Таблица для хранения запланированных push-уведомлений о кормлении, смене подгузников и купании';
 COMMENT ON COLUMN scheduled_reminders.family_id IS 'ID семьи, для которой запланировано напоминание';
-COMMENT ON COLUMN scheduled_reminders.reminder_type IS 'Тип напоминания: feeding (кормление) или diaper (смена подгузника)';
-COMMENT ON COLUMN scheduled_reminders.scheduled_time IS 'Время, когда должно быть отправлено напоминание (за 15 минут до события)';
-COMMENT ON COLUMN scheduled_reminders.event_time IS 'Время, когда должно произойти событие (кормление или смена подгузника)';
+COMMENT ON COLUMN scheduled_reminders.reminder_type IS 'Тип напоминания: feeding (кормление), diaper (смена подгузника) или bath (купание)';
+COMMENT ON COLUMN scheduled_reminders.scheduled_time IS 'Время, когда должно быть отправлено напоминание (за 5 минут до события)';
+COMMENT ON COLUMN scheduled_reminders.event_time IS 'Время, когда должно произойти событие (кормление, смена подгузника или купание)';
 COMMENT ON COLUMN scheduled_reminders.status IS 'Статус напоминания: pending (ожидает), sent (отправлено), cancelled (отменено)';
 COMMENT ON COLUMN scheduled_reminders.sent_at IS 'Время отправки напоминания';
 COMMENT ON COLUMN scheduled_reminders.sent_count IS 'Количество получателей, которым было отправлено напоминание';

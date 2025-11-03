@@ -142,8 +142,18 @@ class PushService {
     }
 
     try {
-      // Register service worker if not already registered
-      const registration = await navigator.serviceWorker.ready
+      // Убеждаемся, что service worker зарегистрирован
+      let registration = await navigator.serviceWorker.getRegistration()
+      
+      if (!registration) {
+        // Если SW не зарегистрирован, регистрируем его
+        registration = await navigator.serviceWorker.register('/sw.js')
+        // Ждем активации
+        await navigator.serviceWorker.ready
+      } else {
+        // Если уже зарегистрирован, ждем готовности
+        registration = await navigator.serviceWorker.ready
+      }
 
       // Subscribe to push manager
       const subscription = await registration.pushManager.subscribe({
@@ -188,11 +198,16 @@ class PushService {
   async unsubscribe(familyId: number, userId: string): Promise<boolean> {
     try {
       // Get local subscription
-      const registration = await navigator.serviceWorker.ready
-      const subscription = await registration.pushManager.getSubscription()
-      
-      if (subscription) {
-        await subscription.unsubscribe()
+      let registration = await navigator.serviceWorker.getRegistration()
+      if (registration) {
+        registration = await navigator.serviceWorker.ready
+        const subscription = await registration.pushManager.getSubscription()
+        
+        if (subscription) {
+          await subscription.unsubscribe()
+        }
+      } else {
+        console.warn('Service worker not registered, skipping local unsubscribe')
       }
 
       // Remove from database
@@ -207,7 +222,7 @@ class PushService {
         return false
       }
 
-      console.log('Push subscription removed')
+      console.log('Push subscription removed successfully')
       return true
     } catch (error) {
       console.error('Error unsubscribing from push notifications:', error)
@@ -322,6 +337,7 @@ class PushService {
     url?: string
   ): Promise<number> {
     let sentCount = 0
+    const errors: Error[] = []
 
     for (const subscription of subscriptions) {
       try {
@@ -364,15 +380,34 @@ class PushService {
             errorMessage = errorText || errorMessage
           }
           
+          // Если подписка истекла (410), удаляем её из базы данных
+          if (response.status === 410) {
+            console.log('Subscription expired, removing from database:', subscription.endpoint)
+            await supabase
+              .from('push_subscriptions')
+              .delete()
+              .eq('endpoint', subscription.endpoint)
+          }
+          
           throw new Error(errorMessage)
         }
 
         sentCount++
       } catch (error) {
         console.error('Error sending push notification:', error)
-        // Пробрасываем ошибку дальше
-        throw error
+        errors.push(error instanceof Error ? error : new Error(String(error)))
+        // Продолжаем отправку остальным подписчикам
       }
+    }
+
+    // Если не было отправлено ни одно уведомление, выбрасываем ошибку
+    if (sentCount === 0 && errors.length > 0) {
+      throw new Error(`Не удалось отправить уведомления: ${errors[0].message}`)
+    }
+
+    // Если были ошибки, но хотя бы одно уведомление отправлено, логируем предупреждение
+    if (errors.length > 0 && sentCount > 0) {
+      console.warn(`Отправлено ${sentCount} из ${subscriptions.length} уведомлений. Ошибки:`, errors)
     }
 
     return sentCount

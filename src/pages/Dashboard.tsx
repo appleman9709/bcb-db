@@ -480,6 +480,48 @@ export default function Dashboard() {
     }
   }
 
+  const now = currentTime.getTime()
+
+  const calculateActivityProgress = (
+    timestamp: string | null | undefined,
+    intervalMs: number
+  ): { elapsedPercent: number; remainingPercent: number; overdue: boolean } => {
+    if (!timestamp || intervalMs <= 0) {
+      return {
+        elapsedPercent: 0,
+        remainingPercent: 0,
+        overdue: false
+      }
+    }
+
+    const elapsedMs = Math.max(0, now - new Date(timestamp).getTime())
+    const elapsedPercent = Math.min(100, (elapsedMs / intervalMs) * 100)
+    const overdue = elapsedMs >= intervalMs
+
+    return {
+      elapsedPercent,
+      remainingPercent: overdue ? 0 : Math.max(0, 100 - elapsedPercent),
+      overdue
+    }
+  }
+
+  const feedingProgress = calculateActivityProgress(
+    data?.lastFeeding?.timestamp ?? null,
+    settings.feedingInterval * 60 * 60 * 1000
+  )
+  const diaperProgress = calculateActivityProgress(
+    data?.lastDiaper?.timestamp ?? null,
+    settings.diaperInterval * 60 * 60 * 1000
+  )
+  const bathProgress = calculateActivityProgress(
+    data?.lastBath?.timestamp ?? null,
+    settings.bathInterval * 24 * 60 * 60 * 1000
+  )
+
+  const getRingStyle = (color: string, percent: number) => ({
+    background: `conic-gradient(from 0deg, ${color} ${percent}%, #d0e4fe ${percent}% 100%)`
+  })
+
   const handleModalSuccess = async () => {
     // Обновляем данные после записи активности
     setModalOpen(false)
@@ -1064,110 +1106,80 @@ export default function Dashboard() {
               </div>
 
               {/* Карточки активности */}
-              <div className="space-y-1.5">
+              <div className="flex flex-wrap gap-2.5 py-4">
                 <button
                     onClick={() => handleQuickAction('feeding')}
-                  className="w-full bg-white rounded-3xl p-2.5 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition-all duration-200 iphone14-quick-action"
+                  className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
                 >
-                  <div className="w-12 h-12 flex items-center justify-center">
-                    <img src="/icons/feeding.png" alt="Кормление" className="w-10 h-10 object-contain" />
-                </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <h3 className="font-semibold text-gray-900 text-sm">Кормление</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {data?.lastFeeding ? `${formatTime(new Date(data.lastFeeding.timestamp))}` : "Еще не кормили"}
-                    </p>
-                    <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
-                      <div 
-                        className={`h-2 rounded-3xl transition-all duration-300 progress-bar-animated ${
-                          data?.lastFeeding && (Date.now() - new Date(data.lastFeeding.timestamp).getTime()) >= (settings.feedingInterval * 60 * 60 * 1000)
-                            ? 'bg-red-500' 
-                            : 'gradient-feeding-progress'
-                        }`}
-                        style={{ 
-                          width: `${Math.min(100, Math.max(0, data?.lastFeeding 
-                            ? Math.min(100, ((Date.now() - new Date(data.lastFeeding.timestamp).getTime()) / (settings.feedingInterval * 60 * 60 * 1000)) * 100)
-                            : 0))}%` 
-                        }}
-                      ></div>
+                  <div
+                    className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
+                    style={getRingStyle(feedingProgress.overdue ? '#ef4444' : '#38bdf8', feedingProgress.elapsedPercent)}
+                  >
+                    <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
+                      <img src="/icons/feeding.png" alt="Кормление" className="w-[54px] h-[54px] object-contain" />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium text-gray-700">
-                      {data?.lastFeeding ? formatDuration(Math.floor((Date.now() - new Date(data.lastFeeding.timestamp).getTime()) / (1000 * 60))) + ' назад' : "Нет данных"}
-                    </span>
-                    <div className="text-xs text-blue-600 mt-0.5">Нажмите для записи</div>
-                  </div>
+                  <span className="mt-2 font-semibold text-gray-900 text-sm">Кормление</span>
+                  <span className="mt-2 text-sm font-medium text-gray-700">
+                    {data?.lastFeeding
+                      ? formatDuration(
+                          Math.floor(
+                            (Date.now() - new Date(data.lastFeeding.timestamp).getTime()) /
+                              (1000 * 60),
+                          ),
+                        )
+                      : 'Нет данных'}
+                  </span>
                 </button>
 
                 <button
                     onClick={() => handleQuickAction('diaper')}
-                  className="w-full bg-white rounded-3xl p-2.5 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-green-50 hover:border-green-200 transition-all duration-200 iphone14-quick-action"
+                  className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
                 >
-                  <div className="w-12 h-12 flex items-center justify-center">
-                    <img src="/icons/poor.png" alt="Смена подгузника" className="w-10 h-10 object-contain" />
-                </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <h3 className="font-semibold text-gray-900 text-sm">Подгузник</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {data?.lastDiaper ? `${formatTime(new Date(data.lastDiaper.timestamp))}` : "Еще не меняли"}
-                    </p>
-                    <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
-                      <div 
-                        className={`h-2 rounded-3xl transition-all duration-300 progress-bar-animated ${
-                          data?.lastDiaper && (Date.now() - new Date(data.lastDiaper.timestamp).getTime()) >= (settings.diaperInterval * 60 * 60 * 1000)
-                            ? 'bg-red-500' 
-                            : 'gradient-diaper-progress'
-                        }`}
-                        style={{ 
-                          width: `${Math.min(100, Math.max(0, data?.lastDiaper 
-                            ? Math.min(100, ((Date.now() - new Date(data.lastDiaper.timestamp).getTime()) / (settings.diaperInterval * 60 * 60 * 1000)) * 100)
-                            : 0))}%` 
-                        }}
-                      ></div>
+                  <div
+                    className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
+                    style={getRingStyle(diaperProgress.overdue ? '#ef4444' : '#22c55e', diaperProgress.elapsedPercent)}
+                  >
+                    <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
+                      <img src="/icons/poor.png" alt="Смена подгузника" className="w-[54px] h-[54px] object-contain" />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium text-gray-700">
-                      {data?.lastDiaper ? formatDuration(Math.floor((Date.now() - new Date(data.lastDiaper.timestamp).getTime()) / (1000 * 60))) + ' назад' : "Нет данных"}
-                    </span>
-                    <div className="text-xs text-green-600 mt-0.5">Нажмите для записи</div>
-                  </div>
+                  <span className="mt-2 font-semibold text-gray-900 text-sm">Подгузник</span>
+                  <span className="mt-2 text-sm font-medium text-gray-700">
+                    {data?.lastDiaper
+                      ? formatDuration(
+                          Math.floor(
+                            (Date.now() - new Date(data.lastDiaper.timestamp).getTime()) /
+                              (1000 * 60),
+                          ),
+                        )
+                      : 'Нет данных'}
+                  </span>
                 </button>
 
                 <button
                     onClick={() => handleQuickAction('bath')}
-                  className="w-full bg-white rounded-3xl p-2.5 shadow-sm border border-gray-100 flex items-center gap-2 hover:bg-yellow-50 hover:border-yellow-200 transition-all duration-200 iphone14-quick-action"
+                  className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
                 >
-                  <div className="w-12 h-12 flex items-center justify-center">
-                    <img src="/icons/bath.png" alt="Купание" className="w-10 h-10 object-contain" />
-                </div>
-                  <div className="flex-1 min-w-0 text-left">
-                    <h3 className="font-semibold text-gray-900 text-sm">Купание</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {data?.lastBath ? `${formatTime(new Date(data.lastBath.timestamp))}` : "Еще не купали"}
-                    </p>
-                    <div className="mt-2 w-full bg-gray-200 rounded-3xl h-2">
-                      <div 
-                        className={`h-2 rounded-3xl transition-all duration-300 progress-bar-animated ${
-                          data?.lastBath && (Date.now() - new Date(data.lastBath.timestamp).getTime()) >= (settings.bathInterval * 24 * 60 * 60 * 1000)
-                            ? 'bg-red-500' 
-                            : 'gradient-bath-progress'
-                        }`}
-                        style={{ 
-                          width: `${Math.min(100, Math.max(0, data?.lastBath 
-                            ? Math.min(100, ((Date.now() - new Date(data.lastBath.timestamp).getTime()) / (settings.bathInterval * 24 * 60 * 60 * 1000)) * 100)
-                            : 0))}%` 
-                        }}
-                      ></div>
+                  <div
+                    className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
+                    style={getRingStyle(bathProgress.overdue ? '#ef4444' : '#f59e0b', bathProgress.elapsedPercent)}
+                  >
+                    <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
+                      <img src="/icons/bath.png" alt="Купание" className="w-[54px] h-[54px] object-contain" />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-sm font-medium text-gray-700">
-                      {data?.lastBath ? formatDuration(Math.floor((Date.now() - new Date(data.lastBath.timestamp).getTime()) / (1000 * 60))) + ' назад' : "Нет данных"}
-                    </span>
-                    <div className="text-xs text-orange-600 mt-0.5">Нажмите для записи</div>
-                  </div>
+                  <span className="mt-2 font-semibold text-gray-900 text-sm">Купание</span>
+                  <span className="mt-2 text-sm font-medium text-gray-700">
+                    {data?.lastBath
+                      ? formatDuration(
+                          Math.floor(
+                            (Date.now() - new Date(data.lastBath.timestamp).getTime()) /
+                              (1000 * 60),
+                          ),
+                        )
+                      : 'Нет данных'}
+                  </span>
                 </button>
               </div>
 

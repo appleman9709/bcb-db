@@ -84,9 +84,9 @@ module.exports = async (req, res) => {
       })
     }
 
-    if (!['feeding', 'diaper'].includes(reminderType)) {
+    if (!['feeding', 'diaper', 'bath'].includes(reminderType)) {
       return res.status(400).json({
-        error: 'Invalid reminderType. Must be "feeding" or "diaper"'
+        error: 'Invalid reminderType. Must be "feeding", "diaper", or "bath"'
       })
     }
 

@@ -854,6 +854,16 @@ class DataService {
       console.error('Error adding bath activity', activityError)
     }
 
+    // Планируем напоминание о следующем купании
+    try {
+      // Импортируем динамически, чтобы избежать циклических зависимостей
+      const { reminderService } = await import('./reminderService')
+      await reminderService.scheduleBathReminder(familyId)
+    } catch (reminderError) {
+      console.error('Error scheduling bath reminder', reminderError)
+      // Не прерываем выполнение, если планирование напоминания не удалось
+    }
+
     return data
   }
 

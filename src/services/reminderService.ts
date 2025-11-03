@@ -2,16 +2,16 @@
 
 export interface ReminderSchedule {
   familyId: number
-  reminderType: 'feeding' | 'diaper'
+  reminderType: 'feeding' | 'diaper' | 'bath'
   scheduledTime: string // ISO string
   eventTime: string // ISO string (когда должно произойти событие)
 }
 
 /**
- * Сервис для планирования напоминаний о кормлении и смене подгузников
+ * Сервис для планирования напоминаний о кормлении, смене подгузников и купании
  */
 class ReminderService {
-  private static readonly REMINDER_BEFORE_MINUTES = 15 // За 15 минут до события
+  private static readonly REMINDER_BEFORE_MINUTES = 5 // За 5 минут до события
 
   /**
    * Вычисляет время следующего события на основе последнего события и интервала
@@ -36,7 +36,7 @@ class ReminderService {
   }
 
   /**
-   * Вычисляет время для отправки напоминания (за 15 минут до события)
+   * Вычисляет время для отправки напоминания (за 5 минут до события)
    */
   calculateReminderTime(eventTime: Date): Date {
     const reminderTime = new Date(eventTime)
@@ -157,6 +157,62 @@ class ReminderService {
   }
 
   /**
+   * Планирует напоминание о купании
+   */
+  async scheduleBathReminder(familyId: number): Promise<void> {
+    try {
+      // Импортируем dataService динамически
+      const { dataService } = await import('./dataService')
+      
+      // Получаем последнее купание
+      const lastBath = await dataService.getLastBath()
+      
+      if (!lastBath) {
+        console.log('Нет последнего купания для планирования напоминания')
+        return
+      }
+
+      // Получаем настройки семьи
+      const settings = await dataService.getSettings()
+      if (!settings) {
+        console.error('Не удалось получить настройки семьи')
+        return
+      }
+
+      const lastBathTime = new Date(lastBath.timestamp)
+      const nextBathTime = this.calculateNextEventTime(
+        lastBathTime,
+        settings.bath_reminder_period || 24 // По умолчанию 24 часа
+      )
+
+      if (!nextBathTime) {
+        console.log('Время следующего купания уже прошло или не определено')
+        return
+      }
+
+      const reminderTime = this.calculateReminderTime(nextBathTime)
+
+      // Если время напоминания уже прошло, не планируем
+      if (reminderTime.getTime() <= Date.now()) {
+        console.log('Время напоминания о купании уже прошло')
+        return
+      }
+
+      // Планируем напоминание через API
+      await this.scheduleReminderApi({
+        familyId,
+        reminderType: 'bath',
+        scheduledTime: reminderTime.toISOString(),
+        eventTime: nextBathTime.toISOString()
+      })
+
+      console.log(`Напоминание о купании запланировано на ${reminderTime.toISOString()}`)
+    } catch (error) {
+      console.error('Ошибка при планировании напоминания о купании:', error)
+    }
+  }
+
+  /**
    * Отправляет запрос на планирование напоминания через API
    */
   private async scheduleReminderApi(schedule: ReminderSchedule): Promise<void> {
@@ -212,7 +268,7 @@ class ReminderService {
   /**
    * Отменяет запланированные напоминания для события
    */
-  async cancelReminders(familyId: number, reminderType: 'feeding' | 'diaper'): Promise<void> {
+  async cancelReminders(familyId: number, reminderType: 'feeding' | 'diaper' | 'bath'): Promise<void> {
     const PUSH_API_BASE_URL = (() => {
       const override = import.meta.env.VITE_PUSH_API_BASE_URL?.trim()
       if (override) {

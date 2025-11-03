@@ -4,7 +4,8 @@ const DEFAULT_ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5173',
-  'http://127.0.0.1:5174'
+  'http://127.0.0.1:5174',
+  'https://*.vercel.app'
 ]
 
 function parseAllowedOrigins(value) {
@@ -35,9 +36,25 @@ function applyCors(req, res) {
     return
   }
 
+  // Проверяем точное совпадение
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin)
     res.setHeader('Vary', 'Origin')
+    return
+  }
+
+  // Проверяем подстановочные знаки (например, https://*.vercel.app)
+  for (const allowedOrigin of allowedOrigins) {
+    if (allowedOrigin.includes('*')) {
+      // Заменяем * на регулярное выражение
+      const pattern = allowedOrigin.replace(/\*/g, '[^/]*')
+      const regex = new RegExp(`^${pattern}$`)
+      if (regex.test(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin)
+        res.setHeader('Vary', 'Origin')
+        return
+      }
+    }
   }
 }
 

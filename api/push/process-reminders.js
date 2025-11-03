@@ -80,14 +80,20 @@ function configureWebPush() {
 const REMINDER_MESSAGES = {
   feeding: {
     title: '🍼 Напоминание о кормлении',
-    body: 'Через 15 минут пора покормить малыша',
+    body: 'Через 5 минут пора покормить малыша',
     icon: '/icons/feeding.png',
     badge: '/icons/icon-96x96.png'
   },
   diaper: {
     title: '👶 Напоминание о смене подгузника',
-    body: 'Через 15 минут пора сменить подгузник',
+    body: 'Через 5 минут пора сменить подгузник',
     icon: '/icons/diaper.png',
+    badge: '/icons/icon-96x96.png'
+  },
+  bath: {
+    title: '🛁 Напоминание о купании',
+    body: 'Через 5 минут пора искупать малыша',
+    icon: '/icons/bath.png',
     badge: '/icons/icon-96x96.png'
   }
 }
@@ -199,7 +205,11 @@ module.exports = async (req, res) => {
               type: reminder.reminder_type,
               familyId: reminder.family_id,
               reminderId: reminder.id,
-              screen: reminder.reminder_type === 'feeding' ? '/activities/feeding' : '/activities/diaper'
+              screen: reminder.reminder_type === 'feeding' 
+                ? '/activities/feeding' 
+                : reminder.reminder_type === 'diaper' 
+                ? '/activities/diaper' 
+                : '/activities/bath'
             },
             timestamp: Date.now()
           })

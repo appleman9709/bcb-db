@@ -2528,59 +2528,34 @@ canvas {
     left: var(--tab-bar-left);
     right: var(--tab-bar-right);
     z-index: var(--tab-bar-z-index);
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
     padding-bottom: env(safe-area-inset-bottom);
-    
-    /* Прозрачная панель без стилей */
     background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    filter: none;
-    background-image: none;
-    box-shadow: none;
     border: none;
-    border-radius: 0;
-    transition: none;
   }
 
   .liquid-glass-tab-container {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
-    padding: 20px;
+    gap: 8px;
+    padding: 8px 12px;
     width: 100%;
-    
-    /* Подложка для контейнера - эффект жидкого стекла */
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    
-    /* Слой корректировки под блюром */
-    filter: saturate(1.15) brightness(0.98) contrast(1.08);
-    
-    /* Тонирование */
-    background-image: 
-      linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.12) 100%);
-    
-    /* Внутренний иней (frost) */
-    box-shadow: 
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
-      0 0 0 1px rgba(255, 255, 255, 0.1);
-    
-    /* Обводка */
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    
-    /* Тени от панели */
-    box-shadow: 
-      0 8px 16px rgba(0, 0, 0, 0.12),
-      0 24px 48px rgba(0, 0, 0, 0.08),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
-      0 0 0 1px rgba(255, 255, 255, 0.1);
-    
-    border-radius: 28px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 100%;
+    margin: 0;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: var(--glass-shadow);
+    border: var(--glass-border);
+    border-radius: 32px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+    z-index: 16;
+    pointer-events: auto;
+    filter: none;
+    background-image: none;
   }
 
   .liquid-glass-tab-button {
@@ -2590,14 +2565,15 @@ canvas {
     align-items: center;
     justify-content: center;
     flex: 1 1 0;
-    min-width: 0;
-    height: 100px;
+    min-width: 72px;
+    height: 88px;
+    padding: 8px 6px;
     border: none;
-    border-radius: 0;
+    border-radius: 24px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: transparent;
-    overflow: visible;
+    overflow: hidden;
     gap: 6px;
   }
 
@@ -2605,7 +2581,7 @@ canvas {
     content: '';
     position: absolute;
     inset: 0;
-    border-radius: 22px;
+    border-radius: inherit;
     
     /* Убираем подложку у неактивных кнопок */
     background: transparent;
@@ -2762,18 +2738,11 @@ canvas {
       --tab-bar-right: 12px;
     }
     
-    .liquid-glass-tab-container {
-      gap: 16px;
-      padding: 16px;
-      border-radius: 26px;
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
-    }
-    
     .liquid-glass-tab-button {
       flex: 1 1 0;
-      min-width: 0;
-      height: 90px;
+      min-width: 64px;
+      height: 80px;
+      padding: 8px 4px;
     }
     
     .liquid-glass-tab-button::before {
@@ -2804,18 +2773,11 @@ canvas {
       --tab-bar-right: 8px;
     }
     
-    .liquid-glass-tab-container {
-      gap: 12px;
-      padding: 2px;
-      border-radius: 22px;
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-    }
-    
     .liquid-glass-tab-button {
       flex: 1 1 0;
-      min-width: 0;
-      height: 80px;
+      min-width: 56px;
+      height: 72px;
+      padding: 6px 4px;
     }
     
     .liquid-glass-tab-button::before {
@@ -3002,7 +2964,8 @@ canvas {
 
   /* Поддержка backdrop-filter только для устройств с аппаратным ускорением */
   @supports (backdrop-filter: blur(10px)) and (transform: translateZ(0)) {
-    .tamagotchi-inventory-container {
+    .tamagotchi-inventory-container,
+    .liquid-glass-tab-container {
       background: var(--glass-bg);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
@@ -3010,7 +2973,8 @@ canvas {
   }
 
   /* Псевдоэлемент для дополнительного эффекта дыхания */
-  .tamagotchi-inventory-container::after {
+  .tamagotchi-inventory-container::after,
+  .liquid-glass-tab-container::after {
     content: '';
     position: absolute;
     top: 0;
@@ -3031,19 +2995,22 @@ canvas {
 
   /* Отключение дорогих эффектов на слабых устройствах и мобильных */
   @media (prefers-reduced-motion: reduce), (max-width: 768px) {
-    .tamagotchi-inventory-container {
+    .tamagotchi-inventory-container,
+    .liquid-glass-tab-container {
       animation: none !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
       background: rgba(255, 255, 255, 0.2) !important;
     }
     
-    .tamagotchi-inventory-container::before {
+    .tamagotchi-inventory-container::before,
+    .liquid-glass-tab-container::before {
       animation: none !important;
       opacity: 0.2;
     }
     
-    .tamagotchi-inventory-container::after {
+    .tamagotchi-inventory-container::after,
+    .liquid-glass-tab-container::after {
       animation: none !important;
       opacity: 0.1;
     }
@@ -3067,7 +3034,8 @@ canvas {
 
 /* Дополнительная оптимизация для мобильных устройств */
 @media (max-width: 768px) {
-  .tamagotchi-inventory-container {
+  .tamagotchi-inventory-container,
+  .liquid-glass-tab-container {
     /* Отключен backdrop-filter для экономии ресурсов на мобильных */
     /* backdrop-filter: blur(10px); */
     /* -webkit-backdrop-filter: blur(10px); */
@@ -3418,21 +3386,33 @@ canvas {
       margin-top: -1.5rem; /* Уменьшенный отрицательный отступ - опускаем контейнер ниже на мобильных */
       margin-bottom: 5rem;
     }
-    
-    .tamagotchi-inventory-container {
+
+    .tamagotchi-inventory-container,
+    .liquid-glass-tab-container {
       gap: 8px;
       padding: 12px;
       border-radius: 28px;
       backdrop-filter: blur(36px) saturate(1.15);
       -webkit-backdrop-filter: blur(36px) saturate(1.15);
-      max-width: 350px;
-      
+
       /* ОПТИМИЗИРОВАННАЯ анимация дыхания для мобильных */
       animation: liquidGlassBreathingMobile 5s ease-in-out infinite;
     }
 
+    .tamagotchi-inventory-container {
+      max-width: 350px;
+      margin: 0 auto;
+    }
+
+    .liquid-glass-tab-container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+    }
+
     /* Обновляем псевдоэлемент для мобильных */
-    .tamagotchi-inventory-container::after {
+    .tamagotchi-inventory-container::after,
+    .liquid-glass-tab-container::after {
       animation: liquidGlassBreathingOverlayMobile 5s ease-in-out infinite;
     }
     
@@ -3507,20 +3487,32 @@ canvas {
       margin-bottom: 4rem;
     }
     
-    .tamagotchi-inventory-container {
+    .tamagotchi-inventory-container,
+    .liquid-glass-tab-container {
       gap: 8px;
       padding: 12px;
       border-radius: 24px;
       backdrop-filter: blur(32px) saturate(1.1);
       -webkit-backdrop-filter: blur(32px) saturate(1.1);
-      max-width: 300px;
       
       /* ОПТИМИЗИРОВАННАЯ анимация для маленьких экранов */
       animation: liquidGlassBreathingSmall 6s ease-in-out infinite;
     }
 
+    .tamagotchi-inventory-container {
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .liquid-glass-tab-container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+    }
+
     /* Обновляем псевдоэлемент для маленьких экранов */
-    .tamagotchi-inventory-container::after {
+    .tamagotchi-inventory-container::after,
+    .liquid-glass-tab-container::after {
       animation: liquidGlassBreathingOverlaySmall 6s ease-in-out infinite;
     }
     
@@ -3635,7 +3627,8 @@ canvas {
   }
 
   /* Упрощенный псевдоэлемент для дополнительного блеска */
-  .tamagotchi-inventory-container::before {
+  .tamagotchi-inventory-container::before,
+  .liquid-glass-tab-container::before {
     content: '';
     position: absolute;
     top: -1px;

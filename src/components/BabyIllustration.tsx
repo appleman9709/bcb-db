@@ -45,7 +45,7 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
   return (
     <div className={`relative ${className}`}>
       {/* Полоса дежурства вокруг изображения */}
-      <div className="relative w-48 h-48 mx-auto">
+      <div className="relative w-64 h-64 mx-auto">
         {/* SVG для круговой полосы дежурства */}
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 192 192">
           <defs>
@@ -82,7 +82,7 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
         
         {/* Основной круг с градиентом */}
         <div 
-          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration ${
+          className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-52 h-52 ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration ${
             onClick ? 'cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-105' : ''
           }`}
           onClick={onClick}
@@ -97,8 +97,8 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
                 : 'object-contain'
             }`}
             style={{ 
-              width: customImage && state === 'normal' ? '100%' : '128px', 
-              height: customImage && state === 'normal' ? '100%' : '128px' 
+              width: customImage && state === 'normal' ? '100%' : '160px', 
+              height: customImage && state === 'normal' ? '100%' : '160px' 
             }}
           />
         </div>

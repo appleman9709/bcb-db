@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { pushService } from '../services/pushService'
 
@@ -8,6 +8,22 @@ export default function PushNotificationManager() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  // Проверяем существующую подписку при загрузке
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!family || !member) return
+
+      try {
+        const subscription = await pushService.getSubscription(family.id, member.user_id)
+        setIsSubscribed(!!subscription)
+      } catch (err) {
+        console.error('Error checking subscription:', err)
+      }
+    }
+
+    checkSubscription()
+  }, [family, member])
 
   const handleSubscribe = async () => {
     if (!family || !member) return
@@ -27,7 +43,20 @@ export default function PushNotificationManager() {
       }
     } catch (err) {
       console.error('Error subscribing:', err)
-      const errorMessage = err instanceof Error ? err.message : 'Произошла ошибка при подписке'
+      let errorMessage = 'Произошла ошибка при подписке'
+      
+      if (err instanceof Error) {
+        errorMessage = err.message
+        // Более понятные сообщения об ошибках
+        if (err.message.includes('VAPID')) {
+          errorMessage = 'VAPID ключи не настроены. Проверьте настройки сервера.'
+        } else if (err.message.includes('Permission')) {
+          errorMessage = 'Разрешение на уведомления было отклонено. Разрешите уведомления в настройках браузера.'
+        } else if (err.message.includes('serviceWorker')) {
+          errorMessage = 'Service Worker не поддерживается или не зарегистрирован. Обновите страницу.'
+        }
+      }
+      
       setError(errorMessage)
     } finally {
       setIsLoading(false)
