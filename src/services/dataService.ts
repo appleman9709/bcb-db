@@ -547,6 +547,16 @@ class DataService {
       console.error('Error adding feeding activity', activityError)
     }
 
+    // Планируем напоминание о следующем кормлении
+    try {
+      // Импортируем динамически, чтобы избежать циклических зависимостей
+      const { reminderService } = await import('./reminderService')
+      await reminderService.scheduleFeedingReminder(familyId)
+    } catch (reminderError) {
+      console.error('Error scheduling feeding reminder', reminderError)
+      // Не прерываем выполнение, если планирование напоминания не удалось
+    }
+
     return data
   }
 
@@ -699,6 +709,16 @@ class DataService {
       await this.endAllActiveSleepSessions()
     } catch (sleepEndError) {
       console.error('Error ending sleep after diaper change', sleepEndError)
+    }
+
+    // Планируем напоминание о следующей смене подгузника
+    try {
+      // Импортируем динамически, чтобы избежать циклических зависимостей
+      const { reminderService } = await import('./reminderService')
+      await reminderService.scheduleDiaperReminder(familyId)
+    } catch (reminderError) {
+      console.error('Error scheduling diaper reminder', reminderError)
+      // Не прерываем выполнение, если планирование напоминания не удалось
     }
 
     return data

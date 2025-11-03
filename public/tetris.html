@@ -25,7 +25,9 @@
         <header class="game-header">
             <div class="header-content">
                 <div class="game-logo">Важное дело</div>
-                <button class="new-game-btn" id="newGameBtn" style="padding: 8px 16px; background: #3BA3FF; color: white; border: none; border-radius: 24px; font-size: 14px; margin-left: 8px;">Новая игра</button>
+                <button class="new-game-btn" id="newGameBtn" style="width: 40px; height: 40px; padding: 0; background: #3BA3FF; color: white; border: none; border-radius: 6px; font-size: 20px; margin-left: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Новая игра">▶</button>
+                <button class="undo-btn" id="undoBtn" style="width: 40px; height: 40px; padding: 0; background: #FF8A34; color: white; border: none; border-radius: 6px; font-size: 20px; margin-left: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Отменить ход">↶</button>
+                <button class="refresh-btn" id="refreshBtn" style="width: 40px; height: 40px; padding: 0; background: #31C48D; color: white; border: none; border-radius: 6px; font-size: 20px; margin-left: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Обновить">↻</button>
                 <div class="score-section">
                     <div class="current-score" id="currentScore">0</div>
                     <div class="combo-indicator" id="comboIndicator" style="display: none;">
@@ -81,6 +83,28 @@
                     // Вызываем функцию перезапуска игры
                     if (window.game && window.game.restart) {
                         window.game.restart();
+                    }
+                });
+            }
+            
+            // Обработчик для кнопки "Отменить ход"
+            const undoBtn = document.getElementById('undoBtn');
+            if (undoBtn) {
+                undoBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.game && window.game.undoMove) {
+                        window.game.undoMove();
+                    }
+                });
+            }
+            
+            // Обработчик для кнопки "Обновить"
+            const refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (window.game && window.game.refreshPieces) {
+                        window.game.refreshPieces();
                     }
                 });
             }

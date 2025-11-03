@@ -35,11 +35,24 @@ class MobileSudokuTetris {
         this.placementAnimations = [];
         this.animationFrameId = null;
         
+        // Анимация очков
+        this.pointsAnimations = [];
+        this.POINTS_ANIMATION_DURATION = 1500; // 1.5 секунды
+        
         this.score = 0;
         this.level = 1;
         this.lines = 0;
         this.gameRunning = true;
         this.record = this.loadRecord();
+        
+        // История ходов для отмены
+        this.moveHistory = [];
+        this.maxHistorySize = 50; // Ограничиваем размер истории
+        
+        // Система комбо
+        this.comboCount = 0;
+        this.lastClearTime = 0;
+        this.COMBO_TIMEOUT = 2000; // Комбо сбрасывается через 2 секунды
         
         // Состояние перетаскивания
         this.draggedPiece = null;
@@ -56,6 +69,9 @@ class MobileSudokuTetris {
         // Плавающий canvas для превью фигуры под/над пальцем
         this.dragCanvas = document.createElement('canvas');
         this.dragCanvasCtx = this.dragCanvas.getContext('2d');
+        this.previewOffsetY = Math.max(34, Math.round(this.CELL_SIZE * 1.15));
+        this.previewCenterX = 0;
+        this.previewCenterY = 0;
         this.dragCanvas.style.position = 'fixed';
         this.dragCanvas.style.left = '0px';
         this.dragCanvas.style.top = '0px';
@@ -68,14 +84,14 @@ class MobileSudokuTetris {
         this.selectedPiece = null;
         this.selectedPieceElement = null;
         
-        // Разнообразные фигуры с новой цветовой схемой
+        // Разнообразные фигуры с уникальной цветовой схемой для каждого типа
         this.tetrisPieces = [
             // Классические фигуры тетриса
             {
                 id: 'I',
                 name: 'Линия',
                 shape: [[1, 1, 1, 1]],
-                color: '#3BA3FF', // Синий
+                color: '#06B6D4', // Циановый (классический цвет I)
                 size: 4
             },
             {
@@ -85,7 +101,7 @@ class MobileSudokuTetris {
                     [1, 1],
                     [1, 1]
                 ],
-                color: '#31C48D', // Зеленый
+                color: '#FACC15', // Жёлтый (классический цвет O)
                 size: 2,
             },
             {
@@ -95,7 +111,7 @@ class MobileSudokuTetris {
                     [0, 1, 0],
                     [1, 1, 1]
                 ],
-                color: '#FF8A34', // Оранжевый
+                color: '#A855F7', // Фиолетовый (классический цвет T)
                 size: 3
             },
             {
@@ -105,7 +121,7 @@ class MobileSudokuTetris {
                     [0, 1, 1],
                     [1, 1, 0]
                 ],
-                color: '#7C5CFF', // Фиолетовый
+                color: '#22C55E', // Зелёный (классический цвет S)
                 size: 3
             },
             {
@@ -115,7 +131,7 @@ class MobileSudokuTetris {
                     [1, 1, 0],
                     [0, 1, 1]
                 ],
-                color: '#FF5A5F', // Красный
+                color: '#EF4444', // Красный (классический цвет Z)
                 size: 3
             },
             {
@@ -125,7 +141,7 @@ class MobileSudokuTetris {
                     [1, 0, 0],
                     [1, 1, 1]
                 ],
-                color: '#FFC145', // Янтарный
+                color: '#3B82F6', // Синий (классический цвет J)
                 size: 3
             },
             {
@@ -135,10 +151,10 @@ class MobileSudokuTetris {
                     [0, 0, 1],
                     [1, 1, 1]
                 ],
-                color: '#7AD53A', // Лаймовый
+                color: '#F97316', // Оранжевый (классический цвет L)
                 size: 3
             },
-            // Дополнительные фигуры с новой цветовой схемой
+            // Дополнительные фигуры с уникальными цветами
             {
                 id: 'CROSS',
                 name: 'Крест',
@@ -147,7 +163,7 @@ class MobileSudokuTetris {
                     [1, 1, 1],
                     [0, 1, 0]
                 ],
-                color: '#3BA3FF', // Синий
+                color: '#60A5FA', // Голубой (светлый синий)
                 size: 3
             },
             {
@@ -157,35 +173,35 @@ class MobileSudokuTetris {
                     [1, 1],
                     [1, 0]
                 ],
-                color: '#31C48D', // Зеленый
+                color: '#10B981', // Изумрудный (светлый зеленый)
                 size: 2
             },
             {
                 id: 'LINE3',
                 name: 'Тройка',
                 shape: [[1, 1, 1]],
-                color: '#FF8A34', // Оранжевый
+                color: '#FB923C', // Светло-оранжевый
                 size: 3
             },
             {
                 id: 'LINE2',
                 name: 'Двойка',
                 shape: [[1, 1]],
-                color: '#7C5CFF', // Фиолетовый
+                color: '#A78BFA', // Лавандовый (светлый фиолетовый)
                 size: 2
             },
             {
                 id: 'DOT',
                 name: 'Точка',
                 shape: [[1]],
-                color: '#FF5A5F', // Красный
+                color: '#F87171', // Коралловый (светлый красный)
                 size: 1
             },
             {
                 id: 'LONG',
                 name: 'Длинная',
                 shape: [[1, 1, 1, 1, 1]],
-                color: '#FFC145', // Янтарный
+                color: '#FBBF24', // Желтый (светлый янтарный)
                 size: 5
             },
             {
@@ -196,7 +212,7 @@ class MobileSudokuTetris {
                     [1, 1, 0],
                     [1, 1, 1]
                 ],
-                color: '#7AD53A', // Лаймовый
+                color: '#84CC16', // Лайм (светлый лаймовый)
                 size: 3
             },
             {
@@ -206,7 +222,7 @@ class MobileSudokuTetris {
                     [0, 1, 0],
                     [1, 1, 1]
                 ],
-                color: '#3BA3FF', // Синий
+                color: '#2563EB', // Темно-синий
                 size: 3
             },
             {
@@ -217,7 +233,7 @@ class MobileSudokuTetris {
                     [1, 1, 1],
                     [0, 1, 0]
                 ],
-                color: '#31C48D', // Зеленый
+                color: '#059669', // Темно-зеленый
                 size: 3
             },
             {
@@ -228,14 +244,14 @@ class MobileSudokuTetris {
                     [1, 0],
                     [1, 1]
                 ],
-                color: '#FF8A34', // Оранжевый
+                color: '#EA580C', // Темно-оранжевый
                 size: 3
             },
             {
                 id: 'LINE4',
                 name: 'Четверка',
                 shape: [[1, 1, 1, 1]],
-                color: '#7C5CFF', // Фиолетовый
+                color: '#6D28D9', // Темно-фиолетовый
                 size: 4
             },
             {
@@ -246,7 +262,7 @@ class MobileSudokuTetris {
                     [1, 0],
                     [1, 0]
                 ],
-                color: '#FF5A5F', // Красный
+                color: '#DC2626', // Темно-красный
                 size: 3
             },
             {
@@ -257,7 +273,7 @@ class MobileSudokuTetris {
                     [0, 1, 1],
                     [0, 0, 1]
                 ],
-                color: '#FFC145', // Янтарный
+                color: '#D97706', // Темно-янтарный
                 size: 3
             },
             {
@@ -268,7 +284,7 @@ class MobileSudokuTetris {
                     [1, 0],
                     [1, 1]
                 ],
-                color: '#7AD53A', // Лаймовый
+                color: '#65A30D', // Темно-лаймовый
                 size: 3
             },
             {
@@ -279,7 +295,7 @@ class MobileSudokuTetris {
                     [1, 1, 1],
                     [0, 1, 0]
                 ],
-                color: '#3BA3FF', // Синий
+                color: '#0284C7', // Циан (бирюзовый)
                 size: 3
             },
             {
@@ -290,14 +306,14 @@ class MobileSudokuTetris {
                     [0, 1, 0],
                     [1, 0, 1]
                 ],
-                color: '#31C48D', // Зеленый
+                color: '#14B8A6', // Бирюзовый
                 size: 3
             },
             {
                 id: 'LONG4',
                 name: 'Длинная 4',
                 shape: [[1, 1, 1, 1]],
-                color: '#FF8A34', // Оранжевый
+                color: '#F59E0B', // Янтарный (темнее)
                 size: 4
             },
             {
@@ -308,7 +324,7 @@ class MobileSudokuTetris {
                     [1, 1],
                     [1, 0]
                 ],
-                color: '#7C5CFF', // Фиолетовый
+                color: '#8B5CF6', // Индиго (темнее фиолетового)
                 size: 3,
             }
         ];
@@ -663,13 +679,42 @@ class MobileSudokuTetris {
     // Метод для получения имени цвета из hex значения
     getColorName(hexColor) {
         const colorMap = {
-            '#3BA3FF': 'blue',
-            '#31C48D': 'green', 
-            '#FF8A34': 'orange',
-            '#7C5CFF': 'purple',
-            '#FF5A5F': 'red',
+            // Базовые цвета (классические тетромино)
+            '#06B6D4': 'cyan', // I
+            '#FACC15': 'yellow', // O
+            '#A855F7': 'purple', // T
+            '#22C55E': 'green', // S
+            '#EF4444': 'red', // Z
+            '#3B82F6': 'blue', // J
+            '#F97316': 'orange', // L
+            
+            // Старые базовые (для обратной совместимости других фигур)
+            '#3BA3FF': 'blue-alt',
+            '#31C48D': 'green-alt', 
+            '#FF8A34': 'orange-alt',
+            '#7C5CFF': 'purple-alt',
+            '#FF5A5F': 'red-alt',
             '#FFC145': 'amber',
-            '#7AD53A': 'lime'
+            '#7AD53A': 'lime',
+            // Дополнительные цвета
+            '#60A5FA': 'blue-light', // Голубой
+            '#10B981': 'green-light', // Изумрудный
+            '#FB923C': 'orange-light', // Светло-оранжевый
+            '#A78BFA': 'purple-light', // Лавандовый
+            '#F87171': 'red-light', // Коралловый
+            '#FBBF24': 'amber-light', // Желтый
+            '#84CC16': 'lime-light', // Лайм
+            '#2563EB': 'blue-dark', // Темно-синий
+            '#059669': 'green-dark', // Темно-зеленый
+            '#EA580C': 'orange-dark', // Темно-оранжевый
+            '#6D28D9': 'purple-dark', // Темно-фиолетовый
+            '#DC2626': 'red-dark', // Темно-красный
+            '#D97706': 'amber-dark', // Темно-янтарный
+            '#65A30D': 'lime-dark', // Темно-лаймовый
+            '#0284C7': 'cyan', // Циан
+            '#14B8A6': 'teal', // Бирюзовый
+            '#F59E0B': 'amber-alt', // Янтарный альт
+            '#8B5CF6': 'indigo' // Индиго
         };
         return colorMap[hexColor] || 'blue';
     }
@@ -693,8 +738,10 @@ class MobileSudokuTetris {
     
     // Проверяет, является ли цвет валидным
     isValidColor(color) {
-        const validColors = ['#3BA3FF', '#31C48D', '#FF8A34', '#7C5CFF', '#FF5A5F', '#FFC145', '#7AD53A'];
-        return validColors.includes(color);
+        if (!color || typeof color !== 'string') return false;
+        // Проверяем, что цвет существует в списке всех фигур
+        const allColors = this.tetrisPieces.map(p => p.color);
+        return allColors.includes(color);
     }
     
     // Анимация размещения фигуры: scale from 0.96 → 1.0 (120ms), затем короткая вспышка (inner-glow) 80ms
@@ -996,9 +1043,19 @@ class MobileSudokuTetris {
         
         // Кнопки управления
         const newGameBtn = document.getElementById('newGameBtn');
+        const undoBtn = document.getElementById('undoBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
         
         if (newGameBtn) {
             newGameBtn.addEventListener('click', () => this.restart());
+        }
+        
+        if (undoBtn) {
+            undoBtn.addEventListener('click', () => this.undoMove());
+        }
+        
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => this.refreshPieces());
         }
         
         // Предотвращаем скролл страницы при перетаскивании
@@ -1037,11 +1094,14 @@ class MobileSudokuTetris {
     moveDragPreview(clientX, clientY) {
         if (this.dragCanvas.style.display === 'none') return;
         // Смещение чуть выше пальца, чтобы видно было фигуру
-        const offsetY = 16;
+        const offsetY = this.previewOffsetY;
         const left = Math.round(clientX - this.dragCanvas.width / 2);
         const top = Math.round(clientY - this.dragCanvas.height / 2 - offsetY);
         this.dragCanvas.style.left = left + 'px';
         this.dragCanvas.style.top = top + 'px';
+        // Центр превью для синхронизации с тенью на поле
+        this.previewCenterX = clientX;
+        this.previewCenterY = clientY - offsetY;
     }
 
     hideDragPreview() {
@@ -1063,6 +1123,10 @@ class MobileSudokuTetris {
             this.isTouchDragging = true;
             this.touchLiftOffset = this.computeTouchLiftOffset(piece);
             pieceElement.classList.add('dragging');
+            
+            // Скрываем фигуру из лотка во время перетаскивания
+            pieceElement.style.opacity = '0';
+            pieceElement.style.pointerEvents = 'none';
             
             const touch = e.touches[0];
             const rect = pieceElement.getBoundingClientRect();
@@ -1098,12 +1162,16 @@ class MobileSudokuTetris {
         // Обновляем позицию плавающего превью
         this.moveDragPreview(touch.clientX, touch.clientY);
 
-        // Тень точно под пальцем, без смещений
-        const canvasX = touch.clientX - canvasRect.left;
-        const canvasY = touch.clientY - canvasRect.top;
-        
-        const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
-        const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasY / this.CELL_SIZE)));
+        // Центрируем тень под визуальной фигурой (центр превью)
+        const pieceWidth = this.draggedPiece.shape[0].length;
+        const pieceHeight = this.draggedPiece.shape.length;
+        const previewCanvasX = this.previewCenterX - canvasRect.left;
+        // Ограничиваем previewCanvasY для корректного отображения превью на нижних строках
+        const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
+        let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+        let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+        gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
+        gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
         
         this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
         
@@ -1116,20 +1184,38 @@ class MobileSudokuTetris {
         const touch = e.changedTouches[0];
         const canvasRect = this.canvas.getBoundingClientRect();
         
+        let piecePlaced = false;
+        
         // Проверяем, был ли touch в области canvas
-        const margin = 10;
-        if (touch.clientX >= canvasRect.left - margin && touch.clientX <= canvasRect.right + margin &&
-            touch.clientY >= canvasRect.top - margin && touch.clientY <= canvasRect.bottom + margin) {
+        const marginX = 10; // Горизонтальный запас
+        const marginYTop = 10; // Верхний запас
+        const marginYBottom = 60; // Увеличенный нижний запас для удобного размещения на нижних строках
+        if (touch.clientX >= canvasRect.left - marginX && touch.clientX <= canvasRect.right + marginX &&
+            touch.clientY >= canvasRect.top - marginYTop && touch.clientY <= canvasRect.bottom + marginYBottom) {
             
-            // Размещение точно под пальцем, без смещений
-            const canvasX = touch.clientX - canvasRect.left;
-            const canvasY = touch.clientY - canvasRect.top;
-            
-            const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
-            const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasY / this.CELL_SIZE)));
+            // Размещение по центрированной тени под превью
+            const pieceWidth = this.draggedPiece.shape[0].length;
+            const pieceHeight = this.draggedPiece.shape.length;
+            const previewCanvasX = this.previewCenterX - canvasRect.left;
+            // Ограничиваем previewCanvasY для корректного размещения на нижних строках
+            const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
+            let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+            let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+            gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
+            gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
             if (this.touchMoved && this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
                 this.placePiece(this.draggedPiece, gridX, gridY);
+                piecePlaced = true;
+            }
+        }
+        
+        // Если фигура не была размещена, возвращаем её в лоток
+        if (!piecePlaced) {
+            const pieceElement = document.querySelector(`[data-piece-id="${this.draggedPiece.uniqueId}"]`);
+            if (pieceElement) {
+                pieceElement.style.opacity = '1';
+                pieceElement.style.pointerEvents = 'auto';
             }
         }
         
@@ -1182,6 +1268,10 @@ class MobileSudokuTetris {
             this.isDragging = true;
             pieceElement.classList.add('dragging');
             
+            // Скрываем фигуру из лотка во время перетаскивания
+            pieceElement.style.opacity = '0';
+            pieceElement.style.pointerEvents = 'none';
+            
             this.dragOffset = {
                 x: e.offsetX,
                 y: e.offsetY
@@ -1202,13 +1292,16 @@ class MobileSudokuTetris {
 
         const canvasRect = this.canvas.getBoundingClientRect();
         
-        // Вычисляем позицию на canvas
-        const canvasX = e.clientX - canvasRect.left;
-        const canvasY = e.clientY - canvasRect.top;
-        
-        // Конвертируем в координаты сетки с проверкой границ
-        const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
-        const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasY / this.CELL_SIZE)));
+        // Центрируем тень под превью и удерживаем фигуру в поле
+        const pieceWidth = this.draggedPiece.shape[0].length;
+        const pieceHeight = this.draggedPiece.shape.length;
+        const previewCanvasX = this.previewCenterX - canvasRect.left;
+        // Ограничиваем previewCanvasY для корректного отображения превью на нижних строках
+        const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
+        let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+        let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+        gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
+        gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
         
         // Показываем призрак только если можно поставить
         this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
@@ -1221,21 +1314,38 @@ class MobileSudokuTetris {
         
         const canvasRect = this.canvas.getBoundingClientRect();
         
+        let piecePlaced = false;
+        
         // Проверяем, был ли клик над canvas (с небольшим запасом для лучшего UX)
-        const margin = 10; // Добавляем запас в 10px
-        if (e.clientX >= canvasRect.left - margin && e.clientX <= canvasRect.right + margin &&
-            e.clientY >= canvasRect.top - margin && e.clientY <= canvasRect.bottom + margin) {
+        const marginX = 10; // Горизонтальный запас
+        const marginYTop = 10; // Верхний запас
+        const marginYBottom = 60; // Увеличенный нижний запас для удобного размещения на нижних строках
+        if (e.clientX >= canvasRect.left - marginX && e.clientX <= canvasRect.right + marginX &&
+            e.clientY >= canvasRect.top - marginYTop && e.clientY <= canvasRect.bottom + marginYBottom) {
             
-            const canvasX = e.clientX - canvasRect.left;
-            const canvasY = e.clientY - canvasRect.top;
-            
-            // Используем Math.round вместо Math.floor для более точного позиционирования
-            // и добавляем проверку на границы
-            const gridX = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasX / this.CELL_SIZE)));
-            const gridY = Math.max(0, Math.min(this.BOARD_SIZE - 1, Math.round(canvasY / this.CELL_SIZE)));
+            // Размещение по центрированной тени под превью
+            const pieceWidth = this.draggedPiece.shape[0].length;
+            const pieceHeight = this.draggedPiece.shape.length;
+            const previewCanvasX = this.previewCenterX - canvasRect.left;
+            // Ограничиваем previewCanvasY для корректного размещения на нижних строках
+            const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
+            let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+            let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+            gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
+            gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
             if (this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
                 this.placePiece(this.draggedPiece, gridX, gridY);
+                piecePlaced = true;
+            }
+        }
+        
+        // Если фигура не была размещена, возвращаем её в лоток
+        if (!piecePlaced) {
+            const pieceElement = document.querySelector(`[data-piece-id="${this.draggedPiece.uniqueId}"]`);
+            if (pieceElement) {
+                pieceElement.style.opacity = '1';
+                pieceElement.style.pointerEvents = 'auto';
             }
         }
         
@@ -1280,6 +1390,9 @@ class MobileSudokuTetris {
         if (!this.canPlacePiece(piece, x, y)) {
             return false;
         }
+        
+        // Сохраняем состояние перед ходом для возможности отмены
+        this.saveMoveState();
         
         // Размещаем фигуру на доске
         for (let py = 0; py < piece.shape.length; py++) {
@@ -1409,13 +1522,55 @@ class MobileSudokuTetris {
             this.triggerClearAnimation(clearedCells);
         }
 
+        // Новая система подсчета очков
+        const currentTime = Date.now();
+        
+        // Проверяем, не истекло ли комбо (если прошло больше 2 секунд с последней очистки)
+        if (currentTime - this.lastClearTime > this.COMBO_TIMEOUT) {
+            this.comboCount = 0;
+        }
+        
+        // Если что-то очистилось, увеличиваем комбо
+        if (clearedCells.length > 0) {
+            this.comboCount++;
+            this.lastClearTime = currentTime;
+        }
+        
+        // Подсчитываем очки
+        const basePointsPerCell = 2; // Одна клетка = 2 очка
+        
+        // Подсчитываем уникальные очищенные клетки (учитывая пересечения строк, столбцов и регионов)
+        const uniqueCells = clearedCells.length;
+        
+        // Базовые очки: каждая очищенная клетка = 2 очка
+        // Регион 3x3 = 9 клеток * 2 = 18 очков (автоматически)
+        let totalPoints = uniqueCells * basePointsPerCell;
+        
+        // Вычисляем множитель комбо
+        // Комбо начинается с 1 (нет множителя), затем увеличивается
+        // 1 комбо = x1, 2 комбо = x1.5, 3 комбо = x2, 4 комбо = x2.5, 5 комбо = x3, и т.д.
+        const comboMultiplier = this.comboCount > 1 ? 1 + (this.comboCount - 1) * 0.5 : 1;
+        
+        // Применяем множитель комбо
+        totalPoints = Math.floor(totalPoints * comboMultiplier);
+        
         const oldLevel = this.level;
         this.lines += linesCleared;
-        this.score += linesCleared * 10 * this.level;
+        this.score += totalPoints;
         this.level = Math.floor(this.lines / 20) + 1;
 
         if (this.level > oldLevel) {
             this.showLevelUpCompliment();
+        }
+        
+        // Показываем комбо, если оно есть
+        if (this.comboCount > 1 && clearedCells.length > 0) {
+            this.showCombo(this.comboCount, comboMultiplier, totalPoints);
+        }
+        
+        // Показываем очки на поле
+        if (clearedCells.length > 0 && totalPoints > 0) {
+            this.showPointsOnField(clearedCells, totalPoints, comboMultiplier);
         }
 
         this.updateUI();
@@ -1661,6 +1816,7 @@ class MobileSudokuTetris {
         this.drawBoard();
         this.drawPlacementAnimations();
         this.drawClearAnimations();
+        this.drawPointsAnimations();
     }
 
     drawSudokuGrid() {
@@ -1787,6 +1943,130 @@ class MobileSudokuTetris {
         });
     }
 
+    // Показывает очки на поле при очистке клеток
+    showPointsOnField(clearedCells, totalPoints, comboMultiplier) {
+        if (clearedCells.length === 0 || totalPoints <= 0) return;
+        
+        // Выбираем несколько случайных позиций среди очищенных клеток для отображения очков
+        const numberOfPointsLabels = Math.min(clearedCells.length, 5); // Максимум 5 меток очков
+        const selectedCells = [];
+        
+        // Выбираем случайные клетки
+        const shuffled = [...clearedCells].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < numberOfPointsLabels && i < shuffled.length; i++) {
+            selectedCells.push(shuffled[i]);
+        }
+        
+        // Если очищено много клеток, распределяем очки между метками
+        let pointsPerLabel = Math.floor(totalPoints / selectedCells.length);
+        let remainder = totalPoints % selectedCells.length;
+        
+        // Если слишком мало очков для разделения, показываем одну большую метку
+        if (selectedCells.length > 1 && pointsPerLabel < 10) {
+            // Используем только первую ячейку, но показываем все очки
+            const cell = selectedCells[0];
+            const pixelX = cell.x * this.CELL_SIZE + this.CELL_SIZE / 2;
+            const pixelY = cell.y * this.CELL_SIZE + this.CELL_SIZE / 2;
+            
+            const pointAnimation = {
+                x: pixelX,
+                y: pixelY,
+                startY: pixelY,
+                points: totalPoints,
+                comboMultiplier: comboMultiplier,
+                startTime: performance.now(),
+                progress: 0,
+                opacity: 1,
+                offsetX: (Math.random() - 0.5) * 20
+            };
+            
+            this.pointsAnimations.push(pointAnimation);
+        } else {
+            // Распределяем очки между несколькими метками
+            selectedCells.forEach((cell, index) => {
+                let pointsToShow = pointsPerLabel;
+                // Остаток распределяем по первой метке
+                if (index === 0) {
+                    pointsToShow += remainder;
+                }
+                
+                const pixelX = cell.x * this.CELL_SIZE + this.CELL_SIZE / 2;
+                const pixelY = cell.y * this.CELL_SIZE + this.CELL_SIZE / 2;
+                
+                const pointAnimation = {
+                    x: pixelX,
+                    y: pixelY,
+                    startY: pixelY,
+                    points: pointsToShow,
+                    comboMultiplier: comboMultiplier,
+                    startTime: performance.now(),
+                    progress: 0,
+                    opacity: 1,
+                    offsetX: (Math.random() - 0.5) * 20
+                };
+                
+                this.pointsAnimations.push(pointAnimation);
+            });
+        }
+        
+        // Запускаем анимацию
+        this.ensureAnimationLoop();
+    }
+    
+    // Отрисовывает анимацию очков на canvas
+    drawPointsAnimations() {
+        if (!this.pointsAnimations || this.pointsAnimations.length === 0) {
+            return;
+        }
+        
+        this.pointsAnimations.forEach(point => {
+            const x = point.x + point.offsetX;
+            const y = point.y;
+            
+            // Определяем размер текста в зависимости от множителя комбо
+            let fontSize = 20;
+            let fontWeight = 'bold';
+            let color = '#FFD700'; // Золотой цвет по умолчанию
+            
+            if (point.comboMultiplier > 2) {
+                fontSize = 28;
+                color = '#FF6B9D'; // Розовый для большого комбо
+            } else if (point.comboMultiplier > 1.5) {
+                fontSize = 24;
+                color = '#FFC145'; // Янтарный для среднего комбо
+            }
+            
+            // Добавляем префикс "+" и форматируем число
+            const pointsText = `+${point.points}`;
+            
+            this.ctx.save();
+            
+            // Тень для лучшей читаемости
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.shadowBlur = 4;
+            this.ctx.shadowOffsetX = 2;
+            this.ctx.shadowOffsetY = 2;
+            
+            // Основной текст
+            this.ctx.globalAlpha = point.opacity;
+            this.ctx.font = `${fontWeight} ${fontSize}px Arial`;
+            this.ctx.fillStyle = color;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(pointsText, x, y);
+            
+            // Если есть множитель комбо больше 1, показываем его маленьким текстом под очками
+            if (point.comboMultiplier > 1) {
+                const multiplierText = `x${point.comboMultiplier.toFixed(1)}`;
+                this.ctx.font = `bold ${fontSize * 0.5}px Arial`;
+                this.ctx.fillStyle = '#FFFFFF';
+                this.ctx.fillText(multiplierText, x, y + fontSize * 0.4);
+            }
+            
+            this.ctx.restore();
+        });
+    }
+    
     drawClearBurst(pixelX, pixelY, progress, baseColor) {
         const ctx = this.ctx;
         const centerX = pixelX + this.CELL_SIZE / 2;
@@ -1842,7 +2122,7 @@ class MobileSudokuTetris {
 
         const step = (timestamp) => {
             this.updateClearAnimationProgress(timestamp);
-            if (this.clearAnimations.length > 0) {
+            if (this.clearAnimations.length > 0 || this.pointsAnimations.length > 0) {
                 this.draw();
                 this.animationFrameId = requestAnimationFrame(step);
             } else {
@@ -1862,8 +2142,19 @@ class MobileSudokuTetris {
             effect.progress = progress;
             return elapsed < duration;
         });
+        
+        // Обновляем анимацию очков
+        const pointsDuration = this.POINTS_ANIMATION_DURATION;
+        this.pointsAnimations = this.pointsAnimations.filter(point => {
+            const elapsed = timestamp - point.startTime;
+            const progress = Math.min(1, elapsed / pointsDuration);
+            point.progress = progress;
+            point.y = point.startY - (progress * 60); // Всплытие вверх на 60px
+            point.opacity = 1 - progress; // Постепенное исчезновение
+            return elapsed < pointsDuration;
+        });
 
-        if (this.clearAnimations.length === 0 && this.animationFrameId) {
+        if (this.clearAnimations.length === 0 && this.pointsAnimations.length === 0 && this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
         }
@@ -2030,6 +2321,93 @@ class MobileSudokuTetris {
         if (currentScore) currentScore.textContent = this.score;
     }
     
+    // Показывает информацию о комбо
+    showCombo(comboCount, multiplier, points) {
+        // Создаем элемент для комбо
+        const comboElement = document.createElement('div');
+        comboElement.className = 'combo-indicator-popup';
+        comboElement.innerHTML = `
+            <div class="combo-content">
+                <div class="combo-text">COMBO x${comboCount}!</div>
+                <div class="combo-multiplier">x${multiplier.toFixed(1)} множитель</div>
+                <div class="combo-points">+${points} очков</div>
+            </div>
+        `;
+        
+        // Добавляем стили, если их еще нет
+        if (!document.getElementById('combo-styles')) {
+            const style = document.createElement('style');
+            style.id = 'combo-styles';
+            style.textContent = `
+                .combo-indicator-popup {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) scale(0.5);
+                    z-index: 10000;
+                    pointer-events: none;
+                    opacity: 0;
+                    transition: all 0.3s ease-out;
+                }
+                .combo-indicator-popup.show {
+                    transform: translate(-50%, -50%) scale(1);
+                    opacity: 1;
+                }
+                .combo-content {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 20px 30px;
+                    border-radius: 16px;
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                    text-align: center;
+                    font-weight: bold;
+                    animation: combo-pulse 0.6s ease-out;
+                }
+                .combo-text {
+                    font-size: 32px;
+                    margin-bottom: 8px;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                }
+                .combo-multiplier {
+                    font-size: 18px;
+                    margin-bottom: 4px;
+                    opacity: 0.9;
+                }
+                .combo-points {
+                    font-size: 24px;
+                    color: #ffd700;
+                    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+                }
+                @keyframes combo-pulse {
+                    0% { transform: scale(0.5); opacity: 0; }
+                    50% { transform: scale(1.1); }
+                    100% { transform: scale(1); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Добавляем в DOM
+        document.body.appendChild(comboElement);
+        
+        // Анимация появления
+        setTimeout(() => {
+            comboElement.classList.add('show');
+        }, 10);
+        
+        // Автоматическое удаление через 2 секунды
+        setTimeout(() => {
+            if (document.body.contains(comboElement)) {
+                comboElement.classList.remove('show');
+                setTimeout(() => {
+                    if (document.body.contains(comboElement)) {
+                        document.body.removeChild(comboElement);
+                    }
+                }, 300);
+            }
+        }, 2000);
+    }
+    
     // Показывает комплимент при достижении нового уровня
     showLevelUpCompliment() {
         // Выбираем случайный комплимент
@@ -2137,8 +2515,18 @@ class MobileSudokuTetris {
         this.draggedPiece = null;
         this.isDragging = false;
         
+        // Сбрасываем комбо
+        this.comboCount = 0;
+        this.lastClearTime = 0;
+        
+        // Сбрасываем анимацию очков
+        this.pointsAnimations = [];
+        
         // Сбрасываем выделение
         this.clearSelection();
+        
+        // Очищаем историю ходов
+        this.moveHistory = [];
         
         // Очищаем сохраненное состояние при перезапуске
         this.clearGameState();
@@ -2147,6 +2535,73 @@ class MobileSudokuTetris {
         this.updateUI();
         this.generatePieces();
         this.draw();
+    }
+    
+    // Сохраняет состояние перед ходом для возможности отмены
+    // Хранит только последний ход, чтобы можно было отменить только 1 последний ход
+    saveMoveState() {
+        const state = {
+            board: this.board.map(row => [...row]),
+            boardColors: this.boardColors.map(row => row.map(color => color ? color : null)),
+            availablePieces: this.availablePieces.map(piece => JSON.parse(JSON.stringify(piece))),
+            score: this.score,
+            level: this.level,
+            lines: this.lines
+        };
+        
+        // Очищаем историю и сохраняем только текущее состояние
+        // Это позволяет отменить только последний ход
+        this.moveHistory = [state];
+    }
+    
+    // Отменяет последний ход (можно отменить только 1 последний ход)
+    undoMove() {
+        if (this.moveHistory.length === 0) {
+            console.log('Нет ходов для отмены');
+            return;
+        }
+        
+        if (!this.gameRunning) {
+            console.log('Нельзя отменить ход после окончания игры');
+            return;
+        }
+        
+        // Восстанавливаем предыдущее состояние (последний сохраненный ход)
+        const previousState = this.moveHistory[0];
+        
+        this.board = previousState.board.map(row => [...row]);
+        this.boardColors = previousState.boardColors.map(row => row.map(color => color ? color : null));
+        this.availablePieces = previousState.availablePieces.map(piece => JSON.parse(JSON.stringify(piece)));
+        this.score = previousState.score;
+        this.level = previousState.level;
+        this.lines = previousState.lines;
+        
+        // Очищаем историю после отмены, чтобы нельзя было отменить еще раз
+        this.moveHistory = [];
+        
+        // Обновляем отображение
+        this.renderPieces(false);
+        this.draw();
+        this.updateUI();
+        this.saveGameState();
+        
+        // Убираем выделение
+        this.clearSelection();
+        
+        console.log('Последний ход отменен');
+    }
+    
+    // Обновляет фигуры в лотке
+    refreshPieces() {
+        if (!this.gameRunning) {
+            console.log('Нельзя обновить фигуры после окончания игры');
+            return;
+        }
+        
+        // Генерируем новые фигуры
+        this.generatePieces();
+        
+        console.log('Фигуры в лотке обновлены');
     }
 }
 

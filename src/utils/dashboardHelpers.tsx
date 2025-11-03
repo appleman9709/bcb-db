@@ -94,7 +94,7 @@ export const getTypeInfo = (type: string, item: any): TypeInfo => {
         color: 'bg-yellow-100 text-yellow-600',
         bgColor: 'bg-yellow-50',
         description: '',
-        extraInfo: item.bath_mood === 'Довольный' ? '😊 Довольный' : '😢 Недоволен'
+        extraInfo: item.bath_mood === 'Беспокоился' ? '😢 Беспокоился' : '😊 Спокойное'
       }
     case 'activity': {
       const activityInfo =
