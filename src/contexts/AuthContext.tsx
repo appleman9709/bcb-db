@@ -1,7 +1,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { supabase } from '../lib/supabaseClient'
+import { supabase, prewarmConnection } from '../lib/supabaseClient'
 import { dataService, type Family, type FamilyMember } from '../services/dataService'
 
 type FamilyLookupResult =
@@ -57,6 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setInitialized(true)
       return
     }
+
+    // Предварительная проверка соединения с БД для предотвращения "засыпания"
+    prewarmConnection().catch(() => {
+      // Игнорируем ошибки предварительной проверки
+    })
 
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY)

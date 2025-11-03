@@ -69,7 +69,7 @@ class MobileSudokuTetris {
         // Плавающий canvas для превью фигуры под/над пальцем
         this.dragCanvas = document.createElement('canvas');
         this.dragCanvasCtx = this.dragCanvas.getContext('2d');
-        this.previewOffsetY = Math.max(34, Math.round(this.CELL_SIZE * 1.15));
+        this.previewOffsetY = Math.max(50, Math.round(this.CELL_SIZE * 1.5));
         this.previewCenterX = 0;
         this.previewCenterY = 0;
         this.dragCanvas.style.position = 'fixed';
@@ -1532,7 +1532,16 @@ class MobileSudokuTetris {
         
         // Если что-то очистилось, увеличиваем комбо
         if (clearedCells.length > 0) {
+            // Базовое увеличение комбо на 1
             this.comboCount++;
+            
+            // Дополнительный бонус комбо за одновременное удаление нескольких линий
+            // Если удалено 2+ линии одновременно, добавляем +1 к комбо за каждую дополнительную линию
+            if (linesCleared > 1) {
+                const bonusCombo = linesCleared - 1; // Бонус = количество дополнительных линий
+                this.comboCount += bonusCombo;
+            }
+            
             this.lastClearTime = currentTime;
         }
         
@@ -1565,7 +1574,7 @@ class MobileSudokuTetris {
         
         // Показываем комбо, если оно есть
         if (this.comboCount > 1 && clearedCells.length > 0) {
-            this.showCombo(this.comboCount, comboMultiplier, totalPoints);
+            this.showCombo(this.comboCount, comboMultiplier, totalPoints, linesCleared);
         }
         
         // Показываем очки на поле
@@ -2322,15 +2331,19 @@ class MobileSudokuTetris {
     }
     
     // Показывает информацию о комбо
-    showCombo(comboCount, multiplier, points) {
+    showCombo(comboCount, multiplier, points, linesCleared = 1) {
         // Создаем элемент для комбо
         const comboElement = document.createElement('div');
         comboElement.className = 'combo-indicator-popup';
+        
+        // Добавляем информацию о бонусе за несколько линий, если удалено больше 1 линии
+        const linesBonusText = linesCleared > 1 ? 
+            `<div class="combo-lines-bonus">x${linesCleared}</div>` : '';
+        
         comboElement.innerHTML = `
             <div class="combo-content">
-                <div class="combo-text">COMBO x${comboCount}!</div>
-                <div class="combo-multiplier">x${multiplier.toFixed(1)} множитель</div>
-                <div class="combo-points">+${points} очков</div>
+                <div class="combo-text">COMBO x${comboCount}</div>
+                ${linesBonusText}
             </div>
         `;
         
@@ -2343,45 +2356,34 @@ class MobileSudokuTetris {
                     position: fixed;
                     top: 50%;
                     left: 50%;
-                    transform: translate(-50%, -50%) scale(0.5);
+                    transform: translate(-50%, -50%) scale(0.8);
                     z-index: 10000;
                     pointer-events: none;
                     opacity: 0;
-                    transition: all 0.3s ease-out;
+                    transition: all 0.25s ease-out;
                 }
                 .combo-indicator-popup.show {
-                    transform: translate(-50%, -50%) scale(1);
                     opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
                 }
                 .combo-content {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     color: white;
-                    padding: 20px 30px;
-                    border-radius: 16px;
-                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+                    padding: 8px 16px;
                     text-align: center;
-                    font-weight: bold;
-                    animation: combo-pulse 0.6s ease-out;
+                    font-weight: 600;
+                    min-width: 100px;
                 }
                 .combo-text {
-                    font-size: 32px;
-                    margin-bottom: 8px;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-                }
-                .combo-multiplier {
                     font-size: 18px;
                     margin-bottom: 4px;
-                    opacity: 0.9;
+                    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
                 }
-                .combo-points {
-                    font-size: 24px;
+                .combo-lines-bonus {
+                    font-size: 14px;
+                    margin-top: 2px;
                     color: #ffd700;
-                    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-                }
-                @keyframes combo-pulse {
-                    0% { transform: scale(0.5); opacity: 0; }
-                    50% { transform: scale(1.1); }
-                    100% { transform: scale(1); opacity: 1; }
+                    font-weight: 600;
+                    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
                 }
             `;
             document.head.appendChild(style);
@@ -2395,7 +2397,7 @@ class MobileSudokuTetris {
             comboElement.classList.add('show');
         }, 10);
         
-        // Автоматическое удаление через 2 секунды
+        // Автоматическое удаление через 1.5 секунды
         setTimeout(() => {
             if (document.body.contains(comboElement)) {
                 comboElement.classList.remove('show');
@@ -2403,9 +2405,9 @@ class MobileSudokuTetris {
                     if (document.body.contains(comboElement)) {
                         document.body.removeChild(comboElement);
                     }
-                }, 300);
+                }, 250);
             }
-        }, 2000);
+        }, 1500);
     }
     
     // Показывает комплимент при достижении нового уровня
