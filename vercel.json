@@ -37,7 +37,7 @@
     },
     {
       "path": "/api/push/process-reminders",
-      "schedule": "*/1 * * * *"
+      "schedule": "15 3 * * *"
     }
   ]
 }
