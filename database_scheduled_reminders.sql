@@ -40,49 +40,12 @@ CREATE TRIGGER trigger_update_scheduled_reminders_updated_at
 -- RLS политики
 ALTER TABLE scheduled_reminders ENABLE ROW LEVEL SECURITY;
 
--- Политика: пользователи могут видеть напоминания только для своей семьи
-CREATE POLICY "Users can view reminders for their family"
-    ON scheduled_reminders
-    FOR SELECT
-    USING (
-        family_id IN (
-            SELECT family_id FROM family_members 
-            WHERE user_id::TEXT = auth.uid()::TEXT
-        )
-    );
-
--- Политика: пользователи могут создавать напоминания только для своей семьи
-CREATE POLICY "Users can create reminders for their family"
-    ON scheduled_reminders
-    FOR INSERT
-    WITH CHECK (
-        family_id IN (
-            SELECT family_id FROM family_members 
-            WHERE user_id::TEXT = auth.uid()::TEXT
-        )
-    );
-
--- Политика: пользователи могут обновлять напоминания только для своей семьи
-CREATE POLICY "Users can update reminders for their family"
-    ON scheduled_reminders
-    FOR UPDATE
-    USING (
-        family_id IN (
-            SELECT family_id FROM family_members 
-            WHERE user_id::TEXT = auth.uid()::TEXT
-        )
-    );
-
--- Политика: пользователи могут удалять напоминания только для своей семьи
-CREATE POLICY "Users can delete reminders for their family"
-    ON scheduled_reminders
-    FOR DELETE
-    USING (
-        family_id IN (
-            SELECT family_id FROM family_members 
-            WHERE user_id::TEXT = auth.uid()::TEXT
-        )
-    );
+-- Упрощенная политика (как для других таблиц: feedings, diapers, baths)
+-- Приложение использует свою систему авторизации через family_members
+CREATE POLICY "Enable all operations for authenticated users" 
+    ON scheduled_reminders 
+    FOR ALL 
+    USING (true);
 
 -- Комментарии к таблице и столбцам
 COMMENT ON TABLE scheduled_reminders IS 'Таблица для хранения запланированных push-уведомлений о кормлении, смене подгузников и купании';

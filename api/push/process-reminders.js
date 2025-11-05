@@ -135,12 +135,15 @@ module.exports = async (req, res) => {
     }
 
     if (!reminders || reminders.length === 0) {
+      console.log('[process-reminders] No reminders to process')
       return res.status(200).json({
         success: true,
         processed: 0,
         message: 'No reminders to process'
       })
     }
+
+    console.log(`[process-reminders] Found ${reminders.length} reminder(s) to process`)
 
     // Получаем все подписки для семей
     const familyIds = [...new Set(reminders.map((r) => r.family_id))]
@@ -180,7 +183,7 @@ module.exports = async (req, res) => {
       const familySubscriptions = subscriptionsByFamily[reminder.family_id] || []
 
       if (familySubscriptions.length === 0) {
-        console.log(`No subscriptions for family ${reminder.family_id}`)
+        console.log(`[process-reminders] ⚠️ No subscriptions for family ${reminder.family_id}, skipping reminder ${reminder.id}`)
         // Помечаем как отправленное, даже если нет подписок
         await supabase
           .from('scheduled_reminders')
@@ -188,6 +191,8 @@ module.exports = async (req, res) => {
           .eq('id', reminder.id)
         continue
       }
+
+      console.log(`[process-reminders] Processing reminder ${reminder.id} (${reminder.reminder_type}) for family ${reminder.family_id} with ${familySubscriptions.length} subscription(s)`)
 
       // Отправляем уведомление всем подписчикам семьи
       let familySentCount = 0

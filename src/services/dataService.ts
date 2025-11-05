@@ -547,11 +547,17 @@ class DataService {
       console.error('Error adding feeding activity', activityError)
     }
 
-    // Планируем напоминание о следующем кормлении
+    // Планируем напоминание о следующем кормлении сразу после добавления
     try {
       // Импортируем динамически, чтобы избежать циклических зависимостей
       const { reminderService } = await import('./reminderService')
-      await reminderService.scheduleFeedingReminder(familyId)
+      
+      // Получаем настройки для интервала кормления
+      const settings = await this.getSettings()
+      if (settings && settings.feed_interval) {
+        const eventTimestamp = new Date(eventDate.toISOString())
+        await reminderService.scheduleFeedingReminder(familyId, eventTimestamp, settings.feed_interval)
+      }
     } catch (reminderError) {
       console.error('Error scheduling feeding reminder', reminderError)
       // Не прерываем выполнение, если планирование напоминания не удалось
@@ -711,11 +717,17 @@ class DataService {
       console.error('Error ending sleep after diaper change', sleepEndError)
     }
 
-    // Планируем напоминание о следующей смене подгузника
+    // Планируем напоминание о следующей смене подгузника сразу после добавления
     try {
       // Импортируем динамически, чтобы избежать циклических зависимостей
       const { reminderService } = await import('./reminderService')
-      await reminderService.scheduleDiaperReminder(familyId)
+      
+      // Получаем настройки для интервала смены подгузника
+      const settings = await this.getSettings()
+      if (settings && settings.diaper_interval) {
+        const eventTimestamp = new Date(eventDate.toISOString())
+        await reminderService.scheduleDiaperReminder(familyId, eventTimestamp, settings.diaper_interval)
+      }
     } catch (reminderError) {
       console.error('Error scheduling diaper reminder', reminderError)
       // Не прерываем выполнение, если планирование напоминания не удалось
@@ -854,11 +866,17 @@ class DataService {
       console.error('Error adding bath activity', activityError)
     }
 
-    // Планируем напоминание о следующем купании
+    // Планируем напоминание о следующем купании сразу после добавления
     try {
       // Импортируем динамически, чтобы избежать циклических зависимостей
       const { reminderService } = await import('./reminderService')
-      await reminderService.scheduleBathReminder(familyId)
+      
+      // Получаем настройки для интервала купания
+      const settings = await this.getSettings()
+      if (settings && settings.bath_reminder_period) {
+        const eventTimestamp = new Date(eventDate.toISOString())
+        await reminderService.scheduleBathReminder(familyId, eventTimestamp, settings.bath_reminder_period)
+      }
     } catch (reminderError) {
       console.error('Error scheduling bath reminder', reminderError)
       // Не прерываем выполнение, если планирование напоминания не удалось
