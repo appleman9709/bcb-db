@@ -33,14 +33,36 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'x-client-info': 'babycare-dashboard/1.0',
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
     },
     // Таймаут для запросов (30 секунд)
     fetch: (url, options = {}) => {
       // Если уже есть signal, используем его, иначе создаем таймаут
       const signal = options.signal || createTimeoutSignal(30000)
 
+      // Убеждаемся, что заголовки Accept и Content-Type установлены
+      const headers = options.headers 
+        ? (options.headers instanceof Headers 
+            ? new Headers(options.headers) 
+            : new Headers(options.headers))
+        : new Headers()
+      
+      // Устанавливаем обязательные заголовки для PostgREST
+      if (!headers.has('Accept')) {
+        headers.set('Accept', 'application/json')
+      }
+      
+      // Для POST/PATCH/PUT запросов добавляем Content-Type
+      if (options.method && ['POST', 'PATCH', 'PUT'].includes(options.method.toUpperCase())) {
+        if (!headers.has('Content-Type')) {
+          headers.set('Content-Type', 'application/json')
+        }
+      }
+
       return fetch(url, {
         ...options,
+        headers,
         signal,
       }).catch((error) => {
         // При ошибке таймаута, пробуем еще раз с меньшим таймаутом
@@ -48,8 +70,27 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
           console.warn('Database request timeout, retrying with shorter timeout...')
           const retrySignal = createTimeoutSignal(10000) // Повторная попытка с 10 секундами
           
+          const retryHeaders = options.headers 
+            ? (options.headers instanceof Headers 
+                ? new Headers(options.headers) 
+                : new Headers(options.headers))
+            : new Headers()
+          
+          // Устанавливаем обязательные заголовки для PostgREST
+          if (!retryHeaders.has('Accept')) {
+            retryHeaders.set('Accept', 'application/json')
+          }
+          
+          // Для POST/PATCH/PUT запросов добавляем Content-Type
+          if (options.method && ['POST', 'PATCH', 'PUT'].includes(options.method.toUpperCase())) {
+            if (!retryHeaders.has('Content-Type')) {
+              retryHeaders.set('Content-Type', 'application/json')
+            }
+          }
+          
           return fetch(url, {
             ...options,
+            headers: retryHeaders,
             signal: retrySignal,
           })
         }

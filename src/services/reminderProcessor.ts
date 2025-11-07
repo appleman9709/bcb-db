@@ -105,6 +105,11 @@ class ReminderProcessor {
       } else {
         console.error('❌ Error processing reminders:', result.error || result.message)
       }
+      
+      // Дополнительная диагностика для отладки
+      if (result.debug) {
+        console.log('🔍 Debug info:', result.debug)
+      }
     } catch (error) {
       // Если ошибка сети (API недоступен) - это нормально для локальной разработки
       if (error instanceof TypeError && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {

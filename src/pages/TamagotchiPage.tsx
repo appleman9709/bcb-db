@@ -67,6 +67,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const [portionSizeOuncesInput, setPortionSizeOuncesInput] = useState<string>('1')
   const [portionSizeStatus, setPortionSizeStatus] = useState<string | null>(null)
   const [portionSizeStatusTone, setPortionSizeStatusTone] = useState<'neutral' | 'success' | 'error'>('neutral')
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
 
   const { member, family } = useAuth()
   const { animateCoin, canAnimate } = useCoinAnimationLimiter()
@@ -95,6 +96,119 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       score: data.parentCoins.total_score
     }
   }, [data?.parentCoins])
+
+  const coinDisplayItems = useMemo(() => [
+    {
+      key: 'feeding',
+      count: coinCounts.feedingCoins,
+      icon: '/icons/feeding.png',
+      alt: 'Кормление',
+      label: 'Кормление',
+      bgClass: 'bg-pink-100',
+      textClass: 'text-pink-800'
+    },
+    {
+      key: 'diaper',
+      count: coinCounts.diaperCoins,
+      icon: '/icons/poor.png',
+      alt: 'Подгузник',
+      label: 'Подгузник',
+      bgClass: 'bg-yellow-100',
+      textClass: 'text-yellow-800'
+    },
+    {
+      key: 'bath',
+      count: coinCounts.bathCoins,
+      icon: '/icons/sponge.png',
+      alt: 'Купание',
+      label: 'Купание',
+      bgClass: 'bg-purple-100',
+      textClass: 'text-purple-800'
+    },
+    {
+      key: 'mom',
+      count: coinCounts.momCoins,
+      icon: '/icons/mom.png',
+      alt: 'Монетка',
+      label: 'Монетка',
+      bgClass: 'bg-green-100',
+      textClass: 'text-green-800'
+    },
+    {
+      key: 'sleep',
+      count: coinCounts.sleepCoins,
+      icon: '/icons/sleep.png',
+      alt: 'Сон',
+      label: 'Сон',
+      bgClass: 'bg-indigo-100',
+      textClass: 'text-indigo-800'
+    }
+  ], [
+    coinCounts.feedingCoins,
+    coinCounts.diaperCoins,
+    coinCounts.bathCoins,
+    coinCounts.momCoins,
+    coinCounts.sleepCoins
+  ])
+
+  const hasAnyCoins = useMemo(
+    () => coinDisplayItems.some(item => item.count > 0),
+    [coinDisplayItems]
+  )
+
+  const feedingStatus = useMemo(() => {
+    const intervalHours = Math.max(settings.feedingInterval, 0)
+    const totalHearts = Math.max(0, Math.ceil(intervalHours))
+
+    if (!data?.lastFeeding?.timestamp || totalHearts === 0) {
+      return {
+        totalHearts,
+        heartsFill: Array(totalHearts).fill(0) as number[]
+      }
+    }
+
+    const lastFeedingTs = new Date(data.lastFeeding.timestamp).getTime()
+    const diffHours = Math.max(0, (currentTime - lastFeedingTs) / (1000 * 60 * 60))
+    const timeLeft = Math.max(0, intervalHours - diffHours)
+
+    const heartsFill = Array.from({ length: totalHearts }, (_, idx) => {
+      const rawFill = Math.max(0, Math.min(1, timeLeft - idx))
+      if (rawFill <= 0) {
+        return 0
+      }
+
+      const quantized = Math.ceil(rawFill * 4) / 4
+      return Math.min(1, quantized)
+    })
+
+    return {
+      totalHearts,
+      heartsFill
+    }
+  }, [data?.lastFeeding?.timestamp, currentTime, settings.feedingInterval])
+
+  const diaperStatus = useMemo(() => {
+    if (!data?.lastDiaper?.timestamp) {
+      return {
+        hours: null as number | null,
+        percent: 0,
+        overLimit: false
+      }
+    }
+
+    const lastDiaperTs = new Date(data.lastDiaper.timestamp).getTime()
+    const diffHours = Math.max(0, (currentTime - lastDiaperTs) / (1000 * 60 * 60))
+    const referenceInterval = Math.max(settings.diaperInterval, 0.1)
+    const rawPercent = (diffHours / referenceInterval) * 100
+    const percent = Math.max(0, Math.min(100, rawPercent))
+    const overLimit = diffHours >= referenceInterval
+
+    return {
+      hours: diffHours,
+      percent,
+      overLimit
+    }
+  }, [data?.lastDiaper, currentTime, settings.diaperInterval])
 
   // Загружаем размер порции из БД при загрузке данных
   useEffect(() => {
@@ -282,6 +396,16 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       allTimeoutsRef.current.delete(timeoutId)
     }
   }, [portionSizeStatus])
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(Date.now())
+    }, 60000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [])
 
   const handleRestockSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -1066,53 +1190,17 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       {/* Стопки монеток - компактные */}
       <div className="tamagotchi-coins text-center">
         <div className="flex justify-center gap-1 flex-wrap items-center">
-          {/* Стопка кормления */}
-          {coinCounts.feedingCoins > 0 && (
-            <div className="flex items-center gap-1 bg-pink-100 px-1.5 py-0.5 rounded-3xl">
-              <img src="/icons/feeding.png" alt="Кормление" className="w-3 h-3" />
-              <span className="text-xs font-bold text-pink-800">{coinCounts.feedingCoins}</span>
+          {coinDisplayItems.map(item => (
+            <div
+              key={item.key}
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded-3xl ${item.bgClass} ${item.count === 0 ? 'opacity-60' : ''}`}
+              title={`${item.label}: ${item.count}`}
+              aria-label={`${item.label}: ${item.count}`}
+            >
+              <img src={item.icon} alt={item.alt} className="w-3 h-3" />
+              <span className={`text-xs font-bold ${item.textClass}`}>{item.count}</span>
             </div>
-          )}
-          
-          {/* Стопка подгузников */}
-          {coinCounts.diaperCoins > 0 && (
-            <div className="flex items-center gap-1 bg-yellow-100 px-1.5 py-0.5 rounded-3xl">
-              <img src="/icons/poor.png" alt="Подгузник" className="w-3 h-3" />
-              <span className="text-xs font-bold text-yellow-800">{coinCounts.diaperCoins}</span>
-            </div>
-          )}
-          
-          {/* Стопка купания */}
-          {coinCounts.bathCoins > 0 && (
-            <div className="flex items-center gap-1 bg-purple-100 px-1.5 py-0.5 rounded-3xl">
-              <img src="/icons/sponge.png" alt="Купание" className="w-3 h-3" />
-              <span className="text-xs font-bold text-purple-800">{coinCounts.bathCoins}</span>
-            </div>
-          )}
-          
-          {/* Стопка активности */}
-          {coinCounts.activityCoins > 0 && (
-            <div className="flex items-center gap-1 bg-indigo-100 px-1.5 py-0.5 rounded-3xl">
-              <img src="/icons/baby.png" alt="Активность" className="w-3 h-3" />
-              <span className="text-xs font-bold text-indigo-800">{coinCounts.activityCoins}</span>
-            </div>
-          )}
-          
-          {/* Стопка обычных монеток */}
-          {coinCounts.momCoins > 0 && (
-            <div className="flex items-center gap-1 bg-green-100 px-1.5 py-0.5 rounded-3xl">
-              <img src="/icons/mom.png" alt="Монетка" className="w-3 h-3" />
-              <span className="text-xs font-bold text-green-800">{coinCounts.momCoins}</span>
-            </div>
-          )}
-          
-          {/* Стопка монеток сна */}
-          {coinCounts.sleepCoins > 0 && (
-            <div className="flex items-center gap-1 bg-indigo-100 px-1.5 py-0.5 rounded-3xl">
-              <img src="/icons/sleep.png" alt="Сон" className="w-3 h-3" />
-              <span className="text-xs font-bold text-indigo-800">{coinCounts.sleepCoins}</span>
-            </div>
-          )}
+          ))}
           
           {/* Общий счетчик очков */}
           <div className={`inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-3xl transition-all duration-300 ${
@@ -1124,6 +1212,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             }`}>{coinCounts.score}</span>
           </div>
         </div>
+        {!hasAnyCoins && (
+          <p className="mt-1 text-[10px] text-slate-500">
+            Соберите первую монетку — малыш ждёт вашей заботы!
+          </p>
+        )}
       </div>
 
       {/* GIF/Video малыша - адаптивное */}
@@ -1133,6 +1226,56 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         </p>
         
         <div className="relative inline-block">
+          <div className="absolute top-3 right-3 z-30 flex flex-col items-end gap-3">
+            <div
+              className="flex flex-wrap justify-end gap-1"
+              style={
+                feedingStatus.totalHearts > 0
+                  ? { minWidth: `${feedingStatus.totalHearts * 24}px` }
+                  : undefined
+              }
+            >
+              {feedingStatus.totalHearts > 0 &&
+                feedingStatus.heartsFill
+                  .slice()
+                  .reverse()
+                  .map((fill, idx) => (
+                    <span key={idx} className="relative inline-flex w-6 justify-center leading-none">
+                      <span
+                        className="block text-3xl leading-none text-transparent transition-opacity duration-200"
+                        style={{ opacity: fill > 0 ? 1 : 0 }}
+                      >
+                        ♥
+                      </span>
+                      {fill > 0 && (
+                        <span
+                          className="absolute inset-0 overflow-hidden"
+                          style={{ width: `${fill * 100}%` }}
+                        >
+                          <span className="block text-3xl leading-none text-rose-500">♥</span>
+                        </span>
+                      )}
+                    </span>
+                  ))}
+            </div>
+
+            <div className="flex w-full max-w-[240px] items-center gap-2">
+              <img src="/icons/common.png" alt="Подгузник" className="h-6 w-6 object-contain drop-shadow-sm" />
+              <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200/80" title={
+                diaperStatus.hours !== null
+                  ? `Прошло ${diaperStatus.hours.toFixed(1)} ч с последней смены подгузника`
+                  : 'Нет данных о последней смене подгузника'
+              }>
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ease-out ${
+                    diaperStatus.overLimit ? 'bg-rose-400' : 'bg-amber-300'
+                  }`}
+                  style={{ width: `${diaperStatus.percent}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
           {isSleepMode && getGifSource(babyState).endsWith('.MP4') ? (
             <video
               key="sleep-video"

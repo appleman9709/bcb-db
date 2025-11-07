@@ -185,10 +185,54 @@ class PushService {
       }
 
       console.log('Push subscription saved:', data)
+      
+      // Регистрируем периодическую синхронизацию для обработки напоминаний в фоне
+      await this.registerPeriodicSync(registration)
+      
       return data
     } catch (error) {
       console.error('Error subscribing to push notifications:', error)
       return null
+    }
+  }
+
+  /**
+   * Регистрирует периодическую синхронизацию для обработки напоминаний в фоне
+   */
+  private async registerPeriodicSync(registration: ServiceWorkerRegistration): Promise<void> {
+    try {
+      // Проверяем поддержку Periodic Background Sync
+      if ('periodicSync' in registration) {
+        // @ts-ignore - периодическая синхронизация может быть не в типах
+        const periodicSync = registration.periodicSync
+        
+        // Проверяем разрешение на периодическую синхронизацию
+        // @ts-ignore
+        const status = await periodicSync.getTags()
+        
+        // Регистрируем периодическую синхронизацию каждые 5 минут
+        try {
+          // @ts-ignore
+          await periodicSync.register('process-reminders', {
+            minInterval: 5 * 60 * 1000 // 5 минут (минимальный интервал)
+          })
+          console.log('✅ Periodic background sync registered for reminders')
+        } catch (syncError: any) {
+          // Если периодическая синхронизация не поддерживается или не разрешена
+          if (syncError.name === 'NotSupportedError' || syncError.name === 'NotAllowedError') {
+            console.log('ℹ️ Periodic background sync not available or not allowed')
+            console.log('   Напоминания будут обрабатываться через Vercel cron job')
+          } else {
+            console.warn('⚠️ Failed to register periodic sync:', syncError)
+          }
+        }
+      } else {
+        console.log('ℹ️ Periodic Background Sync not supported in this browser')
+        console.log('   Напоминания будут обрабатываться через Vercel cron job')
+      }
+    } catch (error) {
+      console.warn('⚠️ Error registering periodic sync:', error)
+      // Не критично, продолжаем работу
     }
   }
 

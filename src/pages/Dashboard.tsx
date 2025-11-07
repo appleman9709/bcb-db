@@ -489,7 +489,7 @@ export default function Dashboard() {
     if (!timestamp || intervalMs <= 0) {
       return {
         elapsedPercent: 0,
-        remainingPercent: 0,
+        remainingPercent: 100, // Полное кольцо когда нет данных
         overdue: false
       }
     }
@@ -519,7 +519,7 @@ export default function Dashboard() {
   )
 
   const getRingStyle = (color: string, percent: number) => ({
-    background: `conic-gradient(from 0deg, ${color} ${percent}%, #d0e4fe ${percent}% 100%)`
+    background: `conic-gradient(from 0deg, ${color} 0% ${percent}%, #d0e4fe ${percent}% 100%)`
   })
 
   const handleModalSuccess = async () => {
@@ -1113,7 +1113,7 @@ export default function Dashboard() {
                 >
                   <div
                     className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
-                    style={getRingStyle(feedingProgress.overdue ? '#ef4444' : '#38bdf8', feedingProgress.elapsedPercent)}
+                    style={getRingStyle(feedingProgress.overdue ? '#ef4444' : '#38bdf8', feedingProgress.overdue ? 100 : feedingProgress.remainingPercent)}
                   >
                     <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
                       <img src="/icons/feeding.png" alt="Кормление" className="w-[54px] h-[54px] object-contain" />
@@ -1138,7 +1138,7 @@ export default function Dashboard() {
                 >
                   <div
                     className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
-                    style={getRingStyle(diaperProgress.overdue ? '#ef4444' : '#22c55e', diaperProgress.elapsedPercent)}
+                    style={getRingStyle(diaperProgress.overdue ? '#ef4444' : '#22c55e', diaperProgress.overdue ? 100 : diaperProgress.remainingPercent)}
                   >
                     <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
                       <img src="/icons/poor.png" alt="Смена подгузника" className="w-[54px] h-[54px] object-contain" />
@@ -1163,7 +1163,7 @@ export default function Dashboard() {
                 >
                   <div
                     className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
-                    style={getRingStyle(bathProgress.overdue ? '#ef4444' : '#f59e0b', bathProgress.elapsedPercent)}
+                    style={getRingStyle(bathProgress.overdue ? '#ef4444' : '#f59e0b', bathProgress.overdue ? 100 : bathProgress.remainingPercent)}
                   >
                     <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
                       <img src="/icons/bath.png" alt="Купание" className="w-[54px] h-[54px] object-contain" />

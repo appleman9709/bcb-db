@@ -251,6 +251,7 @@ class DataService {
 
   async getFamilyMembers(): Promise<FamilyMember[]> {
     const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
 
     const { data, error } = await supabase
       .from('family_members')
@@ -1203,6 +1204,7 @@ class DataService {
     inventory: FamilyInventory | null
   }> {
     const familyId = this.requireFamilyId()
+    const { authorId } = this.requireAuthor()
 
     // Fetch all data in parallel with optimized queries
     const [
@@ -1238,7 +1240,8 @@ class DataService {
         .from('parent_coins')
         .select('*')
         .eq('family_id', familyId)
-        .single(),
+        .eq('user_id', authorId)
+        .maybeSingle(),
       supabase
         .from('sleep_sessions')
         .select('*')
@@ -1635,13 +1638,9 @@ class DataService {
       .select('*')
       .eq('family_id', familyId)
       .eq('user_id', authorId)
-      .single()
+      .maybeSingle()
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null
-      }
-
       console.error('Error fetching parent coins', error)
       return null
     }

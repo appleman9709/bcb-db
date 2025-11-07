@@ -25,6 +25,8 @@ function applyCors(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST,GET,OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization')
 
+  // Если нет origin (например, запрос от cron-job.org), разрешаем запрос
+  // Это нормально для серверных запросов от внешних cron сервисов
   if (!origin) {
     return
   }
@@ -136,14 +138,47 @@ module.exports = async (req, res) => {
 
     if (!reminders || reminders.length === 0) {
       console.log('[process-reminders] No reminders to process')
+      
+      // Проверяем, есть ли вообще напоминания в будущем для диагностики
+      const { data: futureReminders } = await supabase
+        .from('scheduled_reminders')
+        .select('id, reminder_type, scheduled_time, status, family_id')
+        .eq('status', 'pending')
+        .gt('scheduled_time', now)
+        .order('scheduled_time', { ascending: true })
+        .limit(5)
+      
+      const debugInfo = {
+        now: now,
+        futureRemindersCount: futureReminders?.length || 0,
+        nextReminder: futureReminders && futureReminders.length > 0 
+          ? {
+              id: futureReminders[0].id,
+              type: futureReminders[0].reminder_type,
+              scheduledTime: futureReminders[0].scheduled_time,
+              timeUntil: new Date(futureReminders[0].scheduled_time).getTime() - new Date(now).getTime(),
+              minutesUntil: Math.round((new Date(futureReminders[0].scheduled_time).getTime() - new Date(now).getTime()) / 1000 / 60)
+            }
+          : null
+      }
+      
       return res.status(200).json({
         success: true,
         processed: 0,
-        message: 'No reminders to process'
+        message: 'No reminders to process',
+        debug: debugInfo
       })
     }
 
     console.log(`[process-reminders] Found ${reminders.length} reminder(s) to process`)
+    
+    // Детальное логирование каждого напоминания
+    reminders.forEach((reminder) => {
+      const scheduledTime = new Date(reminder.scheduled_time)
+      const timeDiff = scheduledTime.getTime() - new Date(now).getTime()
+      const minutesDiff = Math.round(timeDiff / 1000 / 60)
+      console.log(`  - Reminder ${reminder.id}: ${reminder.reminder_type} for family ${reminder.family_id}, scheduled: ${scheduledTime.toISOString()}, ${minutesDiff} minutes ${minutesDiff >= 0 ? 'ago' : 'from now'}`)
+    })
 
     // Получаем все подписки для семей
     const familyIds = [...new Set(reminders.map((r) => r.family_id))]
@@ -270,7 +305,17 @@ module.exports = async (req, res) => {
       success: true,
       processed: reminders.length,
       sent: sentCount,
-      failed: failedCount
+      failed: failedCount,
+      debug: {
+        now: now,
+        remindersProcessed: reminders.map(r => ({
+          id: r.id,
+          type: r.reminder_type,
+          familyId: r.family_id,
+          scheduledTime: r.scheduled_time,
+          subscriptionsCount: subscriptionsByFamily[r.family_id]?.length || 0
+        }))
+      }
     })
   } catch (error) {
     console.error('Error in process-reminders endpoint:', error)

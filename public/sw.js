@@ -14,6 +14,7 @@ self.addEventListener('install', handleInstall);
 self.addEventListener('activate', handleActivate);
 self.addEventListener('fetch', handleFetch);
 self.addEventListener('sync', handleSync);
+self.addEventListener('periodicsync', handlePeriodicSync);
 
 function handlePush(event) {
   console.log('[sw] push payload received');
@@ -197,4 +198,49 @@ function handleSync(event) {
 async function doBackgroundSync() {
   console.log('[sw] background sync placeholder');
   // Extend with offline-aware data sync when ready.
+}
+
+/**
+ * Обработчик периодической синхронизации для обработки напоминаний
+ */
+async function handlePeriodicSync(event) {
+  console.log('[sw] periodic sync triggered:', event.tag);
+  
+  if (event.tag === 'process-reminders') {
+    event.waitUntil(processRemindersInBackground());
+  }
+}
+
+/**
+ * Обрабатывает напоминания в фоне через Service Worker
+ */
+async function processRemindersInBackground() {
+  try {
+    const apiUrl = '/api/push/process-reminders';
+    
+    console.log('[sw] Processing reminders in background...');
+    
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      cache: 'no-cache'
+    });
+
+    if (!response.ok) {
+      console.error('[sw] Failed to process reminders:', response.status);
+      return;
+    }
+
+    const result = await response.json();
+    
+    if (result.success && result.processed > 0) {
+      console.log(`[sw] Processed ${result.processed} reminders: ${result.sent} sent, ${result.failed} failed`);
+    } else {
+      console.log('[sw] No reminders to process');
+    }
+  } catch (error) {
+    console.error('[sw] Error processing reminders in background:', error);
+  }
 }
