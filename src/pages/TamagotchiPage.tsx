@@ -1225,13 +1225,13 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           {getStateDescription(babyState)}
         </p>
         
-        <div className="relative inline-block">
-          <div className="absolute top-3 right-3 z-30 flex flex-col items-end gap-3 pr-2">
+        <div className="relative inline-block pr-4">
+          <div className="absolute top-3 right-2 z-30 flex flex-col items-end gap-3 pr-8">
             <div
-              className="flex flex-wrap justify-end gap-1"
+              className="flex flex-wrap justify-end gap-1 overflow-visible"
               style={
                 feedingStatus.totalHearts > 0
-                  ? { minWidth: `${feedingStatus.totalHearts * 24}px` }
+                  ? { minWidth: `${feedingStatus.totalHearts * 28}px` }
                   : undefined
               }
             >
@@ -1240,7 +1240,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                   .slice()
                   .reverse()
                   .map((fill, idx) => (
-                    <span key={idx} className="relative inline-flex w-6 justify-center leading-none">
+                    <span key={idx} className="relative inline-flex w-7 justify-center leading-none overflow-visible">
                       <span
                         className="block text-3xl leading-none text-transparent transition-opacity duration-200"
                         style={{ opacity: fill > 0 ? 1 : 0 }}
@@ -1249,7 +1249,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                       </span>
                       {fill > 0 && (
                         <span
-                          className="absolute inset-0 overflow-hidden"
+                          className="absolute inset-0 overflow-visible"
                           style={{ width: `${fill * 100}%` }}
                         >
                           <span className="block text-3xl leading-none text-rose-500">♥</span>
