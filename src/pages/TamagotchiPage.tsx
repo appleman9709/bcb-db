@@ -1225,7 +1225,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           {getStateDescription(babyState)}
         </p>
         
-        <div className="relative inline-block pr-4">
+        <div className="relative inline-block">
           <div className="absolute top-3 right-2 z-30 flex flex-col items-end gap-3 pr-8">
             <div
               className="flex flex-wrap justify-end gap-1 overflow-visible"

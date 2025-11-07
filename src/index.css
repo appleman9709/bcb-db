@@ -2636,9 +2636,9 @@ canvas {
 
   /* Активное состояние */
   .liquid-glass-tab-active::before {
-    background: rgba(59, 130, 246, 0.18);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
+    background: rgba(59, 130, 246, 0.15) !important;
+    backdrop-filter: blur(32px) !important;
+    -webkit-backdrop-filter: blur(32px) !important;
     
     /* Более мощная тень в стиле Apple liquid glass */
     box-shadow: 
@@ -2717,11 +2717,26 @@ canvas {
     transform: scale(0.95);
   }
 
+  /* Активная вкладка в состоянии :active - сохраняем фон */
+  .liquid-glass-tab-button.liquid-glass-tab-active:active::before {
+    background: rgba(59, 130, 246, 0.15) !important;
+    backdrop-filter: blur(32px) !important;
+    -webkit-backdrop-filter: blur(32px) !important;
+    box-shadow: 
+      0 14px 28px rgba(59, 130, 246, 0.30),
+      0 40px 80px rgba(59, 130, 246, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.18),
+      0 0 0 1px rgba(59, 130, 246, 0.35) !important;
+    border: none !important;
+    transform: scale(0.95);
+  }
+
   /* Активное состояние с hover */
-  .liquid-glass-tab-active:hover::before {
-    background: rgba(59, 130, 246, 0.2);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
+  .liquid-glass-tab-button.liquid-glass-tab-active:hover::before {
+    background: rgba(59, 130, 246, 0.15) !important;
+    backdrop-filter: blur(32px) !important;
+    -webkit-backdrop-filter: blur(32px) !important;
     
     box-shadow: 
       0 10px 20px rgba(59, 130, 246, 0.25),
@@ -2864,10 +2879,25 @@ canvas {
       transform: scale(0.95);
     }
     
-    .liquid-glass-tab-active:hover::before {
-      background: rgba(59, 130, 246, 0.15);
-      backdrop-filter: blur(28px);
-      -webkit-backdrop-filter: blur(28px);
+    /* Активная вкладка в состоянии :active на touch - сохраняем фон */
+    .liquid-glass-tab-button.liquid-glass-tab-active:active::before {
+      background: rgba(59, 130, 246, 0.15) !important;
+      backdrop-filter: blur(28px) !important;
+      -webkit-backdrop-filter: blur(28px) !important;
+      box-shadow: 
+        0 14px 28px rgba(59, 130, 246, 0.30),
+        0 40px 80px rgba(59, 130, 246, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22),
+        inset 0 -1px 0 rgba(255, 255, 255, 0.18),
+        0 0 0 1px rgba(59, 130, 246, 0.35) !important;
+      border: none !important;
+      transform: scale(0.92);
+    }
+    
+    .liquid-glass-tab-button.liquid-glass-tab-active:hover::before {
+      background: rgba(59, 130, 246, 0.15) !important;
+      backdrop-filter: blur(28px) !important;
+      -webkit-backdrop-filter: blur(28px) !important;
     }
     
     .liquid-glass-tab-active:hover .liquid-glass-tab-icon {
