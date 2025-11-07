@@ -33,9 +33,8 @@
   "crons": [
     {
       "path": "/api/push/process-reminders",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 3 * * *"
     }
-  ],
-  "_comment": "Cron job настроен на каждые 5 минут. Если Vercel Hobby план не поддерживает частые cron jobs, используйте внешний сервис (см. BACKGROUND_REMINDERS_SETUP.md)"
+  ]
 }
 
