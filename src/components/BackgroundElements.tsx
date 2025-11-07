@@ -19,26 +19,26 @@ export default function BackgroundElements() {
       </div>
       
       {/* Ландшафт */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-green-300 to-green-200">
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-green-300 to-green-200">
         {/* Холмы */}
-        <div className="absolute bottom-0 left-0 w-32 h-16 bg-green-400 rounded-t-full"></div>
-        <div className="absolute bottom-0 left-24 w-24 h-12 bg-green-500 rounded-t-full"></div>
-        <div className="absolute bottom-0 right-0 w-28 h-20 bg-green-400 rounded-t-full"></div>
-        <div className="absolute bottom-0 right-20 w-20 h-14 bg-green-500 rounded-t-full"></div>
+        <div className="absolute bottom-0 left-0 w-32 h-20 bg-green-400 rounded-t-full"></div>
+        <div className="absolute bottom-0 left-24 w-24 h-16 bg-green-500 rounded-t-full"></div>
+        <div className="absolute bottom-0 right-0 w-28 h-24 bg-green-400 rounded-t-full"></div>
+        <div className="absolute bottom-0 right-20 w-20 h-18 bg-green-500 rounded-t-full"></div>
         
         {/* Кусты */}
-        <div className="absolute bottom-8 left-12 w-8 h-8 bg-green-600 rounded-3xl"></div>
-        <div className="absolute bottom-6 left-20 w-6 h-6 bg-green-600 rounded-3xl"></div>
-        <div className="absolute bottom-10 right-16 w-10 h-10 bg-green-600 rounded-3xl"></div>
-        <div className="absolute bottom-8 right-24 w-7 h-7 bg-green-600 rounded-3xl"></div>
+        <div className="absolute bottom-10 left-12 w-8 h-8 bg-green-600 rounded-3xl"></div>
+        <div className="absolute bottom-8 left-20 w-6 h-6 bg-green-600 rounded-3xl"></div>
+        <div className="absolute bottom-12 right-16 w-10 h-10 bg-green-600 rounded-3xl"></div>
+        <div className="absolute bottom-10 right-24 w-7 h-7 bg-green-600 rounded-3xl"></div>
         
         {/* Цветы */}
-        <div className="absolute bottom-12 left-16 w-3 h-3 bg-orange-300 rounded-3xl"></div>
-        <div className="absolute bottom-10 left-28 w-2 h-2 bg-white rounded-3xl"></div>
-        <div className="absolute bottom-14 right-20 w-3 h-3 bg-orange-300 rounded-3xl"></div>
-        <div className="absolute bottom-12 right-28 w-2 h-2 bg-white rounded-3xl"></div>
-        <div className="absolute bottom-8 left-36 w-2 h-2 bg-orange-300 rounded-3xl"></div>
-        <div className="absolute bottom-10 right-36 w-3 h-3 bg-white rounded-3xl"></div>
+        <div className="absolute bottom-14 left-16 w-3 h-3 bg-orange-300 rounded-3xl"></div>
+        <div className="absolute bottom-12 left-28 w-2 h-2 bg-white rounded-3xl"></div>
+        <div className="absolute bottom-16 right-20 w-3 h-3 bg-orange-300 rounded-3xl"></div>
+        <div className="absolute bottom-14 right-28 w-2 h-2 bg-white rounded-3xl"></div>
+        <div className="absolute bottom-10 left-36 w-2 h-2 bg-orange-300 rounded-3xl"></div>
+        <div className="absolute bottom-12 right-36 w-3 h-3 bg-white rounded-3xl"></div>
       </div>
     </div>
   )

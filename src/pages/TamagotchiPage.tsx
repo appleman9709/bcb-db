@@ -1226,7 +1226,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         </p>
         
         <div className="relative inline-block">
-          <div className="absolute top-3 right-3 z-30 flex flex-col items-end gap-3">
+          <div className="absolute top-3 right-3 z-30 flex flex-col items-end gap-3 pr-2">
             <div
               className="flex flex-wrap justify-end gap-1"
               style={
