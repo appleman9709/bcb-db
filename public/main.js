@@ -69,7 +69,7 @@ class MobileSudokuTetris {
         // Плавающий canvas для превью фигуры под/над пальцем
         this.dragCanvas = document.createElement('canvas');
         this.dragCanvasCtx = this.dragCanvas.getContext('2d');
-        this.previewOffsetY = Math.max(50, Math.round(this.CELL_SIZE * 1.5));
+        this.previewOffsetY = Math.max(80, Math.round(this.CELL_SIZE * 2.5));
         this.previewCenterX = 0;
         this.previewCenterY = 0;
         this.dragCanvas.style.position = 'fixed';

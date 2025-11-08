@@ -68,6 +68,8 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const [portionSizeStatus, setPortionSizeStatus] = useState<string | null>(null)
   const [portionSizeStatusTone, setPortionSizeStatusTone] = useState<'neutral' | 'success' | 'error'>('neutral')
   const [currentTime, setCurrentTime] = useState(() => Date.now())
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const { member, family } = useAuth()
   const { animateCoin, canAnimate } = useCoinAnimationLimiter()
@@ -947,6 +949,34 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }
 
+  const toggleMusic = () => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio('/Колыбельная.mp3')
+      audioRef.current.loop = true
+    }
+
+    if (isMusicPlaying) {
+      audioRef.current.pause()
+      setIsMusicPlaying(false)
+    } else {
+      audioRef.current.play().catch(error => {
+        console.error('Error playing music:', error)
+        setIsMusicPlaying(false)
+      })
+      setIsMusicPlaying(true)
+    }
+  }
+
+  // Очистка audio при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current = null
+      }
+    }
+  }, [])
+
   const getStateDescription = (state: BabyState): string => {
     // Если малыш только что проснулся, показываем специальное сообщение
     if (justWokeUp) {
@@ -1226,7 +1256,35 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         </p>
         
         <div className="relative inline-block">
-          <div className="absolute top-3 right-2 z-30 flex flex-col items-end gap-3 pr-8">
+          {/* Кнопка проигрывателя Колыбельной */}
+          <div className="absolute top-24 left-4 z-30">
+            <button
+              onClick={toggleMusic}
+              className="p-0 rounded-2xl shadow-none border-0 transition-all duration-300 hover:scale-110 active:scale-95 bg-transparent hover:bg-transparent"
+              aria-label={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
+              title={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
+            >
+              <div className="flex items-center justify-center">
+                {isMusicPlaying ? (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-[30px] h-[30px] text-[30px] leading-[30px] text-center">🎵</span>
+                    <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block w-[30px] h-[30px] text-[30px] leading-[30px] text-center">🎶</span>
+                    <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </button>
+          </div>
+
+          <div className="absolute top-3 left-2 z-30 flex flex-col items-start gap-3 pl-4">
             <div
               className="flex flex-wrap justify-end gap-1 overflow-visible"
               style={
@@ -1238,7 +1296,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
               {feedingStatus.totalHearts > 0 &&
                 feedingStatus.heartsFill
                   .slice()
-                  .reverse()
                   .map((fill, idx) => (
                     <span key={idx} className="relative inline-flex w-7 justify-center leading-none overflow-visible">
                       <span
@@ -1260,7 +1317,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             </div>
 
             <div className="flex w-full max-w-[240px] items-center gap-2">
-              <img src="/icons/common.png" alt="Подгузник" className="h-6 w-6 object-contain drop-shadow-sm" />
+              <img src="/icons/common.png" alt="Подгузник" className="h-[30px] w-[30px] object-contain drop-shadow-sm" />
               <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200/80" title={
                 diaperStatus.hours !== null
                   ? `Прошло ${diaperStatus.hours.toFixed(1)} ч с последней смены подгузника`
@@ -1299,7 +1356,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           
 
           {/* Кнопка режима сна: солнце (не спит) / луна (спит) */}
-          <div className="absolute top-5 left-4">
+          <div className="absolute top-5 right-4">
             <button
               onClick={toggleSleepMode}
               className="p-0 rounded-3xl bg-transparent shadow-none border-0 hover:bg-transparent transition"

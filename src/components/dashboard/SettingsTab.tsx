@@ -93,10 +93,9 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
         <div className="space-y-3">
           <div className="modern-slider-card">
             <div className="slider-header">
-              <div>🍼</div>
+              <div className="slider-icon-emoji">🍼</div>
               <div className="slider-info">
                 <h3 className="slider-title">Кормление</h3>
-                <p className="slider-description">Напоминание о кормлении каждые 2-3 часа для малыша</p>
               </div>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.feedingInterval}</span>
@@ -126,10 +125,9 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
           <div className="modern-slider-card">
             <div className="slider-header">
-              <div>👶</div>
+              <div className="slider-icon-emoji">👶</div>
               <div className="slider-info">
                 <h3 className="slider-title">Подгузники</h3>
-                <p className="slider-description">Напоминание о подгузниках каждые 2-3 часа для комфорта</p>
               </div>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.diaperInterval}</span>
@@ -159,10 +157,9 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
           <div className="modern-slider-card">
             <div className="slider-header">
-              <div>🛁</div>
+              <div className="slider-icon-emoji">🛁</div>
               <div className="slider-info">
                 <h3 className="slider-title">Купание</h3>
-                <p className="slider-description">Напоминание о купании 2-3 раза в неделю для гигиены</p>
               </div>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.bathInterval}</span>
