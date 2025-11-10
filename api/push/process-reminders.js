@@ -91,12 +91,6 @@ const REMINDER_MESSAGES = {
     body: 'Через 5 минут пора сменить подгузник',
     icon: '/icons/diaper.png',
     badge: '/icons/icon-96x96.png'
-  },
-  bath: {
-    title: '🛁 Напоминание о купании',
-    body: 'Через 5 минут пора искупать малыша',
-    icon: '/icons/bath.png',
-    badge: '/icons/icon-96x96.png'
   }
 }
 
@@ -209,6 +203,17 @@ module.exports = async (req, res) => {
 
     // Отправляем уведомления для каждого напоминания
     for (const reminder of reminders) {
+      // Пропускаем напоминания о купании
+      if (reminder.reminder_type === 'bath') {
+        console.log(`[process-reminders] Skipping bath reminder ${reminder.id} (bath reminders disabled)`)
+        // Помечаем как отправленное, чтобы не обрабатывать повторно
+        await supabase
+          .from('scheduled_reminders')
+          .update({ status: 'sent', sent_at: now })
+          .eq('id', reminder.id)
+        continue
+      }
+      
       const message = REMINDER_MESSAGES[reminder.reminder_type]
       if (!message) {
         console.warn(`Unknown reminder type: ${reminder.reminder_type}`)
@@ -247,9 +252,7 @@ module.exports = async (req, res) => {
               reminderId: reminder.id,
               screen: reminder.reminder_type === 'feeding' 
                 ? '/activities/feeding' 
-                : reminder.reminder_type === 'diaper' 
-                ? '/activities/diaper' 
-                : '/activities/bath'
+                : '/activities/diaper'
             },
             timestamp: Date.now()
           })

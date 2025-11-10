@@ -867,21 +867,7 @@ class DataService {
       console.error('Error adding bath activity', activityError)
     }
 
-    // Планируем напоминание о следующем купании сразу после добавления
-    try {
-      // Импортируем динамически, чтобы избежать циклических зависимостей
-      const { reminderService } = await import('./reminderService')
-      
-      // Получаем настройки для интервала купания
-      const settings = await this.getSettings()
-      if (settings && settings.bath_reminder_period) {
-        const eventTimestamp = new Date(eventDate.toISOString())
-        await reminderService.scheduleBathReminder(familyId, eventTimestamp, settings.bath_reminder_period)
-      }
-    } catch (reminderError) {
-      console.error('Error scheduling bath reminder', reminderError)
-      // Не прерываем выполнение, если планирование напоминания не удалось
-    }
+    // Напоминания о купании отключены - убрано планирование напоминаний
 
     return data
   }

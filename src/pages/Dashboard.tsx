@@ -1141,7 +1141,7 @@ export default function Dashboard() {
                     style={getRingStyle(diaperProgress.overdue ? '#ef4444' : '#22c55e', diaperProgress.overdue ? 100 : diaperProgress.remainingPercent)}
                   >
                     <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
-                      <img src="/icons/poor.png" alt="Смена подгузника" className="w-[54px] h-[54px] object-contain" />
+                      <img src="/icons/diaper.png" alt="Смена подгузника" className="w-[54px] h-[54px] object-contain" />
                     </div>
                   </div>
                   <span className="mt-2 font-semibold text-gray-900 text-sm">Подгузник</span>
