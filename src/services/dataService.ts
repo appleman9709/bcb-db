@@ -519,50 +519,11 @@ class DataService {
       return null
     }
 
-    // Всегда списываем смесь при кормлении, даже если унции не указаны
-    // Используем стандартную порцию в 1 унцию, если унции не указаны
-    const consumedOunces = typeof ounces === 'number' && ounces > 0 ? ounces : 1
-    const gramsToSubtract = consumedOunces * GRAMS_PER_OUNCE
-
-    try {
-      await this.adjustFamilyInventory({
-        formulaGramsDelta: -gramsToSubtract,
-        formulaPortionsDelta: -consumedOunces
-      })
-      console.log(`Feeding recorded: ${consumedOunces} ounces (${gramsToSubtract}g) deducted from inventory`)
-    } catch (inventoryError) {
-      console.error('Error updating inventory after feeding', inventoryError)
-    }
-
-    // Прерываем сон при кормлении (если есть активные сессии)
-    try {
-      await this.endAllActiveSleepSessions()
-    } catch (sleepEndError) {
-      console.error('Error ending sleep after feeding', sleepEndError)
-    }
-
-    // Добавляем запись в activities для срабатывания триггера пробуждения
-    try {
-      await this.addActivity('feeding')
-    } catch (activityError) {
-      console.error('Error adding feeding activity', activityError)
-    }
-
-    // Планируем напоминание о следующем кормлении сразу после добавления
-    try {
-      // Импортируем динамически, чтобы избежать циклических зависимостей
-      const { reminderService } = await import('./reminderService')
-      
-      // Получаем настройки для интервала кормления
-      const settings = await this.getSettings()
-      if (settings && settings.feed_interval) {
-        const eventTimestamp = new Date(eventDate.toISOString())
-        await reminderService.scheduleFeedingReminder(familyId, eventTimestamp, settings.feed_interval)
-      }
-    } catch (reminderError) {
-      console.error('Error scheduling feeding reminder', reminderError)
-      // Не прерываем выполнение, если планирование напоминания не удалось
-    }
+    // ✅ ВОЗВРАЩАЕМ РЕЗУЛЬТАТ СРАЗУ после успешной вставки
+    // Остальные операции выполняем в фоне (не блокируем ответ)
+    this.processFeedingSideEffects(data, eventDate, familyId, ounces).catch(err => {
+      console.error('Error processing feeding side effects:', err)
+    })
 
     return data
   }
@@ -702,37 +663,11 @@ class DataService {
       return null
     }
 
-    try {
-      await this.adjustFamilyInventory({
-        diapersDelta: -1
-      })
-      console.log('Diaper change recorded: 1 diaper deducted from inventory')
-    } catch (inventoryError) {
-      console.error('Error updating inventory after diaper change', inventoryError)
-    }
-
-    // Прерываем сон при смене подгузника (если есть активные сессии)
-    try {
-      await this.endAllActiveSleepSessions()
-    } catch (sleepEndError) {
-      console.error('Error ending sleep after diaper change', sleepEndError)
-    }
-
-    // Планируем напоминание о следующей смене подгузника сразу после добавления
-    try {
-      // Импортируем динамически, чтобы избежать циклических зависимостей
-      const { reminderService } = await import('./reminderService')
-      
-      // Получаем настройки для интервала смены подгузника
-      const settings = await this.getSettings()
-      if (settings && settings.diaper_interval) {
-        const eventTimestamp = new Date(eventDate.toISOString())
-        await reminderService.scheduleDiaperReminder(familyId, eventTimestamp, settings.diaper_interval)
-      }
-    } catch (reminderError) {
-      console.error('Error scheduling diaper reminder', reminderError)
-      // Не прерываем выполнение, если планирование напоминания не удалось
-    }
+    // ✅ ВОЗВРАЩАЕМ РЕЗУЛЬТАТ СРАЗУ после успешной вставки
+    // Остальные операции выполняем в фоне (не блокируем ответ)
+    this.processDiaperSideEffects(data, eventDate, familyId).catch(err => {
+      console.error('Error processing diaper side effects:', err)
+    })
 
     return data
   }
@@ -853,6 +788,117 @@ class DataService {
       return null
     }
 
+    // ✅ ВОЗВРАЩАЕМ РЕЗУЛЬТАТ СРАЗУ после успешной вставки
+    // Остальные операции выполняем в фоне (не блокируем ответ)
+    this.processBathSideEffects(data).catch(err => {
+      console.error('Error processing bath side effects:', err)
+    })
+
+    return data
+  }
+
+  // Приватные методы для обработки побочных эффектов (выполняются в фоне)
+
+  /**
+   * Обрабатывает побочные эффекты кормления в фоне
+   */
+  private async processFeedingSideEffects(
+    feedingData: Feeding,
+    eventDate: Date,
+    familyId: number,
+    ounces?: number
+  ): Promise<void> {
+    // Всегда списываем смесь при кормлении, даже если унции не указаны
+    // Используем стандартную порцию в 1 унцию, если унции не указаны
+    const consumedOunces = typeof ounces === 'number' && ounces > 0 ? ounces : 1
+    const gramsToSubtract = consumedOunces * GRAMS_PER_OUNCE
+
+    try {
+      await this.adjustFamilyInventory({
+        formulaGramsDelta: -gramsToSubtract,
+        formulaPortionsDelta: -consumedOunces
+      })
+      console.log(`Feeding recorded: ${consumedOunces} ounces (${gramsToSubtract}g) deducted from inventory`)
+    } catch (inventoryError) {
+      console.error('Error updating inventory after feeding', inventoryError)
+    }
+
+    // Прерываем сон при кормлении (если есть активные сессии)
+    try {
+      await this.endAllActiveSleepSessions()
+    } catch (sleepEndError) {
+      console.error('Error ending sleep after feeding', sleepEndError)
+    }
+
+    // Добавляем запись в activities для срабатывания триггера пробуждения
+    try {
+      await this.addActivity('feeding')
+    } catch (activityError) {
+      console.error('Error adding feeding activity', activityError)
+    }
+
+    // Планируем напоминание о следующем кормлении сразу после добавления
+    try {
+      // Импортируем динамически, чтобы избежать циклических зависимостей
+      const { reminderService } = await import('./reminderService')
+
+      // Получаем настройки для интервала кормления
+      const settings = await this.getSettings()
+      if (settings && settings.feed_interval) {
+        const eventTimestamp = new Date(eventDate.toISOString())
+        await reminderService.scheduleFeedingReminder(familyId, eventTimestamp, settings.feed_interval)
+      }
+    } catch (reminderError) {
+      console.error('Error scheduling feeding reminder', reminderError)
+      // Не прерываем выполнение, если планирование напоминания не удалось
+    }
+  }
+
+  /**
+   * Обрабатывает побочные эффекты смены подгузника в фоне
+   */
+  private async processDiaperSideEffects(
+    diaperData: Diaper,
+    eventDate: Date,
+    familyId: number
+  ): Promise<void> {
+    try {
+      await this.adjustFamilyInventory({
+        diapersDelta: -1
+      })
+      console.log('Diaper change recorded: 1 diaper deducted from inventory')
+    } catch (inventoryError) {
+      console.error('Error updating inventory after diaper change', inventoryError)
+    }
+
+    // Прерываем сон при смене подгузника (если есть активные сессии)
+    try {
+      await this.endAllActiveSleepSessions()
+    } catch (sleepEndError) {
+      console.error('Error ending sleep after diaper change', sleepEndError)
+    }
+
+    // Планируем напоминание о следующей смене подгузника сразу после добавления
+    try {
+      // Импортируем динамически, чтобы избежать циклических зависимостей
+      const { reminderService } = await import('./reminderService')
+
+      // Получаем настройки для интервала смены подгузника
+      const settings = await this.getSettings()
+      if (settings && settings.diaper_interval) {
+        const eventTimestamp = new Date(eventDate.toISOString())
+        await reminderService.scheduleDiaperReminder(familyId, eventTimestamp, settings.diaper_interval)
+      }
+    } catch (reminderError) {
+      console.error('Error scheduling diaper reminder', reminderError)
+      // Не прерываем выполнение, если планирование напоминания не удалось
+    }
+  }
+
+  /**
+   * Обрабатывает побочные эффекты купания в фоне
+   */
+  private async processBathSideEffects(bathData: Bath): Promise<void> {
     // Прерываем сон при купании (если есть активные сессии)
     try {
       await this.endAllActiveSleepSessions()
@@ -868,8 +914,6 @@ class DataService {
     }
 
     // Напоминания о купании отключены - убрано планирование напоминаний
-
-    return data
   }
 
   async deleteBath(id: number): Promise<boolean> {

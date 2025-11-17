@@ -857,11 +857,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }, [])
 
-  // Автоматическое появление монет каждые 10-20 секунд
+  // Автоматическое появление монет каждые 3-6 секунд
   useEffect(() => {
     const startCoinSpawning = () => {
       const spawnInterval = () => {
-        const delay = Math.random() * 10000 + 10000 // 10-20 секунд
+        const delay = Math.random() * 3000 + 3000 // 3-6 секунд
         const timeout = window.setTimeout(() => {
           spawnCoin()
           spawnInterval() // Рекурсивно планируем следующую монетку

@@ -235,22 +235,39 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
     try {
       let result: any = null
+      let shouldCloseImmediately = false
       
       switch (actionType) {
         case 'feeding':
           result = await dataService.addFeeding(timestamp, feedingOunces)
+          shouldCloseImmediately = true
           break
         case 'diaper':
           result = await dataService.addDiaper(timestamp, diaperType)
+          shouldCloseImmediately = true
           break
         case 'bath':
           result = await dataService.addBath(timestamp, bathMood)
+          shouldCloseImmediately = true
           break
         case 'activity':
           result = await dataService.addActivity(selectedActivity, timestamp)
           break
       }
 
+      // ✅ Для feeding, diaper, bath - закрываем окно сразу после получения результата
+      // (побочные эффекты выполняются в фоне)
+      if (shouldCloseImmediately && result) {
+        setLoading(false)
+        onClose()
+        // Вызываем onSuccess в следующем тике, чтобы дать время окну закрыться
+        setTimeout(() => {
+          onSuccess?.(result)
+        }, 10)
+        return // Выходим, чтобы не выполнять код ниже
+      }
+
+      // Для activity - стандартное поведение
       setLoading(false)
       onClose()
 
@@ -284,11 +301,18 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     try {
       const result = await dataService.addDiaper(timestamp, diaperTypeValue)
 
-      setLoading(false)
-      onClose()
-      setTimeout(() => {
-        onSuccess?.(result)
-      }, 10)
+      // ✅ Закрываем окно сразу после получения результата
+      // (побочные эффекты выполняются в фоне)
+      if (result) {
+        setLoading(false)
+        onClose()
+        setTimeout(() => {
+          onSuccess?.(result)
+        }, 10)
+      } else {
+        setError('Не удалось сохранить запись, попробуйте позже')
+        setLoading(false)
+      }
     } catch (submitError) {
       console.error('Error adding diaper record:', submitError)
       setError('Не удалось сохранить запись, попробуйте позже')
@@ -316,11 +340,18 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     try {
       const result = await dataService.addBath(timestamp, bathMoodValue)
 
-      setLoading(false)
-      onClose()
-      setTimeout(() => {
-        onSuccess?.({})
-      }, 10)
+      // ✅ Закрываем окно сразу после получения результата
+      // (побочные эффекты выполняются в фоне)
+      if (result) {
+        setLoading(false)
+        onClose()
+        setTimeout(() => {
+          onSuccess?.(result)
+        }, 10)
+      } else {
+        setError('Не удалось сохранить запись, попробуйте позже')
+        setLoading(false)
+      }
     } catch (submitError) {
       console.error('Error adding bath record:', submitError)
       setError('Не удалось сохранить запись, попробуйте позже')
