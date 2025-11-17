@@ -1,8 +1,10 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE } from '../services/dataService'
+import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE, type Illness } from '../services/dataService'
 import { useCoinAnimationLimiter } from '../hooks/useAnimationLimiter'
+import AddIllnessModal from '../components/AddIllnessModal'
+import EditIllnessModal from '../components/EditIllnessModal'
 
 type BabyState = 'ok' | 'feeding' | 'all-in' | 'poo' | 'dirty'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -70,6 +72,10 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const [currentTime, setCurrentTime] = useState(() => Date.now())
   const [isMusicPlaying, setIsMusicPlaying] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [illnesses, setIllnesses] = useState<Illness[]>([])
+  const [addIllnessModalOpen, setAddIllnessModalOpen] = useState(false)
+  const [editIllnessModalOpen, setEditIllnessModalOpen] = useState(false)
+  const [selectedIllness, setSelectedIllness] = useState<Illness | null>(null)
 
   const { member, family } = useAuth()
   const { animateCoin, canAnimate } = useCoinAnimationLimiter()
@@ -670,7 +676,18 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
 
     fetchData()
+    loadIllnesses()
   }, [member, family, fetchData])
+
+  const loadIllnesses = useCallback(async () => {
+    if (!member || !family) return
+    try {
+      const activeIllnesses = await dataService.getIllnesses(true)
+      setIllnesses(activeIllnesses)
+    } catch (error) {
+      console.error('Error loading illnesses:', error)
+    }
+  }, [member, family])
 
   // Автоматическое фоновое обновление данных каждые 10 минут (увеличено с 2 минут)
   // Используем useRef для предотвращения лишних рендеров
@@ -1009,6 +1026,19 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const handleItemClick = (action: QuickActionType) => {
     onModalOpen(action)
   }
+
+  const handleAddIllness = () => {
+    setAddIllnessModalOpen(true)
+  }
+
+  const handleIllnessClick = (illness: Illness) => {
+    setSelectedIllness(illness)
+    setEditIllnessModalOpen(true)
+  }
+
+  const handleIllnessModalSuccess = () => {
+    loadIllnesses()
+  }
   
   const getStatePhrase = (state: BabyState, currentScore: number): string => {
     const scoreLevel = Math.floor(currentScore / 10)
@@ -1246,6 +1276,36 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           <p className="mt-1 text-[10px] text-slate-500">
             Соберите первую монетку — малыш ждёт вашей заботы!
           </p>
+        )}
+      </div>
+
+      {/* Иконки болезней и кнопка добавления - нижний левый угол */}
+      <div className="relative inline-block bottom-0 left-0 mb-4 ml-4 flex items-center gap-2 flex-wrap-reverse">
+        {/* Кнопка добавления болезни */}
+        <button
+          onClick={handleAddIllness}
+          className="relative inline-block flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold shadow-lg transition-colors"
+          aria-label="Добавить болезнь"
+          title="Добавить болезнь"
+        >
+          +
+        </button>
+        
+        {/* Иконки болезней */}
+        {illnesses.length > 0 && (
+          <>
+            {illnesses.map((illness) => (
+              <button
+                key={illness.id}
+                onClick={() => handleIllnessClick(illness)}
+                className="relative inline-block flex items-center justify-center w-10 h-10 rounded-full bg-red-100 border border-red-200 hover:bg-red-200 transition-colors"
+                title={illness.name}
+                aria-label={illness.name}
+              >
+                <span className="text-lg">🏥</span>
+              </button>
+            ))}
+          </>
         )}
       </div>
 
@@ -1701,6 +1761,24 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         </div>,
         document.body
       )}
+
+      {/* Модальное окно добавления болезни */}
+      <AddIllnessModal
+        isOpen={addIllnessModalOpen}
+        onClose={() => setAddIllnessModalOpen(false)}
+        onSuccess={handleIllnessModalSuccess}
+      />
+
+      {/* Модальное окно редактирования болезни */}
+      <EditIllnessModal
+        isOpen={editIllnessModalOpen}
+        illness={selectedIllness}
+        onClose={() => {
+          setEditIllnessModalOpen(false)
+          setSelectedIllness(null)
+        }}
+        onSuccess={handleIllnessModalSuccess}
+      />
 
     </div>
   )

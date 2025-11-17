@@ -180,6 +180,46 @@ export interface GrowthMeasurement {
   updated_at: string
 }
 
+export interface Illness {
+  id: number
+  family_id: number
+  author_id: string
+  author_name: string
+  name: string
+  doctor_appointment_date?: string
+  doctor_appointment_time?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Medication {
+  id: number
+  illness_id: number
+  family_id: number
+  name: string
+  timing_type: 'before_meal' | 'after_meal' | 'during_meal' | 'anytime'
+  times_per_day: number
+  duration_days: number
+  start_date: string
+  end_date: string
+  created_at: string
+  updated_at: string
+}
+
+export interface MedicationReminder {
+  id: number
+  family_id: number
+  medication_id: number
+  illness_id: number
+  scheduled_time: string
+  status: 'pending' | 'sent' | 'cancelled' | 'completed'
+  sent_at?: string
+  completed_at?: string
+  created_at: string
+  updated_at: string
+}
+
 type AuthorContext = {
   authorId: string
   authorName: string
@@ -851,6 +891,14 @@ class DataService {
     } catch (reminderError) {
       console.error('Error scheduling feeding reminder', reminderError)
       // Не прерываем выполнение, если планирование напоминания не удалось
+    }
+
+    // Планируем напоминания о лекарствах, привязанных к кормлению
+    try {
+      await this.scheduleMedicationRemindersForFeeding(eventDate)
+    } catch (medicationReminderError) {
+      console.error('Error scheduling medication reminders for feeding', medicationReminderError)
+      // Не прерываем выполнение, если планирование напоминаний о лекарствах не удалось
     }
   }
 
@@ -2144,6 +2192,576 @@ class DataService {
       console.error('Error migrating growth data from localStorage', error)
       return 0
     }
+  }
+
+  // Illness operations
+  async getIllnesses(activeOnly: boolean = false): Promise<Illness[]> {
+    const familyId = this.requireFamilyId()
+
+    let query = supabase
+      .from('illnesses')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('created_at', { ascending: false })
+
+    if (activeOnly) {
+      query = query.eq('is_active', true)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching illnesses', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  async getIllness(id: number): Promise<Illness | null> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('illnesses')
+      .select('*')
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null
+      }
+      console.error('Error fetching illness', error)
+      return null
+    }
+
+    return data
+  }
+
+  async addIllness(illness: {
+    name: string
+    doctor_appointment_date?: string
+    doctor_appointment_time?: string
+  }): Promise<Illness | null> {
+    const familyId = this.requireFamilyId()
+    const { authorId, authorName } = this.requireAuthor()
+
+    const { data, error } = await supabase
+      .from('illnesses')
+      .insert({
+        family_id: familyId,
+        author_id: authorId,
+        author_name: authorName,
+        name: illness.name,
+        doctor_appointment_date: illness.doctor_appointment_date || null,
+        doctor_appointment_time: illness.doctor_appointment_time || null,
+        is_active: true
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding illness', error)
+      return null
+    }
+
+    return data
+  }
+
+  async updateIllness(id: number, updates: {
+    name?: string
+    doctor_appointment_date?: string | null
+    doctor_appointment_time?: string | null
+    is_active?: boolean
+  }): Promise<Illness | null> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('illnesses')
+      .update(updates)
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating illness', error)
+      return null
+    }
+
+    return data
+  }
+
+  async deleteIllness(id: number): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+
+    const { error } = await supabase
+      .from('illnesses')
+      .delete()
+      .eq('id', id)
+      .eq('family_id', familyId)
+
+    if (error) {
+      console.error('Error deleting illness', error)
+      return false
+    }
+
+    return true
+  }
+
+  // Medication operations
+  async getMedications(illnessId?: number): Promise<Medication[]> {
+    const familyId = this.requireFamilyId()
+
+    let query = supabase
+      .from('medications')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('created_at', { ascending: false })
+
+    if (illnessId) {
+      query = query.eq('illness_id', illnessId)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching medications', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  async getMedication(id: number): Promise<Medication | null> {
+    const familyId = this.requireFamilyId()
+
+    const { data, error } = await supabase
+      .from('medications')
+      .select('*')
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null
+      }
+      console.error('Error fetching medication', error)
+      return null
+    }
+
+    return data
+  }
+
+  async addMedication(medication: {
+    illness_id: number
+    name: string
+    timing_type: 'before_meal' | 'after_meal' | 'during_meal' | 'anytime'
+    times_per_day: number
+    duration_days: number
+    start_date: string
+  }): Promise<Medication | null> {
+    const familyId = this.requireFamilyId()
+
+    const startDate = new Date(medication.start_date)
+    const endDate = new Date(startDate)
+    endDate.setDate(endDate.getDate() + medication.duration_days)
+
+    const { data, error } = await supabase
+      .from('medications')
+      .insert({
+        illness_id: medication.illness_id,
+        family_id: familyId,
+        name: medication.name,
+        timing_type: medication.timing_type,
+        times_per_day: medication.times_per_day,
+        duration_days: medication.duration_days,
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding medication', error)
+      return null
+    }
+
+    // Планируем напоминания для этого лекарства
+    await this.scheduleMedicationReminders(data).catch(err => {
+      console.error('Error scheduling medication reminders:', err)
+    })
+
+    return data
+  }
+
+  async updateMedication(id: number, updates: {
+    name?: string
+    timing_type?: 'before_meal' | 'after_meal' | 'during_meal' | 'anytime'
+    times_per_day?: number
+    duration_days?: number
+    start_date?: string
+  }): Promise<Medication | null> {
+    const familyId = this.requireFamilyId()
+
+    const updateData: any = { ...updates }
+
+    // Если обновляется start_date или duration_days, пересчитываем end_date
+    if (updates.start_date || updates.duration_days) {
+      const current = await this.getMedication(id)
+      if (current) {
+        const startDate = new Date(updates.start_date || current.start_date)
+        const durationDays = updates.duration_days || current.duration_days
+        const endDate = new Date(startDate)
+        endDate.setDate(endDate.getDate() + durationDays)
+        updateData.end_date = endDate.toISOString()
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('medications')
+      .update(updateData)
+      .eq('id', id)
+      .eq('family_id', familyId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating medication', error)
+      return null
+    }
+
+    // Перепланируем напоминания
+    if (data) {
+      await this.cancelMedicationReminders(id).catch(err => {
+        console.error('Error cancelling old medication reminders:', err)
+      })
+      await this.scheduleMedicationReminders(data).catch(err => {
+        console.error('Error scheduling new medication reminders:', err)
+      })
+    }
+
+    return data
+  }
+
+  async deleteMedication(id: number): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+
+    // Отменяем все напоминания для этого лекарства
+    await this.cancelMedicationReminders(id).catch(err => {
+      console.error('Error cancelling medication reminders:', err)
+    })
+
+    const { error } = await supabase
+      .from('medications')
+      .delete()
+      .eq('id', id)
+      .eq('family_id', familyId)
+
+    if (error) {
+      console.error('Error deleting medication', error)
+      return false
+    }
+
+    return true
+  }
+
+  // Medication reminders operations
+  async scheduleMedicationReminders(medication: Medication): Promise<void> {
+    const familyId = this.requireFamilyId()
+    const startDate = new Date(medication.start_date)
+    const endDate = new Date(medication.end_date)
+    const now = new Date()
+
+    // Если период приема уже закончился, не планируем
+    if (endDate.getTime() < now.getTime()) {
+      return
+    }
+
+    // Если лекарство привязано к кормлению (перед/после/во время еды), не планируем заранее
+    // Напоминания будут планироваться динамически при каждом кормлении
+    if (medication.timing_type === 'before_meal' || 
+        medication.timing_type === 'after_meal' || 
+        medication.timing_type === 'during_meal') {
+      console.log(`Medication ${medication.name} is tied to feeding, reminders will be scheduled dynamically`)
+      return
+    }
+
+    // Для "неважно" планируем напоминания по фиксированному расписанию
+    // Вычисляем интервал между приемами (в часах)
+    const hoursBetweenDoses = 24 / medication.times_per_day
+
+    // Генерируем напоминания для каждого дня приема
+    const reminders: Array<{
+      family_id: number
+      medication_id: number
+      illness_id: number
+      scheduled_time: string
+      status: string
+    }> = []
+
+    // Для "неважно" используем равномерное распределение в течение дня
+    let baseHour = 8
+    let baseMinute = 0
+
+    let currentDate = new Date(Math.max(startDate.getTime(), now.getTime()))
+    currentDate.setHours(0, 0, 0, 0)
+
+    while (currentDate.getTime() <= endDate.getTime()) {
+      // Генерируем напоминания для этого дня
+      for (let i = 0; i < medication.times_per_day; i++) {
+        const reminderTime = new Date(currentDate)
+        
+        // Распределяем приемы равномерно в течение дня
+        // Например, для 2 раз в день: 8:00 и 20:00
+        // Для 3 раз в день: 8:00, 14:00, 20:00
+        // Для 4 раз в день: 8:00, 12:00, 16:00, 20:00
+        if (medication.times_per_day === 1) {
+          reminderTime.setHours(12, baseMinute, 0, 0) // Один раз в день - в полдень
+        } else if (medication.times_per_day === 2) {
+          reminderTime.setHours(i === 0 ? 8 : 20, baseMinute, 0, 0)
+        } else if (medication.times_per_day === 3) {
+          reminderTime.setHours(i === 0 ? 8 : i === 1 ? 14 : 20, baseMinute, 0, 0)
+        } else if (medication.times_per_day === 4) {
+          reminderTime.setHours(i === 0 ? 8 : i === 1 ? 12 : i === 2 ? 16 : 20, baseMinute, 0, 0)
+        } else {
+          // Для большего количества приемов распределяем равномерно
+          const startHour = 8
+          const endHour = 20
+          const totalHours = endHour - startHour
+          const hourStep = totalHours / (medication.times_per_day - 1)
+          const hour = Math.round(startHour + i * hourStep)
+          reminderTime.setHours(hour, baseMinute, 0, 0)
+        }
+
+        // Если время напоминания в прошлом, пропускаем
+        if (reminderTime.getTime() < now.getTime()) {
+          continue
+        }
+
+        reminders.push({
+          family_id: familyId,
+          medication_id: medication.id,
+          illness_id: medication.illness_id,
+          scheduled_time: reminderTime.toISOString(),
+          status: 'pending'
+        })
+      }
+
+      // Переходим к следующему дню
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+
+    if (reminders.length > 0) {
+      const { error } = await supabase
+        .from('medication_reminders')
+        .insert(reminders)
+
+      if (error) {
+        console.error('Error scheduling medication reminders', error)
+      } else {
+        console.log(`Scheduled ${reminders.length} medication reminders`)
+      }
+    }
+  }
+
+  /**
+   * Планирует напоминания о лекарствах при кормлении
+   * Вызывается при каждом кормлении для лекарств, привязанных к еде
+   */
+  async scheduleMedicationRemindersForFeeding(feedingTime: Date): Promise<void> {
+    const familyId = this.requireFamilyId()
+    const now = new Date()
+
+    try {
+      // Получаем настройки для интервала кормления
+      const settings = await this.getSettings()
+      const feedIntervalHours = settings?.feed_interval || 3
+
+      // Получаем все активные лекарства семьи, привязанные к кормлению
+      // Лекарство активно, если сейчас между start_date и end_date
+      const { data: medications, error } = await supabase
+        .from('medications')
+        .select(`
+          *,
+          illnesses!inner (
+            id,
+            is_active
+          )
+        `)
+        .eq('family_id', familyId)
+        .in('timing_type', ['before_meal', 'after_meal', 'during_meal'])
+        .lte('start_date', now.toISOString())
+        .gte('end_date', now.toISOString())
+
+      if (error) {
+        console.error('Error fetching medications for feeding:', error)
+        return
+      }
+
+      if (!medications || medications.length === 0) {
+        return
+      }
+
+      // Фильтруем только лекарства для активных болезней
+      const activeMedications = medications.filter((med: any) => med.illnesses?.is_active === true)
+
+      const reminders: Array<{
+        family_id: number
+        medication_id: number
+        illness_id: number
+        scheduled_time: string
+        status: string
+      }> = []
+
+      for (const medication of activeMedications) {
+        const med = medication as Medication & { illnesses: { id: number; is_active: boolean } }
+        let reminderTime = new Date(feedingTime)
+
+        // Вычисляем время напоминания в зависимости от типа
+        if (med.timing_type === 'before_meal') {
+          // За 30 минут до следующего кормления
+          // Вычисляем время следующего кормления
+          const nextFeedingTime = new Date(feedingTime)
+          nextFeedingTime.setHours(nextFeedingTime.getHours() + feedIntervalHours)
+          // Напоминание за 30 минут до следующего кормления
+          reminderTime = new Date(nextFeedingTime)
+          reminderTime.setMinutes(reminderTime.getMinutes() - 30)
+        } else if (med.timing_type === 'after_meal') {
+          // Через 30 минут после текущего кормления
+          reminderTime.setMinutes(reminderTime.getMinutes() + 30)
+        } else if (med.timing_type === 'during_meal') {
+          // Во время кормления (в момент кормления)
+          // Планируем на момент текущего кормления
+          // Если кормление только что произошло (в течение последних 5 минут), планируем на текущий момент
+          const feedingDiff = now.getTime() - feedingTime.getTime()
+          if (feedingDiff <= 5 * 60 * 1000) {
+            // Кормление только что произошло, планируем на текущий момент
+            reminderTime = new Date(now)
+            reminderTime.setSeconds(0, 0) // Округляем до минуты
+          } else {
+            // Кормление было давно, планируем на момент кормления (но оно будет пропущено, если в прошлом)
+            reminderTime = new Date(feedingTime)
+          }
+        }
+
+        // Если время напоминания в прошлом (более чем на 1 минуту), пропускаем
+        // Для "во время еды" допускаем небольшое отставание
+        const timeDiff = reminderTime.getTime() - now.getTime()
+        if (timeDiff < -60000) { // Более чем на 1 минуту в прошлом
+          continue
+        }
+
+        // Проверяем, не превышает ли это количество приемов в день
+        // Получаем количество уже запланированных/выполненных напоминаний на сегодня
+        const todayStart = new Date(reminderTime)
+        todayStart.setHours(0, 0, 0, 0)
+        const todayEnd = new Date(todayStart)
+        todayEnd.setDate(todayEnd.getDate() + 1)
+
+        const { data: todayReminders } = await supabase
+          .from('medication_reminders')
+          .select('id', { count: 'exact' })
+          .eq('medication_id', med.id)
+          .in('status', ['pending', 'completed'])
+          .gte('scheduled_time', todayStart.toISOString())
+          .lt('scheduled_time', todayEnd.toISOString())
+
+        const todayCount = todayReminders?.length || 0
+
+        // Если уже достигнуто максимальное количество приемов в день, пропускаем
+        if (todayCount >= med.times_per_day) {
+          console.log(`Skipping medication ${med.name} - already ${todayCount}/${med.times_per_day} reminders today`)
+          continue
+        }
+
+        reminders.push({
+          family_id: familyId,
+          medication_id: med.id,
+          illness_id: med.illness_id,
+          scheduled_time: reminderTime.toISOString(),
+          status: 'pending'
+        })
+      }
+
+      if (reminders.length > 0) {
+        const { error: insertError } = await supabase
+          .from('medication_reminders')
+          .insert(reminders)
+
+        if (insertError) {
+          console.error('Error scheduling medication reminders for feeding:', insertError)
+        } else {
+          console.log(`Scheduled ${reminders.length} medication reminders for feeding at ${feedingTime.toISOString()}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error in scheduleMedicationRemindersForFeeding:', error)
+    }
+  }
+
+  async cancelMedicationReminders(medicationId: number): Promise<void> {
+    const familyId = this.requireFamilyId()
+
+    const { error } = await supabase
+      .from('medication_reminders')
+      .update({ status: 'cancelled' })
+      .eq('medication_id', medicationId)
+      .eq('family_id', familyId)
+      .eq('status', 'pending')
+
+    if (error) {
+      console.error('Error cancelling medication reminders', error)
+    }
+  }
+
+  async getMedicationReminders(medicationId?: number, status?: string): Promise<MedicationReminder[]> {
+    const familyId = this.requireFamilyId()
+
+    let query = supabase
+      .from('medication_reminders')
+      .select('*')
+      .eq('family_id', familyId)
+      .order('scheduled_time', { ascending: true })
+
+    if (medicationId) {
+      query = query.eq('medication_id', medicationId)
+    }
+
+    if (status) {
+      query = query.eq('status', status)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching medication reminders', error)
+      return []
+    }
+
+    return data || []
+  }
+
+  async completeMedicationReminder(reminderId: number): Promise<boolean> {
+    const familyId = this.requireFamilyId()
+
+    const { error } = await supabase
+      .from('medication_reminders')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', reminderId)
+      .eq('family_id', familyId)
+
+    if (error) {
+      console.error('Error completing medication reminder', error)
+      return false
+    }
+
+    return true
   }
 }
 

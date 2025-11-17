@@ -122,6 +122,23 @@ module.exports = async (req, res) => {
       .eq('status', 'pending')
       .lte('scheduled_time', now)
 
+    // Получаем все напоминания о лекарствах, которые нужно отправить сейчас
+    const { data: medicationReminders, error: medicationFetchError } = await supabase
+      .from('medication_reminders')
+      .select(`
+        *,
+        medications (
+          name,
+          timing_type,
+          times_per_day
+        ),
+        illnesses (
+          name
+        )
+      `)
+      .eq('status', 'pending')
+      .lte('scheduled_time', now)
+
     if (fetchError) {
       console.error('Error fetching reminders:', fetchError)
       return res.status(500).json({
@@ -130,7 +147,14 @@ module.exports = async (req, res) => {
       })
     }
 
-    if (!reminders || reminders.length === 0) {
+    if (medicationFetchError) {
+      console.error('Error fetching medication reminders:', medicationFetchError)
+      // Не прерываем выполнение, продолжаем обработку обычных напоминаний
+    }
+
+    const totalReminders = (reminders?.length || 0) + (medicationReminders?.length || 0)
+
+    if (totalReminders === 0) {
       console.log('[process-reminders] No reminders to process')
       
       // Проверяем, есть ли вообще напоминания в будущем для диагностики
@@ -164,18 +188,22 @@ module.exports = async (req, res) => {
       })
     }
 
-    console.log(`[process-reminders] Found ${reminders.length} reminder(s) to process`)
+    console.log(`[process-reminders] Found ${reminders?.length || 0} reminder(s) and ${medicationReminders?.length || 0} medication reminder(s) to process`)
     
     // Детальное логирование каждого напоминания
-    reminders.forEach((reminder) => {
-      const scheduledTime = new Date(reminder.scheduled_time)
-      const timeDiff = scheduledTime.getTime() - new Date(now).getTime()
-      const minutesDiff = Math.round(timeDiff / 1000 / 60)
-      console.log(`  - Reminder ${reminder.id}: ${reminder.reminder_type} for family ${reminder.family_id}, scheduled: ${scheduledTime.toISOString()}, ${minutesDiff} minutes ${minutesDiff >= 0 ? 'ago' : 'from now'}`)
-    })
+    if (reminders) {
+      reminders.forEach((reminder) => {
+        const scheduledTime = new Date(reminder.scheduled_time)
+        const timeDiff = scheduledTime.getTime() - new Date(now).getTime()
+        const minutesDiff = Math.round(timeDiff / 1000 / 60)
+        console.log(`  - Reminder ${reminder.id}: ${reminder.reminder_type} for family ${reminder.family_id}, scheduled: ${scheduledTime.toISOString()}, ${minutesDiff} minutes ${minutesDiff >= 0 ? 'ago' : 'from now'}`)
+      })
+    }
 
-    // Получаем все подписки для семей
-    const familyIds = [...new Set(reminders.map((r) => r.family_id))]
+    // Получаем все подписки для семей (включая семьи с напоминаниями о лекарствах)
+    const reminderFamilyIds = reminders ? [...new Set(reminders.map((r) => r.family_id))] : []
+    const medicationFamilyIds = medicationReminders ? [...new Set(medicationReminders.map((r) => r.family_id))] : []
+    const familyIds = [...new Set([...reminderFamilyIds, ...medicationFamilyIds])]
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
       .select('*')
@@ -202,7 +230,7 @@ module.exports = async (req, res) => {
     let failedCount = 0
 
     // Отправляем уведомления для каждого напоминания
-    for (const reminder of reminders) {
+    for (const reminder of reminders || []) {
       // Пропускаем напоминания о купании
       if (reminder.reminder_type === 'bath') {
         console.log(`[process-reminders] Skipping bath reminder ${reminder.id} (bath reminders disabled)`)
@@ -304,20 +332,138 @@ module.exports = async (req, res) => {
       )
     }
 
+    // Обрабатываем напоминания о лекарствах
+    if (medicationReminders && medicationReminders.length > 0) {
+      console.log(`[process-reminders] Processing ${medicationReminders.length} medication reminder(s)`)
+      
+      for (const reminder of medicationReminders) {
+        const medication = reminder.medications
+        const illness = reminder.illnesses
+
+        if (!medication || !illness) {
+          console.warn(`Medication reminder ${reminder.id} missing medication or illness data`)
+          // Помечаем как отправленное, чтобы не обрабатывать повторно
+          await supabase
+            .from('medication_reminders')
+            .update({ status: 'sent', sent_at: now })
+            .eq('id', reminder.id)
+          continue
+        }
+
+        const familySubscriptions = subscriptionsByFamily[reminder.family_id] || []
+
+        if (familySubscriptions.length === 0) {
+          console.log(`[process-reminders] ⚠️ No subscriptions for family ${reminder.family_id}, skipping medication reminder ${reminder.id}`)
+          // Помечаем как отправленное, даже если нет подписок
+          await supabase
+            .from('medication_reminders')
+            .update({ status: 'sent', sent_at: now })
+            .eq('id', reminder.id)
+          continue
+        }
+
+        const timingLabels = {
+          before_meal: 'перед едой',
+          after_meal: 'после еды',
+          during_meal: 'во время еды',
+          anytime: 'неважно'
+        }
+
+        const message = {
+          title: '💊 Пора принять лекарство',
+          body: `${medication.name} (${illness.name}) - ${timingLabels[medication.timing_type] || 'прием лекарства'}`,
+          icon: '/icons/feeding.png',
+          badge: '/icons/icon-96x96.png'
+        }
+
+        console.log(`[process-reminders] Processing medication reminder ${reminder.id} for family ${reminder.family_id} with ${familySubscriptions.length} subscription(s)`)
+
+        let familySentCount = 0
+        let familyFailedCount = 0
+
+        for (const subscription of familySubscriptions) {
+          try {
+            const payload = JSON.stringify({
+              title: message.title,
+              body: message.body,
+              icon: message.icon,
+              badge: message.badge,
+              tag: `medication-reminder-${reminder.id}`,
+              data: {
+                type: 'medication',
+                familyId: reminder.family_id,
+                reminderId: reminder.id,
+                medicationId: reminder.medication_id,
+                illnessId: reminder.illness_id,
+                screen: '/tamagotchi'
+              },
+              timestamp: Date.now()
+            })
+
+            await webpush.sendNotification(
+              {
+                endpoint: subscription.endpoint,
+                keys: {
+                  p256dh: subscription.p256dh,
+                  auth: subscription.auth
+                }
+              },
+              payload,
+              {
+                TTL: 86400,
+                urgency: 'normal'
+              }
+            )
+
+            familySentCount++
+            sentCount++
+          } catch (error) {
+            console.error(`Error sending medication notification to subscription ${subscription.id}:`, error)
+            familyFailedCount++
+            failedCount++
+
+            // Удаляем недействительные подписки
+            if (error.statusCode === 410 || error.statusCode === 404) {
+              await supabase
+                .from('push_subscriptions')
+                .delete()
+                .eq('id', subscription.id)
+            }
+          }
+        }
+
+        // Помечаем напоминание как отправленное
+        await supabase
+          .from('medication_reminders')
+          .update({
+            status: 'sent',
+            sent_at: now
+          })
+          .eq('id', reminder.id)
+
+        console.log(
+          `Medication reminder ${reminder.id} sent to ${familySentCount}/${familySubscriptions.length} subscribers`
+        )
+      }
+    }
+
+    const totalProcessed = (reminders?.length || 0) + (medicationReminders?.length || 0)
+
     return res.status(200).json({
       success: true,
-      processed: reminders.length,
+      processed: totalProcessed,
       sent: sentCount,
       failed: failedCount,
       debug: {
         now: now,
-        remindersProcessed: reminders.map(r => ({
+        remindersProcessed: reminders?.map(r => ({
           id: r.id,
           type: r.reminder_type,
           familyId: r.family_id,
           scheduledTime: r.scheduled_time,
           subscriptionsCount: subscriptionsByFamily[r.family_id]?.length || 0
-        }))
+        })) || [],
+        medicationRemindersProcessed: medicationReminders?.length || 0
       }
     })
   } catch (error) {
