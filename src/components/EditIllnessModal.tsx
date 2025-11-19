@@ -270,7 +270,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                   type="text"
                   value={illnessName}
                   onChange={(e) => setIllnessName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
 
@@ -289,7 +289,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                       value={doctorDate}
                       onChange={(e) => setDoctorDate(e.target.value)}
                       min={new Date().toISOString().split('T')[0]}
-                      className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1"
+                      className="w-full rounded border border-gray-200 bg-gray-50 px-2 py-2 transition-all duration-200 flex items-center"
                     />
                   </div>
                   <div>
@@ -300,7 +300,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                       type="time"
                       value={doctorTime}
                       onChange={(e) => setDoctorTime(e.target.value)}
-                      className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1"
+                      className="w-full rounded border border-gray-200 bg-gray-50 px-2 py-2 transition-all duration-200 flex items-center"
                     />
                   </div>
                 </div>
@@ -383,7 +383,6 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                 )}
 
                 {/* Форма добавления нового лекарства */}
-                <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       Название лекарства/мази
@@ -393,7 +392,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                       value={newMedication.name}
                       onChange={(e) => setNewMedication({ ...newMedication, name: e.target.value })}
                       placeholder="Название лекарства/мази"
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
 
@@ -404,7 +403,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                     <select
                       value={newMedication.timing_type}
                       onChange={(e) => setNewMedication({ ...newMedication, timing_type: e.target.value as any })}
-                      className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1"
+                      className="w-full rounded border border-gray-200 bg-gray-50 px-2 py-2 transition-all duration-200 flex items-center"
                     >
                       {TIMING_OPTIONS.map(opt => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -412,7 +411,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-3 py-2">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
                         Раз в день
@@ -420,7 +419,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                       <select
                         value={newMedication.times_per_day}
                         onChange={(e) => setNewMedication({ ...newMedication, times_per_day: parseInt(e.target.value) })}
-                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       >
                         {TIMES_PER_DAY_OPTIONS.map(num => (
                           <option key={num} value={num}>{num}</option>
@@ -435,7 +434,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                       <select
                         value={newMedication.duration_days}
                         onChange={(e) => setNewMedication({ ...newMedication, duration_days: parseInt(e.target.value) })}
-                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       >
                         {DURATION_DAYS_OPTIONS.map(num => (
                           <option key={num} value={num}>{num}</option>
@@ -452,7 +451,6 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                   >
                     Добавить лекарство
                   </button>
-                </div>
               </div>
             </div>
           </div>

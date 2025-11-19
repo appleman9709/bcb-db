@@ -1214,16 +1214,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
   return (
     <div className="tamagotchi-container relative">
-      {/* Предзагрузка изображений для тамагочи - убрана для ускорения */}
-      {/* <CategoryPreloader category="tamagotchi" priority="high" delay={300} /> */}
-      
-      {/* Индикатор фонового обновления - убран для улучшения UX */}
-      {/* {backgroundLoading && (
-        <div className="absolute top-2 right-2 z-30 bg-blue-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
-          <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin animation-priority-high"></div>
-          <span>Обновление...</span>
-        </div>
-      )} */}
 
       {/* Монетки для сбора - позиционированы относительно всего контейнера */}
       {coins.map(coin => (
@@ -1367,7 +1357,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             <video
               key="sleep-video"
               src={getGifSource(babyState)}
-              className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
+              className="tamagotchi-video object-cover rounded-3xl cursor-pointer"
               autoPlay
               muted
               playsInline
@@ -1378,7 +1368,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
               key={isSleepMode ? 'sleep-image' : babyState} // Принудительно перезагружаем при смене состояния
               src={getGifSource(babyState)}
               alt={`Малыш в состоянии ${babyState}`}
-              className="tamagotchi-video w-[75vw] max-w-[400px] object-cover rounded-3xl cursor-pointer"
+              className="tamagotchi-video object-cover rounded-3xl cursor-pointer"
               loading="lazy"
               decoding="async"
             />
@@ -1423,7 +1413,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             {/* Модальное окно рюкзака - будет рендериться через портал */}
           </div>
           {/* Иконки болезней и кнопка добавления - нижний левый угол */}
-          <div className="absolute flex bottom-12 left-12 z-50 gap-2">
+          <div className="absolute flex bottom-12 pl-4 z-50 gap-2">
             {/* Кнопка добавления болезни */}
             <button
               onClick={handleAddIllness}
