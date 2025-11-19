@@ -714,130 +714,126 @@
   
   
   /* Дополнительная оптимизация для очень маленьких экранов */
-  @media (max-width: 480px) {
-    .modern-slider-card {
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-    
-    .slider-header {
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-    
-    .slider-icon {
-      width: 36px;
-      height: 36px;
-      font-size: 18px;
-    }
-    
-    .slider-title {
-      font-size: 13px;
-    }
-    
-    .slider-description {
-      font-size: 10px;
-    }
-    
-    .value-number {
-      font-size: 16px;
-    }
-    
-    .value-unit {
-      font-size: 10px;
-    }
-    
-    .modern-slider::-webkit-slider-thumb {
-      height: 32px !important;
-      width: 32px !important;
-      border: 4px solid white !important;
-    }
-    
-    .modern-slider::-moz-range-thumb {
-      height: 32px !important;
-      width: 32px !important;
-      border: 4px solid white !important;
-    }
-    
-    .slider-labels {
-      margin-top: 4px;
-      gap: 2px;
-    }
-    
-    .slider-label {
-      padding: 4px;
-      min-width: 28px;
-      min-height: 28px;
-    }
-    
-    .label-value {
-      font-size: 10px;
-    }
-    
-    .label-text {
-      font-size: 8px;
-    }
+  .modern-slider-card {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .slider-header {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .slider-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .slider-title {
+    font-size: 13px;
+  }
+
+  .slider-description {
+    font-size: 10px;
+  }
+
+  .value-number {
+    font-size: 16px;
+  }
+
+  .value-unit {
+    font-size: 10px;
+  }
+
+  .modern-slider::-webkit-slider-thumb {
+    height: 32px !important;
+    width: 32px !important;
+    border: 4px solid white !important;
+  }
+
+  .modern-slider::-moz-range-thumb {
+    height: 32px !important;
+    width: 32px !important;
+    border: 4px solid white !important;
+  }
+
+  .slider-labels {
+    margin-top: 4px;
+    gap: 2px;
+  }
+
+  .slider-label {
+    padding: 4px;
+    min-width: 28px;
+    min-height: 28px;
+  }
+
+  .label-value {
+    font-size: 10px;
+  }
+
+  .label-text {
+    font-size: 8px;
   }
   
   /* Оптимизация для iPhone и других touch-устройств */
-  @media (hover: none) and (pointer: coarse) {
-    .modern-slider-card:hover {
-      transform: none;
-    }
-    
-    .modern-slider-card:hover::before {
-      opacity: 0;
-    }
-    
-    .modern-slider-card:hover::after {
-      opacity: 0;
-    }
-    
-    .modern-slider-card:hover .slider-icon {
-      transform: none;
-    }
-    
-    .slider-label:hover {
-      background: transparent;
-      transform: none;
-      box-shadow: none;
-    }
-    
-    /* Улучшенная обратная связь для touch */
-    .modern-slider:active::-webkit-slider-thumb {
-      transform: scale(1.2) !important;
-    }
-    
-    .modern-slider:active::-moz-range-thumb {
-      transform: scale(1.2) !important;
-    }
-    
-    .slider-label:active {
-      background: rgba(59, 130, 246, 0.1);
-      transform: scale(0.95);
-    }
-    
-    /* Увеличенные области касания */
-    .modern-slider {
-      height: 64px !important;
-      padding: 28px 0 !important;
-    }
-    
-    .slider-track {
-      height: 12px;
-    }
-    
-    .modern-slider::-webkit-slider-thumb {
-      height: 36px !important;
-      width: 36px !important;
-      border: 5px solid white !important;
-    }
-    
-    .modern-slider::-moz-range-thumb {
-      height: 36px !important;
-      width: 36px !important;
-      border: 5px solid white !important;
-    }
+  .modern-slider-card:hover {
+    transform: none;
+  }
+
+  .modern-slider-card:hover::before {
+    opacity: 0;
+  }
+
+  .modern-slider-card:hover::after {
+    opacity: 0;
+  }
+
+  .modern-slider-card:hover .slider-icon {
+    transform: none;
+  }
+
+  .slider-label:hover {
+    background: transparent;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Улучшенная обратная связь для touch */
+  .modern-slider:active::-webkit-slider-thumb {
+    transform: scale(1.2) !important;
+  }
+
+  .modern-slider:active::-moz-range-thumb {
+    transform: scale(1.2) !important;
+  }
+
+  .slider-label:active {
+    background: rgba(59, 130, 246, 0.1);
+    transform: scale(0.95);
+  }
+
+  /* Увеличенные области касания */
+  .modern-slider {
+    height: 64px !important;
+    padding: 28px 0 !important;
+  }
+
+  .slider-track {
+    height: 12px;
+  }
+
+  .modern-slider::-webkit-slider-thumb {
+    height: 36px !important;
+    width: 36px !important;
+    border: 5px solid white !important;
+  }
+
+  .modern-slider::-moz-range-thumb {
+    height: 36px !important;
+    width: 36px !important;
+    border: 5px solid white !important;
   }
 
   /* Дополнительные интерактивные эффекты */
@@ -1478,62 +1474,44 @@
 }
 
 /* Адаптивность для разных размеров экрана */
-@media (max-width: 640px) {
-  .date-input-container input[type="date"] {
-    min-height: 52px;
-    padding: 14px 16px;
-    font-size: 16px; /* Критично для предотвращения зума */
-  }
-  
-  .date-input-container input[type="date"]::-webkit-calendar-picker-indicator {
-    width: 18px;
-    height: 18px;
-    right: 14px;
-  }
+.date-input-container input[type="date"] {
+  min-height: 48px;
+  padding: 12px 14px;
+  font-size: 16px; /* Критично для предотвращения зума */
+  border-radius: 24px;
 }
 
-@media (max-width: 480px) {
-  .date-input-container input[type="date"] {
-    min-height: 48px;
-    padding: 12px 14px;
-    font-size: 16px;
-    border-radius: 24px;
-  }
-  
-  .date-input-container input[type="date"]::-webkit-calendar-picker-indicator {
-    width: 16px;
-    height: 16px;
-    right: 12px;
-  }
-  
-  .date-input-container .focus-ring {
-    border-radius: 24px;
-  }
+.date-input-container input[type="date"]::-webkit-calendar-picker-indicator {
+  width: 16px;
+  height: 16px;
+  right: 12px;
+}
+
+.date-input-container .focus-ring {
+  border-radius: 24px;
 }
 
 /* Touch-оптимизация для устройств без hover */
-@media (hover: none) and (pointer: coarse) {
-  .date-input-container input[type="date"]:hover {
-    border-color: #d1d5db;
-    box-shadow: 
-      0 1px 3px rgba(0, 0, 0, 0.1),
-      0 1px 2px rgba(0, 0, 0, 0.06);
-    transform: none;
-  }
-  
-  .date-input-container input[type="date"]:active {
-    transform: scale(0.98);
-    border-color: #3b82f6;
-    box-shadow: 
-      0 0 0 3px rgba(59, 130, 246, 0.1),
-      0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Увеличенная область касания для touch-устройств */
-  .date-input-container input[type="date"] {
-    min-height: 60px;
-    padding: 18px 16px;
-  }
+.date-input-container input[type="date"]:hover {
+  border-color: #d1d5db;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  transform: none;
+}
+
+.date-input-container input[type="date"]:active {
+  transform: scale(0.98);
+  border-color: #3b82f6;
+  box-shadow:
+    0 0 0 3px rgba(59, 130, 246, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Увеличенная область касания для touch-устройств */
+.date-input-container input[type="date"] {
+  min-height: 60px;
+  padding: 18px 16px;
 }
 
 /* Анимация появления */
@@ -1693,21 +1671,19 @@
 }
 
 /* Дополнительные стили для модальных окон на мобильных устройствах */
-@media (max-width: 768px) {
-  :root {
-    --modal-content-max-height: 85vh;
-    --modal-content-max-height-dvh: 85dvh;
-  }
-  
-  .modal-overlay {
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-  }
-  
-  .modal-content {
-    margin-bottom: 2rem; /* Отступ снизу для нижней панели */
-  }
+:root {
+  --modal-content-max-height: 85vh;
+  --modal-content-max-height-dvh: 85dvh;
+}
+
+.modal-overlay {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+}
+
+.modal-content {
+  margin-bottom: 2rem; /* Отступ снизу для нижней панели */
 }
 
 /* Стили для всех модальных окон - оптимизированная версия */
@@ -1745,26 +1721,22 @@
 }
 
 /* Специальные стили для модальных окон на очень маленьких экранах */
-@media (max-width: 480px) {
-  .modal-content {
-    max-height: 80vh !important;
-    max-height: 80dvh !important;
-    margin-bottom: 3rem !important; /* Больший отступ для маленьких экранов */
-  }
+.modal-content {
+  max-height: 80vh !important;
+  max-height: 80dvh !important;
+  margin-bottom: 3rem !important; /* Больший отступ для маленьких экранов */
 }
 
 /* Специальные стили для iPhone 14 Pro и подобных устройств */
-@media (max-width: 430px) and (min-height: 800px) {
-  .modal-overlay {
-    padding: 1rem !important;
-    padding-bottom: 2rem !important; /* Дополнительный отступ снизу */
-  }
-  
-  .modal-content {
-    max-height: 75vh !important;
-    max-height: 75dvh !important;
-    margin-bottom: 1rem !important;
-  }
+.modal-overlay {
+  padding: 1rem !important;
+  padding-bottom: 2rem !important; /* Дополнительный отступ снизу */
+}
+
+.modal-content {
+  max-height: 75vh !important;
+  max-height: 75dvh !important;
+  margin-bottom: 1rem !important;
 }
 
 /* Дополнительные стили для iPhone с вырезом (notch) */
@@ -1775,42 +1747,36 @@
 }
 
 /* Специальные стили для QuickActionModal на мобильных устройствах */
-@media (max-width: 768px) {
-  .quick-action-modal .modal-content {
-    max-height: 95vh !important;
-    max-height: 95dvh !important;
-    height: 95vh !important;
-    height: 95dvh !important;
-  }
-  
-  .quick-action-modal .modal-overlay {
-    padding: 0.25rem !important;
-    padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
-  }
+.quick-action-modal .modal-content {
+  max-height: 95vh !important;
+  max-height: 95dvh !important;
+  height: 95vh !important;
+  height: 95dvh !important;
+}
+
+.quick-action-modal .modal-overlay {
+  padding: 0.25rem !important;
+  padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
 }
 
 /* Специальные стили для очень маленьких экранов */
-@media (max-width: 480px) {
-  .quick-action-modal .modal-content {
-    max-height: 98vh !important;
-    max-height: 98dvh !important;
-    height: 98vh !important;
-    height: 98dvh !important;
-  }
-  
-  .quick-action-modal .modal-overlay {
-    padding: 0.125rem !important;
-    padding-bottom: max(0.125rem, env(safe-area-inset-bottom)) !important;
-  }
+.quick-action-modal .modal-content {
+  max-height: 98vh !important;
+  max-height: 98dvh !important;
+  height: 98vh !important;
+  height: 98dvh !important;
+}
+
+.quick-action-modal .modal-overlay {
+  padding: 0.125rem !important;
+  padding-bottom: max(0.125rem, env(safe-area-inset-bottom)) !important;
 }
 
 /* Убираем прокрутку для QuickActionModal на мобильных устройствах */
-@media (max-width: 768px) {
-  .quick-action-modal .modal-content > div {
-    overflow-y: visible !important;
-    max-height: none !important;
-    height: auto !important;
-  }
+.quick-action-modal .modal-content > div {
+  overflow-y: visible !important;
+  max-height: none !important;
+  height: auto !important;
 }
 
 /* Предотвращение горизонтальной прокрутки в модальных окнах с графиками */
@@ -1890,20 +1856,18 @@ canvas {
 }
 
 /* Адаптивность для очень маленьких экранов */
-@media (max-height: 600px) {
-  .tamagotchi-video {
-    max-height: 40vh;
-    max-height: 40dvh;
-  }
-  
-  .tamagotchi-coins {
-    padding: 0.125rem 0;
-  }
-  
-  .tamagotchi-inventory {
-    padding: 0.25rem;
-    margin-bottom: 4rem; /* Отступ для маленьких экранов */
-  }
+.tamagotchi-video {
+  max-height: 40vh;
+  max-height: 40dvh;
+}
+
+.tamagotchi-coins {
+  padding: 0.125rem 0;
+}
+
+.tamagotchi-inventory {
+  padding: 0.25rem;
+  margin-bottom: 4rem; /* Отступ для маленьких экранов */
 }
 
 /* Стили для нативных элементов выбора даты и времени */
@@ -1969,12 +1933,10 @@ canvas {
   }
   
   /* Улучшенные стили для мобильных устройств */
-  @media (max-width: 768px) {
-    input[type="date"],
-    input[type="time"] {
-      font-size: 16px; /* Предотвращает зум на iOS */
-      min-height: 44px; /* Минимальный размер для удобного тапа */
-    }
+  input[type="date"],
+  input[type="time"] {
+    font-size: 16px; /* Предотвращает зум на iOS */
+    min-height: 44px; /* Минимальный размер для удобного тапа */
   }
 
   /* Apple Liquid Glass Tab Bar Styles - оптимизированная версия */
@@ -2202,7 +2164,6 @@ canvas {
   }
 
   /* Адаптивность для разных размеров экранов */
-  @media (max-width: 640px) {
     :root {
       --tab-bar-bottom: 18px;
       --tab-bar-left: 12px;
@@ -2235,9 +2196,8 @@ canvas {
       width: 36px;
       height: 36px;
     }
-  }
 
-  @media (max-width: 480px) {
+  
     :root {
       --tab-bar-bottom: 18px;
       --tab-bar-left: 8px;
@@ -2275,10 +2235,9 @@ canvas {
     .liquid-glass-tab-label {
       font-size: 9px;
     }
-  }
+
 
   /* Оптимизация для touch-устройств */
-  @media (hover: none) and (pointer: coarse) {
     .liquid-glass-tab-button:hover::before {
       /* Убираем подложку у неактивных кнопок на touch */
       background: transparent;
@@ -2354,7 +2313,7 @@ canvas {
     .liquid-glass-tab-active:hover .liquid-glass-tab-label {
       color: #3b82f6;
     }
-  }
+
 
   /* Tamagotchi Inventory Liquid Glass Styles */
   .tamagotchi-inventory-liquid {
@@ -2480,7 +2439,6 @@ canvas {
   }
 
   /* Отключение дорогих эффектов на слабых устройствах и мобильных */
-  @media (prefers-reduced-motion: reduce), (max-width: 768px) {
     .tamagotchi-inventory-container,
     .liquid-glass-tab-container {
       animation: none !important;
@@ -2488,38 +2446,36 @@ canvas {
       -webkit-backdrop-filter: none !important;
       background: rgba(255, 255, 255, 0.2) !important;
     }
-    
+
     .tamagotchi-inventory-container::before,
     .liquid-glass-tab-container::before {
       animation: none !important;
       opacity: 0.2;
     }
-    
+
     .tamagotchi-inventory-container::after,
     .liquid-glass-tab-container::after {
       animation: none !important;
       opacity: 0.1;
     }
-    
+
     .tamagotchi-inventory-item {
       animation: none !important;
     }
-    
+
     .tamagotchi-inventory-item.low-stock {
       animation: none !important;
     }
-    
+
     .coin-float {
       animation: none !important;
     }
-    
+
     .coin-falling {
       animation: coinZoomOut 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
     }
-  }
 
 /* Дополнительная оптимизация для мобильных устройств */
-@media (max-width: 768px) {
   .tamagotchi-inventory-container,
   .liquid-glass-tab-container {
     /* Отключен backdrop-filter для экономии ресурсов на мобильных */
@@ -2528,7 +2484,6 @@ canvas {
     background: rgba(255, 255, 255, 0.2);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
-}
 
 /* ========================================
    СИСТЕМА ПРИОРИТЕТОВ АНИМАЦИЙ
@@ -2548,32 +2503,28 @@ canvas {
 }
 
 /* Отключение анимаций на слабых устройствах */
-@media (prefers-reduced-motion: reduce), (max-width: 768px) {
   .animation-priority-medium,
   .animation-priority-low {
     animation: none !important;
     transition: none !important;
   }
-  
+
   /* Отключение hover эффектов на touch устройствах */
   .hover-effect {
     transform: none !important;
     box-shadow: none !important;
   }
-}
 
 /* Отключение на очень слабых устройствах */
-@media (max-width: 480px) {
   .animation-priority-high {
     animation-duration: 0.1s !important;
   }
-  
+
   /* Отключение всех декоративных анимаций */
   .decoration-animation {
     animation: none !important;
     opacity: 0.3 !important;
   }
-}
 
 /* ========================================
    ОПТИМИЗИРОВАННЫЕ АНИМАЦИИ МОНЕТ
@@ -2602,23 +2553,12 @@ canvas {
 }
 
 /* Отключение hover анимаций на мобильных */
-@media (hover: none) {
   .coin-hover-effect {
     transform: none !important;
     transition: none !important;
   }
-}
 
-/* Hover эффект для монет на desktop */
-@media (hover: hover) {
-  .coin-hover-effect {
-    transition: transform 0.2s ease;
-  }
-  
-  .coin-hover-effect:hover {
-    transform: scale(1.1);
-  }
-}
+/* Hover эффекты отключены для мобильной версии */
 
 /* ========================================
    ОПТИМИЗИРОВАННЫЕ АНИМАЦИИ ЗАГРУЗКИ
@@ -2646,12 +2586,10 @@ canvas {
 }
 
 /* Отключение декоративных анимаций на мобильных */
-@media (max-width: 768px) {
   .loading-decoration {
     animation: none !important;
     opacity: 0.3 !important;
   }
-}
 
 /* ========================================
    ОПТИМИЗАЦИЯ СУЩЕСТВУЮЩИХ АНИМАЦИЙ
@@ -2667,13 +2605,11 @@ canvas {
 }
 
 /* Отключение постоянных анимаций монет на мобильных */
-@media (max-width: 768px) {
   .coin-float {
     animation: none !important;
     pointer-events: auto;
     z-index: 20;
   }
-}
 
   /* 
    * ОПТИМИЗИРОВАННАЯ анимация "дыхания" для liquid glass эффекта
@@ -2905,7 +2841,6 @@ canvas {
     }
   }
 
-  @media (max-width: 480px) {
     .tamagotchi-inventory-container,
     .liquid-glass-tab-container {
       gap: 8px;
@@ -2963,7 +2898,7 @@ canvas {
       outline: 2px solid rgba(59, 130, 246, 0.5);
       outline-offset: 2px;
     }
-  }
+
 
   /* Адаптивная анимация дыхания для маленьких экранов - ОПТИМИЗИРОВАННАЯ */
   @keyframes liquidGlassBreathingSmall {
@@ -3005,7 +2940,6 @@ canvas {
   }
 
   /* Оптимизация для touch-устройств */
-  @media (hover: none) and (pointer: coarse) {
     .tamagotchi-inventory-item:hover {
       transform: translateY(0px) scale(1);
       animation: none; /* Отключаем анимации на touch-устройствах */
@@ -3043,9 +2977,9 @@ canvas {
     .tamagotchi-inventory-item:active .tamagotchi-inventory-icon img {
       filter: brightness(0.9) contrast(1.05);
     }
-  }
 
-  /* Упрощенный псевдоэлемент для дополнительного блеска */
+
+  /* Упрощенный псевдоэлемент для дополнительного блеска (без анимации) */
   .tamagotchi-inventory-container::before,
   .liquid-glass-tab-container::before {
     content: '';
@@ -3061,19 +2995,6 @@ canvas {
     border-radius: 33px;
     z-index: -1;
     opacity: 0.4;
-    animation: shimmerEffect 4s ease-in-out infinite;
-  }
-
-  /* Эффект мерцания для дополнительного блеска */
-  @keyframes shimmerEffect {
-    0%, 100% {
-      opacity: 0.6;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.8;
-      transform: scale(1.01);
-    }
   }
 
   /* Эффект волны при клике */
@@ -3125,19 +3046,17 @@ canvas {
 }
 
 /* Mobile-specific styles for Tamagotchi modals */
-@media (max-width: 768px) {
   .tamagotchi-container .modal-overlay {
     width: 100vw;
     height: 100vh;
     height: 100dvh;
   }
-  
+
   .tamagotchi-container .modal-content {
     max-height: 85vh;
     max-height: 85dvh;
     margin-bottom: 2rem;
   }
-}
 
   /* Toggle switch styles */
   .toggle-switch {
