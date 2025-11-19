@@ -317,7 +317,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                         <select
                           value={currentMedication.timing_type}
                           onChange={(e) => setCurrentMedication({ ...currentMedication, timing_type: e.target.value as any })}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1"
                         >
                           {TIMING_OPTIONS.map(opt => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -332,7 +332,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                         <select
                           value={currentMedication.times_per_day}
                           onChange={(e) => setCurrentMedication({ ...currentMedication, times_per_day: parseInt(e.target.value) })}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1"
                         >
                           {TIMES_PER_DAY_OPTIONS.map(num => (
                             <option key={num} value={num}>{num}</option>
@@ -347,7 +347,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                         <select
                           value={currentMedication.duration_days}
                           onChange={(e) => setCurrentMedication({ ...currentMedication, duration_days: parseInt(e.target.value) })}
-                          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1"
                         >
                           {DURATION_DAYS_OPTIONS.map(num => (
                             <option key={num} value={num}>{num}</option>
@@ -420,7 +420,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                         value={doctorDate}
                         onChange={(e) => setDoctorDate(e.target.value)}
                         min={new Date().toISOString().split('T')[0]}
-                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1"
                       />
                     </div>
                     <div>
@@ -431,7 +431,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                         type="time"
                         value={doctorTime}
                         onChange={(e) => setDoctorTime(e.target.value)}
-                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1"
                       />
                     </div>
                   </div>

@@ -1279,36 +1279,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         )}
       </div>
 
-      {/* Иконки болезней и кнопка добавления - нижний левый угол */}
-      <div className="relative inline-block bottom-0 left-0 mb-4 ml-4 flex items-center gap-2 flex-wrap-reverse">
-        {/* Кнопка добавления болезни */}
-        <button
-          onClick={handleAddIllness}
-          className="relative inline-block flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold shadow-lg transition-colors"
-          aria-label="Добавить болезнь"
-          title="Добавить болезнь"
-        >
-          +
-        </button>
-        
-        {/* Иконки болезней */}
-        {illnesses.length > 0 && (
-          <>
-            {illnesses.map((illness) => (
-              <button
-                key={illness.id}
-                onClick={() => handleIllnessClick(illness)}
-                className="relative inline-block flex items-center justify-center w-10 h-10 rounded-full bg-red-100 border border-red-200 hover:bg-red-200 transition-colors"
-                title={illness.name}
-                aria-label={illness.name}
-              >
-                <span className="text-lg">🏥</span>
-              </button>
-            ))}
-          </>
-        )}
-      </div>
-
       {/* GIF/Video малыша - адаптивное */}
       <div className="tamagotchi-video-container">
         <p className="text-xs font-medium text-gray-700 mt-2 mb-2">
@@ -1431,7 +1401,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           </div>
 
           {/* Кнопка рюкзака - в нижнем правом углу относительно контейнера с изображением */}
-          <div className="absolute bottom-4 right-4 z-50">
+          <div className="absolute bottom-12 right-4 z-50">
             <button
               type="button"
               onClick={toggleBackpack}
@@ -1452,7 +1422,35 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
             {/* Модальное окно рюкзака - будет рендериться через портал */}
           </div>
-
+          {/* Иконки болезней и кнопка добавления - нижний левый угол */}
+          <div className="absolute flex bottom-12 left-12 z-50 gap-2">
+            {/* Кнопка добавления болезни */}
+            <button
+              onClick={handleAddIllness}
+              className="relative inline-block flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold shadow-lg transition-colors"
+              aria-label="Добавить болезнь"
+              title="Добавить болезнь"
+            >
+              +
+            </button>
+            
+            {/* Иконки болезней */}
+            {illnesses.length > 0 && (
+              <>
+                {illnesses.map((illness) => (
+                  <button
+                    key={illness.id}
+                    onClick={() => handleIllnessClick(illness)}
+                    className="relative inline-block flex items-center justify-center w-10 h-10 rounded-full bg-red-100 border border-red-200 hover:bg-red-200 transition-colors"
+                    title={illness.name}
+                    aria-label={illness.name}
+                  >
+                    <span className="text-lg">🏥</span>
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
