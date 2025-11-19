@@ -1787,7 +1787,7 @@ canvas {
 }
 
 .tamagotchi-video {
-  max-height: 60dvh;
+  max-height: 70dvh;
   width: auto;
   height: auto;
   object-fit: contain;
