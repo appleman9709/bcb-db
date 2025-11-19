@@ -51,7 +51,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       )}
 
       {/* Дата рождения */}
-      <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
         <div className="text-center mb-2">
           <h2 className="text-base font-semibold text-gray-900">Дата рождения</h2>
         </div>
@@ -86,7 +86,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       </div>
 
       {/* Интервалы */}
-      <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
         <div className="text-center mb-2">
           <h2 className="text-base font-semibold text-gray-900">Интервалы</h2>
         </div>
@@ -190,19 +190,19 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       </div>
 
       {/* Push уведомления */}
-      <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
         <h2 className="text-base font-semibold text-gray-900 mb-3">🔔 Push-уведомления</h2>
         <PushNotificationManager />
       </div>
 
       {/* Отправить уведомление */}
-      <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
         <h2 className="text-base font-semibold text-gray-900 mb-3">📤 Отправить уведомление</h2>
         <NotificationSender />
       </div>
 
       {/* Семья и профиль */}
-      <div className="bg-white rounded-3xl p-3 shadow-sm border border-gray-100 iphone14-card">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-8 h-8 flex items-center justify-center text-sm">
             👨‍👩‍👧‍👦

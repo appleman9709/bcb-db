@@ -353,18 +353,6 @@
     display: block !important;
     visibility: visible !important;
   }
-
-  /* Современные стили для новых слайдеров */
-  
-  /* Карточка слайдера */
-  .modern-slider-card {
-    border-radius: 24px;
-    padding: 20px;
-    margin-bottom: 16px;
-    transition: none;
-    position: relative;
-    overflow: hidden;
-  }
   
   .modern-slider-card::before {
     content: '';
@@ -695,29 +683,7 @@
     color: #6b7280;
     line-height: 1;
   }
-  
-  /* Анимации */
-  .modern-slider-card {
-    animation: none;
-  }
-  
-  @keyframes slideInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  
-  /* Дополнительная оптимизация для очень маленьких экранов */
-  .modern-slider-card {
-    padding: 12px;
-    margin-bottom: 10px;
-  }
+    
 
   .slider-header {
     gap: 8px;
@@ -1512,22 +1478,6 @@
 .date-input-container input[type="date"] {
   min-height: 60px;
   padding: 18px 16px;
-}
-
-/* Анимация появления */
-.date-input-container {
-  animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Улучшенная доступность */

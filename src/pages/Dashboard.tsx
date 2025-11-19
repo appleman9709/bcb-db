@@ -1106,13 +1106,13 @@ export default function Dashboard() {
               </div>
 
               {/* Карточки активности */}
-              <div className="flex flex-wrap gap-2.5 py-4">
+              <div className="flex flex-wrap gap-2 py-4">
                 <button
                     onClick={() => handleQuickAction('feeding')}
                   className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
                 >
                   <div
-                    className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
+                    className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
                     style={getRingStyle(feedingProgress.overdue ? '#ef4444' : '#38bdf8', feedingProgress.overdue ? 100 : feedingProgress.remainingPercent)}
                   >
                     <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
@@ -1137,7 +1137,7 @@ export default function Dashboard() {
                   className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
                 >
                   <div
-                    className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
+                    className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
                     style={getRingStyle(diaperProgress.overdue ? '#ef4444' : '#22c55e', diaperProgress.overdue ? 100 : diaperProgress.remainingPercent)}
                   >
                     <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
@@ -1162,7 +1162,7 @@ export default function Dashboard() {
                   className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
                 >
                   <div
-                    className="mt-2 w-[92px] h-[92px] rounded-full p-1.5 flex items-center justify-center"
+                    className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
                     style={getRingStyle(bathProgress.overdue ? '#ef4444' : '#f59e0b', bathProgress.overdue ? 100 : bathProgress.remainingPercent)}
                   >
                     <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">

@@ -270,7 +270,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                   type="text"
                   value={illnessName}
                   onChange={(e) => setIllnessName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mb-4 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
 
@@ -392,7 +392,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                       value={newMedication.name}
                       onChange={(e) => setNewMedication({ ...newMedication, name: e.target.value })}
                       placeholder="Название лекарства/мази"
-                      className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="mb-4 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
 
@@ -403,7 +403,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                     <select
                       value={newMedication.timing_type}
                       onChange={(e) => setNewMedication({ ...newMedication, timing_type: e.target.value as any })}
-                      className="w-full rounded border border-gray-200 bg-gray-50 px-2 py-2 transition-all duration-200 flex items-center"
+                      className="mb-4 w-full rounded border border-gray-200 bg-gray-50 px-2 py-2 transition-all duration-200 flex items-center"
                     >
                       {TIMING_OPTIONS.map(opt => (
                         <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -411,7 +411,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 py-2">
+                  <div className="grid grid-cols-2 gap-3 mb-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
                         Раз в день

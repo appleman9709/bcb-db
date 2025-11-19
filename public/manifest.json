@@ -1,7 +1,7 @@
 {
-  "name": "BabyCare Dashboard",
-  "short_name": "BabyCare",
-  "description": "Панель управления для ухода за ребенком",
+  "name": "Никола",
+  "short_name": "Никола",
+  "description": "Панель управления для ухода за сыном",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#d6e7fe",
