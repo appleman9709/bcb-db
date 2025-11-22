@@ -9,6 +9,11 @@
     @apply border-gray-700;
   }
   
+  /* Prevent all scrolling in PWA */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
   /* Ensure no scrollbars appear */
   ::-webkit-scrollbar {
     display: none;
