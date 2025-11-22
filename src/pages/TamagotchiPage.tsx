@@ -1388,7 +1388,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             <button
               type="button"
               onClick={toggleBackpack}
-              className="absolute bottom-56 right-4 z-50"
+              className="absolute bottom-64 right-4 z-50"
               aria-label={backpackOpen ? 'Закрыть рюкзак' : 'Открыть рюкзак'}
             >
               <img 
@@ -1404,7 +1404,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             </button>
 
           {/* Иконки болезней и кнопка добавления - нижний левый угол */}
-          <div className="absolute bottom-56 left-4 z-50 gap-2">
+          <div className="absolute bottom-64 left-4 z-50 gap-2">
             {/* Кнопка добавления болезни */}
             <button
               onClick={handleAddIllness}
@@ -1436,7 +1436,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
 
       {/* Лоток с предметами - в стиле liquid glass */}
-      <div className="tamagotchi-inventory-liquid">
         <div className="tamagotchi-inventory-container">
           {/* Подгузник */}
           <div 
@@ -1512,7 +1511,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             </div>
           </div>
         </div>
-      </div>
+      
 
       {/* Модальное окно рюкзака через портал */}
       {backpackOpen && createPortal(

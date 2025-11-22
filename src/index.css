@@ -2287,50 +2287,18 @@ canvas {
     --breathing-duration: 4s;
   }
 
-  /* 
-   * АЛЬТЕРНАТИВНАЯ ВЕРСИЯ С СТАТИЧНЫМ ИЗОБРАЖЕНИЕМ (максимальная производительность):
-   * 
-   * Для максимальной оптимизации замените .tamagotchi-inventory-container на:
-   * 
-   * .tamagotchi-inventory-container {
-   *   position: relative;
-   *   display: flex;
-   *   justify-content: center;
-   *   align-items: center;
-   *   gap: 8px;
-   *   padding: 4px;
-   *   width: fit-content;
-   *   max-width: 400px;
-   *   margin: 0 auto;
-   *   
-   *   background-image: url('/icons/glass-bg.png'); // Статичное изображение с прозрачностью
-   *   background-size: cover;
-   *   background-position: center;
-   *   background-repeat: no-repeat;
-   *   
-   *   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
-   *   border: 1px solid rgba(255, 255, 255, 0.2);
-   *   border-radius: 32px;
-   *   transition: all 0.3s ease;
-   * }
-   * 
-   * Преимущества статичного изображения:
-   * - Нет пересчета градиентов каждый кадр
-   * - Нет backdrop-filter (дорогая операция)
-   * - Нет множественных box-shadow слоев
-   * - Браузер может кэшировать изображение
-   * - Поддержка аппаратного ускорения
-   */
-
   .tamagotchi-inventory-container {
-    position: relative; /* Добавляем relative позиционирование */
+    position: absolute; /* Добавляем relative позиционирование */
+    bottom: 10rem;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 8px;
-    padding: 4px;
+    padding: 10px;
     width: fit-content;
-    max-width: 400px;
+    max-width: 300px;
     margin: 0 auto;
     
     /* Fallback фон для устройств без поддержки backdrop-filter */
@@ -2785,7 +2753,6 @@ canvas {
     }
   }
 
-    .tamagotchi-inventory-container,
     .liquid-glass-tab-container {
       gap: 8px;
       padding: 2px;
@@ -2797,10 +2764,6 @@ canvas {
       animation: liquidGlassBreathingSmall 6s ease-in-out infinite;
     }
 
-    .tamagotchi-inventory-container {
-      max-width: 300px;
-      margin: 0 auto;
-    }
 
     .liquid-glass-tab-container {
       width: 100%;
