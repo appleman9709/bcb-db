@@ -109,8 +109,7 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 0 20px;
-    gap: 20px;
+    gap: 16px;
     overflow: hidden;
     min-height: 0;
     background: #F5F3EF; /* Добавляем фон на всю высоту */
@@ -126,8 +125,8 @@ body {
 
 .game-board {
     background: #FAF6EF;
-    border-radius: 24px;
-    padding: 16px;
+    border-radius: 20px;
+    padding: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 2px solid rgba(207, 198, 184, 0.3);
     position: relative;
@@ -136,6 +135,7 @@ body {
 #gameCanvas {
     width: 324px;
     height: 324px;
+    border-radius: 8px;
     background: #FAF6EF;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
     touch-action: none;
@@ -410,72 +410,7 @@ body {
     animation: piecePlace 120ms ease-out forwards;
 }
 
-/* Адаптивность */
-@media (max-width: 400px) {
-    .game-main {
-        padding: 0 16px;
-        gap: 16px;
-    }
-    
-    .game-board {
-        padding: 12px;
-        border-radius: 24px;
-    }
-    
-    .pieces-container {
-        gap: 6px;
-    }
-    
-    [id^="slot"] {
-        min-height: 70px;
-        min-width: 70px;
-        max-width: 120px;
-        max-height: 120px;
-        border-radius: 24px;
-    }
-    
-    .piece-item {
-        min-height: 72px;
-        min-width: 72px;
-        padding: 12px;
-        border-radius: 24px;
-    }
-    
-    .piece-canvas {
-        /* Размеры устанавливаются динамически в JavaScript */
-        flex-shrink: 0;
-        object-fit: contain;
-    }
-    
-    .current-score {
-        font-size: 24px;
-    }
-    
-    .game-logo {
-        font-size: 16px;
-    }
-}
 
-@media (min-width: 401px) {
-    [id^="slot"] {
-        min-height: 80px;
-        min-width: 80px;
-        max-width: 140px;
-        max-height: 140px;
-        border-radius: 24px;
-    }
-    
-    .piece-item {
-        min-height: 84px;
-        min-width: 84px;
-    }
-    
-    .piece-canvas {
-        /* Размеры устанавливаются динамически в JavaScript */
-        flex-shrink: 0;
-        object-fit: contain;
-    }
-}
 
 /* Дополнительные правила для предотвращения прокрутки */
 * {

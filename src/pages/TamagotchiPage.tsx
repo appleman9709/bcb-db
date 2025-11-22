@@ -1277,40 +1277,26 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         
           <div className="absolute top-20 left-4 z-30 flex flex-col items-start gap-3">
           <div
-              className="flex flex-wrap justify-end gap-1 overflow-visible"
-              style={
-                feedingStatus.totalHearts > 0
-                  ? { minWidth: `${feedingStatus.totalHearts * 28}px` }
-                  : undefined
-              }
-            >
-              {feedingStatus.totalHearts > 0 &&
-                feedingStatus.heartsFill
-                  .slice()
-                  .map((fill, idx) => (
-                    <span key={idx} className="relative inline-flex w-7 justify-center leading-none overflow-visible">
-                      <img 
-                        src="icons/heart.png" 
-                        alt="heart" 
-                        className="block w-7 h-7 text-transparent transition-opacity duration-200" 
-                        style={{ opacity: fill > 0 ? 1 : 0 }}
-                      />
-                      {fill > 0 && (
-                        <span
-                          className="absolute inset-0 overflow-visible"
-                          style={{ width: `${fill * 100}%` }}
-                        >
-                          <img 
-                            src="icons/heart.png" 
-                            alt="filled heart" 
-                            className="block w-7 h-7 text-rose-500" 
-                          />
-                        </span>
-                      )}
-                    </span>
-                  ))}
-            </div>
-
+            className="flex flex-wrap justify-end gap-1 overflow-visible"
+            style={
+              feedingStatus.totalHearts > 0
+                ? { minWidth: `${feedingStatus.totalHearts * 28}px` }
+                : undefined
+            }
+          >
+            {feedingStatus.heartsFill?.map((fill, idx) => (
+              <span
+                key={idx}
+                className="inline-flex w-7 justify-center overflow-visible"
+              >
+                <img
+                  src={fill > 0 ? "icons/heart.png" : "icons/heart.png"}
+                  alt="heart"
+                  className={`block w-7 h-7 ${fill > 0 ? "" : "opacity-10"}`}
+                />
+              </span>
+            ))}
+          </div>
 
             <div className="flex w-full max-w-[240px] items-center gap-2">
               <img src="/icons/common.png" alt="Подгузник" className="h-[30px] w-[30px] object-contain drop-shadow-sm" />
