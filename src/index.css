@@ -2287,50 +2287,10 @@ canvas {
     --breathing-duration: 4s;
   }
 
-  .tamagotchi-inventory-container {
-    position: absolute; /* Добавляем relative позиционирование */
-    bottom: 10rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
-    width: fit-content;
-    max-width: 300px;
-    margin: 0 auto;
-    
-    /* Fallback фон для устройств без поддержки backdrop-filter */
-    background: rgba(255, 255, 255, 0.2);
-    
-    /* Упрощенные тени - только 2 слоя вместо 6 */
-    box-shadow: var(--glass-shadow);
-    
-    /* Обводка */
-    border: var(--glass-border);
-    
-    border-radius: 32px;
-    transition: all 0.3s ease;
-    z-index: 16; /* Увеличенный z-index для наезжания */
-    
-  /* Отключена анимация дыхания для экономии ресурсов */
-  /* animation: liquidGlassBreathing var(--breathing-duration) ease-in-out infinite; */
-  transform-origin: center;
-  }
+ 
 
-  /* Поддержка backdrop-filter только для устройств с аппаратным ускорением */
-  @supports (backdrop-filter: blur(10px)) and (transform: translateZ(0)) {
-    .tamagotchi-inventory-container,
-    .liquid-glass-tab-container {
-      background: var(--glass-bg);
-      backdrop-filter: var(--glass-blur);
-      -webkit-backdrop-filter: var(--glass-blur);
-    }
-  }
 
   /* Псевдоэлемент для дополнительного эффекта дыхания */
-  .tamagotchi-inventory-container::after,
   .liquid-glass-tab-container::after {
     content: '';
     position: absolute;
@@ -2351,7 +2311,6 @@ canvas {
   }
 
   /* Отключение дорогих эффектов на слабых устройствах и мобильных */
-    .tamagotchi-inventory-container,
     .liquid-glass-tab-container {
       animation: none !important;
       backdrop-filter: none !important;
@@ -2359,24 +2318,14 @@ canvas {
       background: rgba(255, 255, 255, 0.2) !important;
     }
 
-    .tamagotchi-inventory-container::before,
     .liquid-glass-tab-container::before {
       animation: none !important;
       opacity: 0.2;
     }
 
-    .tamagotchi-inventory-container::after,
     .liquid-glass-tab-container::after {
       animation: none !important;
       opacity: 0.1;
-    }
-
-    .tamagotchi-inventory-item {
-      animation: none !important;
-    }
-
-    .tamagotchi-inventory-item.low-stock {
-      animation: none !important;
     }
 
     .coin-float {
@@ -2388,7 +2337,6 @@ canvas {
     }
 
 /* Дополнительная оптимизация для мобильных устройств */
-  .tamagotchi-inventory-container,
   .liquid-glass-tab-container {
     /* Отключен backdrop-filter для экономии ресурсов на мобильных */
     /* backdrop-filter: blur(10px); */
@@ -2523,25 +2471,6 @@ canvas {
     z-index: 20;
   }
 
-  /* 
-   * ОПТИМИЗИРОВАННАЯ анимация "дыхания" для liquid glass эффекта
-   * 
-   * ПРОБЛЕМА: Исходная анимация использовала дорогие свойства:
-   * - backdrop-filter (триггерит paint/composite)
-   * - box-shadow (триггерит paint)
-   * - filter (триггерит paint/composite)
-   * 
-   * РЕШЕНИЕ: Используем только безопасные свойства:
-   * - transform (аппаратное ускорение)
-   * - opacity (аппаратное ускорение)
-   * 
-   * ПРЕИМУЩЕСТВА:
-   * - Нет пересчета слоев на каждом кадре
-   * - Используется GPU вместо CPU
-   * - Плавная анимация даже на слабых устройствах
-   * - Визуальный эффект сохраняется
-   */
-  
   /* ОСНОВНАЯ АНИМАЦИЯ: используем только безопасные свойства */
   @keyframes liquidGlassBreathing {
     0%, 100% {
@@ -2565,55 +2494,102 @@ canvas {
     }
   }
 
-  .tamagotchi-inventory-item {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    height: 80px;
-    border: none;
-    border-radius: 24px;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    background: transparent;
-    overflow: hidden;
-    
-  /* Отключены постоянные анимации для экономии ресурсов */
-  animation: none;
-  }
+  /* Кнопка-инвентарь как пиксельная кнопка Тамагочи */
+.tamagotchi-inventory-item {
+  width: 64px;
+  height: 64px;
+  flex-direction: column;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-  /* Анимация "плавания" для элементов инвентаря */
-  @keyframes inventoryItemFloat {
-    0%, 100% {
-      transform: translateY(0px) rotate(0deg);
-    }
-    25% {
-      transform: translateY(-2px) rotate(0.5deg);
-    }
-    50% {
-      transform: translateY(-1px) rotate(0deg);
-    }
-    75% {
-      transform: translateY(-3px) rotate(-0.5deg);
-    }
-  }
+  border-radius: 14px;
+  position: relative;
+  cursor: pointer;
 
-  .tamagotchi-inventory-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    border-radius: 24px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 1;
-  }
+  /* Голубой пластиковый корпус кнопки */
+  background: linear-gradient(
+    145deg,
+    #b3e7ff 0%,
+    #9cdfff 40%,
+    #85d3ff 100%
+  );
+
+  /* Пиксельная рамка вокруг кнопки */
+  box-shadow:
+    0 0 0 3px #60b6e6,
+    0 0 0 6px #2e9cd6,
+    inset 0 0 0 2px #ffffff;
+
+  outline: 2px solid #1f8dc9;
+
+  /* Мягкая тень "игрушки" */
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.22));
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  /* Лёгкое качание (как будто пиктограмма живая) */
+  animation: tamagotchiButtonFloat 3s ease-in-out infinite;
+}
+
+/* Верхний глянец */
+.tamagotchi-inventory-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(255,255,255,0.15) 45%,
+    transparent 100%
+  );
+}
+
+/* Блик справа */
+.tamagotchi-inventory-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+
+  background: radial-gradient(
+    circle at 130% -10%,
+    rgba(255,255,255,0.35) 0%,
+    transparent 50%
+  );
+  pointer-events: none;
+}
+
+/* Анимация кнопки */
+@keyframes tamagotchiButtonFloat {
+  0%   { transform: translateY(0) scale(1); }
+  50%  { transform: translateY(-3px) scale(1.03); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Эффект нажатия */
+.tamagotchi-inventory-item:active {
+  transform: scale(0.92) translateY(1px);
+  box-shadow:
+    0 0 0 2px #2e9cd6,
+    inset 0 0 6px rgba(0,0,0,0.3);
+}
+
+.tamagotchi-inventory-container {
+  position: absolute;
+  bottom: 8rem;
+  left: 50%;
+  transform: translateX(-50%);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  max-width: 360px;
+}
 
   .tamagotchi-inventory-icon {
     position: relative;
@@ -2636,74 +2612,14 @@ canvas {
 
   .tamagotchi-inventory-label {
     position: relative;
-    z-index: 2;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 16px;
+    font-weight: 700;
     color: rgba(0, 0, 0, 0.7);
     margin-top: 2px;
     text-align: center;
     line-height: 1;
-    transition: all 0.3s ease;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
   }
 
-  /* Улучшенные hover эффекты */
-  .tamagotchi-inventory-item:hover {
-    transform: translateY(-4px) scale(1.02);
-    animation: inventoryItemFloat 6s ease-in-out infinite;
-  }
-
-  .tamagotchi-inventory-item:focus {
-    transform: translateY(-4px) scale(1.02);
-    animation: inventoryItemFloat 6s ease-in-out infinite;
-    outline: 2px solid rgba(59, 130, 246, 0.5);
-    outline-offset: 2px;
-  }
-
-  .tamagotchi-inventory-item:hover::before {
-    opacity: 1;
-  }
-
-  .tamagotchi-inventory-item:hover .tamagotchi-inventory-icon {
-    transform: scale(1.15) rotate(2deg);
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
-  }
-
-  .tamagotchi-inventory-item:hover .tamagotchi-inventory-icon img {
-    filter: brightness(1.1) contrast(1.2) saturate(1.1);
-  }
-
-  .tamagotchi-inventory-item:hover .tamagotchi-inventory-label {
-    color: rgba(0, 0, 0, 0.8);
-    transform: translateY(-1px);
-    text-shadow: 0 2px 4px rgba(255, 255, 255, 0.6);
-  }
-
-  /* Улучшенные press эффекты */
-  .tamagotchi-inventory-item:active {
-    transform: translateY(-2px) scale(0.98);
-    transition: all 0.1s ease;
-  }
-
-  .tamagotchi-inventory-item:active .tamagotchi-inventory-icon {
-    transform: scale(1.05) rotate(-1deg);
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-  }
-
-  .tamagotchi-inventory-item:active .tamagotchi-inventory-icon img {
-    filter: brightness(0.95) contrast(1.05);
-  }
-
-  /* Эффект пульсации для элементов с низким количеством - только при ховере */
-  .tamagotchi-inventory-item.low-stock:hover {
-    animation: inventoryItemFloat 6s ease-in-out infinite, 
-               lowStockPulse 2s ease-in-out infinite;
-  }
-  
-  .tamagotchi-inventory-item.low-stock:focus {
-    animation: inventoryItemFloat 6s ease-in-out infinite, 
-               lowStockPulse 2s ease-in-out infinite;
-  }
 
   @keyframes lowStockPulse {
     0%, 100% {
@@ -2772,17 +2688,10 @@ canvas {
     }
 
     /* Обновляем псевдоэлемент для маленьких экранов */
-    .tamagotchi-inventory-container::after,
     .liquid-glass-tab-container::after {
       animation: liquidGlassBreathingOverlaySmall 6s ease-in-out infinite;
     }
     
-    .tamagotchi-inventory-item {
-      width: 64px;
-      height: 64px;
-      border-radius: 20px;
-      animation: none; /* Отключаем постоянную анимацию на мобильных */
-    }
     
     .tamagotchi-inventory-icon img {
       width: 48px;
@@ -2792,21 +2701,6 @@ canvas {
     .tamagotchi-inventory-label {
       font-size: 10px;
     }
-    
-    /* Минимальные hover эффекты для маленьких экранов */
-    .tamagotchi-inventory-item:hover {
-      transform: translateY(-2px) scale(1.005);
-      animation: inventoryItemFloatSmall 8s ease-in-out infinite;
-    }
-    
-    .tamagotchi-inventory-item:focus {
-      transform: translateY(-2px) scale(1.005);
-      animation: inventoryItemFloatSmall 8s ease-in-out infinite;
-      outline: 2px solid rgba(59, 130, 246, 0.5);
-      outline-offset: 2px;
-    }
-
-
   /* Адаптивная анимация дыхания для маленьких экранов - ОПТИМИЗИРОВАННАЯ */
   @keyframes liquidGlassBreathingSmall {
     0%, 100% {
@@ -2845,49 +2739,7 @@ canvas {
       transform: translateY(-1px) rotate(-0.2deg);
     }
   }
-
-  /* Оптимизация для touch-устройств */
-    .tamagotchi-inventory-item:hover {
-      transform: translateY(0px) scale(1);
-      animation: none; /* Отключаем анимации на touch-устройствах */
-    }
-    
-    .tamagotchi-inventory-item:hover::before {
-      opacity: 0;
-    }
-    
-    .tamagotchi-inventory-item:hover .tamagotchi-inventory-icon {
-      transform: scale(1) rotate(0deg);
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-    }
-    
-    .tamagotchi-inventory-item:hover .tamagotchi-inventory-icon img {
-      filter: brightness(1) contrast(1.1);
-    }
-    
-    .tamagotchi-inventory-item:hover .tamagotchi-inventory-label {
-      color: rgba(0, 0, 0, 0.7);
-      transform: translateY(0px);
-      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
-    }
-    
-    .tamagotchi-inventory-item:active {
-      transform: translateY(-1px) scale(0.98);
-      transition: all 0.1s ease;
-    }
-    
-    .tamagotchi-inventory-item:active .tamagotchi-inventory-icon {
-      transform: scale(0.95) rotate(-1deg);
-      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
-    }
-    
-    .tamagotchi-inventory-item:active .tamagotchi-inventory-icon img {
-      filter: brightness(0.9) contrast(1.05);
-    }
-
-
   /* Упрощенный псевдоэлемент для дополнительного блеска (без анимации) */
-  .tamagotchi-inventory-container::before,
   .liquid-glass-tab-container::before {
     content: '';
     position: absolute;
@@ -2899,28 +2751,10 @@ canvas {
       rgba(255, 255, 255, 0.08) 0%, 
       rgba(255, 255, 255, 0.04) 50%, 
       rgba(255, 255, 255, 0.08) 100%);
-    border-radius: 33px;
+    border-radius: 24px;
     z-index: -1;
     opacity: 0.4;
   }
-
-  /* Эффект волны при клике */
-  .tamagotchi-inventory-item.clicked {
-    animation: clickWave 0.6s ease-out;
-  }
-
-  @keyframes clickWave {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.1);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-
 /* CSS-переменные для нижней панели навигации */
 :root {
   --tab-bar-z-index: 50;

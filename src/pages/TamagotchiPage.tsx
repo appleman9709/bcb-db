@@ -1195,7 +1195,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     const removeTimeoutId = window.setTimeout(() => {
       setCoins(prev => prev.filter(c => c.id !== coinId))
       coinTimeoutRefs.current.delete(removeTimeoutId)
-    }, 1800)
+    }, 200)
     coinTimeoutRefs.current.add(removeTimeoutId)
   }
 
@@ -1219,7 +1219,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       {coins.map(coin => (
         <div
           key={coin.id}
-          className={`absolute w-12 h-12 transition-all duration-200 cursor-pointer ${
+          className={`absolute w-16 h-16 transition-all duration-200 cursor-pointer ${
             coin.falling ? 'coin-falling' : coin.collected ? 'opacity-0 scale-0' : 'coin-float'
           }`}
           style={{
