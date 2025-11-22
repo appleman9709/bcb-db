@@ -2789,7 +2789,7 @@ canvas {
     .tamagotchi-inventory-container,
     .liquid-glass-tab-container {
       gap: 8px;
-      padding: 12px;
+      padding: 2px;
       border-radius: 24px;
       backdrop-filter: blur(32px) saturate(1.1);
       -webkit-backdrop-filter: blur(32px) saturate(1.1);

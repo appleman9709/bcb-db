@@ -184,7 +184,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
         aria-label="Добавить болезнь"
         className="relative z-[100000] w-full max-w-[420px] pointer-events-auto sm:max-w-md"
       >
-        <div className="relative flex max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl">
+        <div className="relative max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl">
           {/* Header */}
           <div className="bg-gradient-to-r from-red-50 via-orange-50 to-yellow-50 px-4 pt-4 pb-3 sm:px-5 sm:pt-5 sm:pb-4">
             <div className="flex items-center justify-between">
