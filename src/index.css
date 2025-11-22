@@ -42,7 +42,7 @@
     height: 100%;
     height: 100vh;
     height: 100dvh; /* Dynamic viewport height for mobile */
-    background: linear-gradient(to bottom right, #dbeafe, #bfdbfe); /* Match theme color */
+    background: #d6e7fe; /* Match theme color */
   }
   
   /* iOS Status Bar Background Fix */
@@ -54,7 +54,7 @@
       left: 0;
       right: 0;
       height: env(safe-area-inset-top);
-      background: linear-gradient(to bottom right, #dbeafe, #bfdbfe);
+      background: #d6e7fe;
       z-index: 9999;
     }
   }
