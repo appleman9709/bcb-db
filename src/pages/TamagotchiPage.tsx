@@ -928,7 +928,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       case 'poo':
         return '/icons/poo.gif'
       case 'dirty':
-        return '/icons/dirty.gif'
+        return '/icons/dirty.jpg'
       default:
         return '/icons/ok.gif'
     }
@@ -1275,37 +1275,8 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           {getStateDescription(babyState)}
         </p>
         
-        <div className="relative inline-block">
-          {/* Кнопка проигрывателя Колыбельной */}
-          <div className="absolute top-24 left-4 z-30">
-            <button
-              onClick={toggleMusic}
-              className="p-0 rounded-2xl shadow-none border-0 transition-all duration-300 hover:scale-110 active:scale-95 bg-transparent hover:bg-transparent"
-              aria-label={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
-              title={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
-            >
-              <div className="flex items-center justify-center">
-                {isMusicPlaying ? (
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block w-[30px] h-[30px] text-[30px] leading-[30px] text-center">🎵</span>
-                    <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="inline-block w-[30px] h-[30px] text-[30px] leading-[30px] text-center">🎶</span>
-                    <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
-              </div>
-            </button>
-          </div>
-
-          <div className="absolute top-3 left-2 z-30 flex flex-col items-start gap-3 pl-4">
-            <div
+          <div className="absolute top-20 left-4 z-30 flex flex-col items-start gap-3">
+          <div
               className="flex flex-wrap justify-end gap-1 overflow-visible"
               style={
                 feedingStatus.totalHearts > 0
@@ -1318,23 +1289,28 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                   .slice()
                   .map((fill, idx) => (
                     <span key={idx} className="relative inline-flex w-7 justify-center leading-none overflow-visible">
-                      <span
-                        className="block text-3xl leading-none text-transparent transition-opacity duration-200"
+                      <img 
+                        src="icons/heart.png" 
+                        alt="heart" 
+                        className="block w-7 h-7 text-transparent transition-opacity duration-200" 
                         style={{ opacity: fill > 0 ? 1 : 0 }}
-                      >
-                        ♥
-                      </span>
+                      />
                       {fill > 0 && (
                         <span
                           className="absolute inset-0 overflow-visible"
                           style={{ width: `${fill * 100}%` }}
                         >
-                          <span className="block text-3xl leading-none text-rose-500">♥</span>
+                          <img 
+                            src="icons/heart.png" 
+                            alt="filled heart" 
+                            className="block w-7 h-7 text-rose-500" 
+                          />
                         </span>
                       )}
                     </span>
                   ))}
             </div>
+
 
             <div className="flex w-full max-w-[240px] items-center gap-2">
               <img src="/icons/common.png" alt="Подгузник" className="h-[30px] w-[30px] object-contain drop-shadow-sm" />
@@ -1351,6 +1327,40 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                 />
               </div>
             </div>
+              {/* Кнопка проигрывателя Колыбельной */}
+              <button
+                onClick={toggleMusic}
+                aria-label={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
+                title={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
+              >
+                <div className="flex items-center justify-center">
+                  {isMusicPlaying ? (
+                    <div className="flex items-center gap-2">
+                      <img
+                        src="icons/melody.png"
+                        alt="Иконка мелодии"
+                        className="w-7 h-7"
+                        style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
+                      />
+                      <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <img
+                        src="icons/melody.png"
+                        alt="Иконка мелодии"
+                        className="w-7 h-7"
+                        style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
+                      />
+                      <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </button>
           </div>
 
           {isSleepMode && getGifSource(babyState).endsWith('.MP4') ? (
@@ -1376,10 +1386,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           
 
           {/* Кнопка режима сна: солнце (не спит) / луна (спит) */}
-          <div className="absolute top-5 right-4">
             <button
               onClick={toggleSleepMode}
-              className="p-0 rounded-3xl bg-transparent shadow-none border-0 hover:bg-transparent transition"
+              className="absolute top-20 right-6"
               aria-label={isSleepMode ? 'Выключить режим сна' : 'Включить режим сна'}
             >
               <img
@@ -1388,14 +1397,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                 className="w-16 h-16 object-contain"
               />
             </button>
-          </div>
 
           {/* Кнопка рюкзака - в нижнем правом углу относительно контейнера с изображением */}
-          <div className="absolute bottom-12 right-4 z-50">
             <button
               type="button"
               onClick={toggleBackpack}
-              className="relative p-1 bg-transparent hover:bg-white/20 rounded-3xl transition-colors"
+              className="absolute bottom-56 right-4 z-50"
               aria-label={backpackOpen ? 'Закрыть рюкзак' : 'Открыть рюкзак'}
             >
               <img 
@@ -1410,14 +1417,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
               )}
             </button>
 
-            {/* Модальное окно рюкзака - будет рендериться через портал */}
-          </div>
           {/* Иконки болезней и кнопка добавления - нижний левый угол */}
-          <div className="absolute flex bottom-12 pl-4 z-50 gap-2">
+          <div className="absolute bottom-56 left-4 z-50 gap-2">
             {/* Кнопка добавления болезни */}
             <button
               onClick={handleAddIllness}
-              className="relative inline-block flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold shadow-lg transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-bold shadow-lg transition-colors"
               aria-label="Добавить болезнь"
               title="Добавить болезнь"
             >
@@ -1431,7 +1436,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                   <button
                     key={illness.id}
                     onClick={() => handleIllnessClick(illness)}
-                    className="relative inline-block flex items-center justify-center w-10 h-10 rounded-full bg-red-100 border border-red-200 hover:bg-red-200 transition-colors"
+                    className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 border border-red-200 hover:bg-red-200 transition-colors"
                     title={illness.name}
                     aria-label={illness.name}
                   >
@@ -1441,7 +1446,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
               </>
             )}
           </div>
-        </div>
       </div>
 
 
