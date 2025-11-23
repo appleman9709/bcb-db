@@ -2503,7 +2503,7 @@ canvas {
   justify-content: center;
   align-items: center;
 
-  border-radius: 14px;
+  border-radius: 50px;
   position: relative;
   cursor: pointer;
 
@@ -2537,7 +2537,7 @@ canvas {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 14px;
+  border-radius: 50px;
   pointer-events: none;
 
   background: linear-gradient(
@@ -2553,7 +2553,7 @@ canvas {
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: 14px;
+  border-radius: 50px;
 
   background: radial-gradient(
     circle at 130% -10%,
@@ -2580,7 +2580,7 @@ canvas {
 
 .tamagotchi-inventory-container {
   position: absolute;
-  bottom: 8rem;
+  bottom: 9rem;
   left: 50%;
   transform: translateX(-50%);
 

@@ -7,10 +7,10 @@
     
     <!-- PWA Meta Tags -->
     <meta name="description" content="Панель управления по уходу за сыном" />
-    <meta name="theme-color" content="#d6e7fe" />
+    <meta name="theme-color" content="#f8fafc" />
 
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Никола" />
     <meta name="msapplication-TileColor" content="#d6e7fe" />
@@ -32,6 +32,27 @@
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
+    
+    <style>
+      /* Ensures the status bar picks up a light/transparent background on iOS */
+      :root {
+        color-scheme: light;
+        background-color: #f8fafc;
+      }
+
+      body {
+        min-height: 100vh;
+        background-color: #f8fafc;
+      }
+
+      @supports (padding: max(0px)) {
+        body {
+          padding-top: env(safe-area-inset-top);
+          padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right);
+        }
+      }
+    </style>
   </head>
   <body class="bg-gray-50">
     <div id="root"></div>

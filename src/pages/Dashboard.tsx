@@ -14,7 +14,7 @@ import { dataService } from '../services/dataService'
 import type { Feeding, Diaper, Bath, Activity, Tip, SleepSession, FamilyMember } from '../services/dataService'
 import RecordDetailModal from '../components/RecordDetailModal'
 import DutyScheduleModal from '../components/DutyScheduleModal'
-import { calculateAgeInMonths, formatDuration, formatTime, getTypeInfo } from '../utils/dashboardHelpers'
+import { calculateAgeInMonths, calculateAgeInWeeks, formatDuration, formatTime, getTypeInfo } from '../utils/dashboardHelpers'
 import type { SettingsState } from '../types/dashboard'
 import SettingsTab from '../components/dashboard/SettingsTab'
 import {
@@ -163,6 +163,11 @@ export default function Dashboard() {
       setCustomBabyImage(savedImage)
     }
   }, [])
+
+  const babyWeeks = useMemo(
+    () => calculateAgeInWeeks(settings.birthDate, currentTime),
+    [settings.birthDate, currentTime]
+  )
 
   // Загружаем текущего дежурного из БД
 
@@ -1095,7 +1100,7 @@ export default function Dashboard() {
               </div>
 
               {/* Иллюстрация младенца */}
-              <div className="text-center">
+              <div className="text-center space-y-1">
                 <BabyIllustration 
                   className="mb-3" 
                   state={getBabyImageState()} 
@@ -1103,6 +1108,9 @@ export default function Dashboard() {
                   customImage={customBabyImage}
                   dutyProgress={currentDutyProgressDisplay}
                 />
+                <p className="font-semibold text-gray-900 text-lg">
+                  Неделя {babyWeeks}
+                </p>
               </div>
 
               {/* Карточки активности */}
