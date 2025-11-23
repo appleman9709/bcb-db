@@ -456,7 +456,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
           </div>
 
           {/* Footer */}
-          <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-5 sm:py-4 space-y-2">
+          <div className="px-4 py-3 sm:px-5 sm:py-4 space-y-2">
             <button
               type="button"
               onClick={handleRecover}

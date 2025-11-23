@@ -1,23 +1,33 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
-type Theme = 'light' | 'dark' | 'auto'
+type Theme = 'light' | 'dark'
 
 interface ThemeContextType {
   theme: Theme
   setTheme: (theme: Theme) => void
-  actualTheme: 'light' | 'dark' // Реальная тема с учетом 'auto'
+  actualTheme: Theme
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark')
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark')
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === 'undefined') return 'light'
+    const savedTheme = localStorage.getItem('theme') as Theme | null
+    return savedTheme ?? 'light'
+  })
+
+  const actualTheme = useMemo(() => theme, [theme])
 
   useEffect(() => {
-    // Всегда применяем темную тему
-    document.documentElement.classList.add('dark')
-  }, [])
+    if (typeof window === 'undefined') return
+
+    localStorage.setItem('theme', theme)
+
+    const root = document.documentElement
+    root.classList.remove('theme-light', 'theme-dark')
+    root.classList.add(`theme-${theme}`)
+  }, [theme])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, actualTheme }}>

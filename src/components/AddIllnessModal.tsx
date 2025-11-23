@@ -216,7 +216,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
             {step === 1 && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-900 mb-2">
+                  <label className="block text-sm font-semibold mb-2">
                     Название заболевания
                   </label>
                   <input
@@ -235,7 +235,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
             {step === 2 && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-900 mb-3">
+                  <label className="block text-sm font-semibold mb-3">
                     Есть лекарства для приема по расписанию?
                   </label>
                   <div className="flex gap-3">
@@ -372,7 +372,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
             {step === 3 && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-900 mb-3">
+                  <label className="block text-sm font-semibold mb-3">
                     Есть запись к врачу?
                   </label>
                   <div className="flex gap-3">
@@ -441,7 +441,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
           </div>
 
           {/* Footer */}
-          <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 sm:px-5 sm:py-4">
+          <div className=" px-4 py-3 sm:px-5 sm:py-4">
             <div className="flex gap-3">
               {step > 1 && (
                 <button

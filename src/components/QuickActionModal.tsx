@@ -469,15 +469,15 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             </div>
             
             {/* Поле времени - акцентное оформление */}
-            <div className="rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-2 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
-              <label className="text-[9px] font-medium uppercase tracking-wide text-blue-600 block mb-0.5">Время</label>
+            <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
+              <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
               <div className="flex items-center gap-1.5">
                 <input
                   type="time"
                   step={300}
                   value={timePart}
                   onChange={(event) => handleTimeChange(event.target.value)}
-                  className="flex-1 bg-transparent text-xs font-semibold text-blue-700 focus:outline-none focus:ring-0 cursor-pointer"
+                  className="flex-1 text-xs font-semibold text-blue-700 focus:outline-none focus:ring-0 cursor-pointer"
                   style={{
                     colorScheme: 'light',
                     WebkitAppearance: 'none',
@@ -503,7 +503,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                   className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
                     active
                       ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'text-gray-600'
                   }`}
                 >
                   {option.label}

@@ -1,6 +1,27 @@
 import React from 'react'
+import { useTheme } from '../contexts/ThemeContext'
 
 export default function BackgroundElements() {
+  const { actualTheme } = useTheme()
+  const isDark = actualTheme === 'dark'
+
+  if (isDark) {
+    return (
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0f1b39] via-[#0a0f24] to-[#040814]">
+          <div
+            className="absolute inset-0 opacity-70"
+            style={{
+              backgroundImage:
+                'radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.7) 0, rgba(255, 255, 255, 0.7) 1px, transparent 1px), radial-gradient(1px 1px at 80% 20%, rgba(255, 255, 255, 0.6) 0, rgba(255, 255, 255, 0.6) 1px, transparent 1px), radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.6) 0, rgba(255, 255, 255, 0.6) 1px, transparent 1px), radial-gradient(1px 1px at 65% 55%, rgba(255, 255, 255, 0.5) 0, rgba(255, 255, 255, 0.5) 1px, transparent 1px)'
+            }}
+          ></div>
+
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#060a15] via-transparent to-transparent"></div>
+        </div>
+      </div>
+    )
+  }
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
       {/* Небо с облаками - оптимизированные */}

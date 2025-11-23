@@ -1527,7 +1527,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             aria-label="Рюкзак семьи"
             className="relative z-[100000] w-full max-w-[360px] pointer-events-auto sm:max-w-md"
           >
-            <div className="relative flex h-[70vh] max-h-[70vh] flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl sm:h-[70vh] sm:max-h-[70vh] animate-bounce-in">
+            <div className="relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-2xl animate-bounce-in">
               <button
                 type="button"
                 onClick={() => setBackpackOpen(false)}

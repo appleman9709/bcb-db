@@ -4,6 +4,7 @@ import { calculateAgeInMonths } from '../../utils/dashboardHelpers'
 import type { SettingsState } from '../../types/dashboard'
 import PushNotificationManager from '../PushNotificationManager'
 import NotificationSender from '../NotificationSender'
+import { useTheme } from '../../contexts/ThemeContext'
 
 interface SettingsTabProps {
   dailyTip: Tip | null
@@ -24,6 +25,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
   memberDisplayName,
   onSignOut
 }) => {
+  const { actualTheme, setTheme } = useTheme()
+  const isDarkTheme = actualTheme === 'dark'
+
+  const handleThemeToggle = () => {
+    setTheme(isDarkTheme ? 'light' : 'dark')
+  }
+
   return (
     <div className="space-y-3">
       <div className="text-center">
@@ -33,7 +41,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
       {/* Совет дня */}
       {dailyTip && (
-        <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-2.5 shadow-sm border border-blue-100 iphone14-tip">
+        <div className="rounded-3xl p-2.5 shadow-sm border border-blue-100 iphone14-tip">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 flex items-center justify-center iphone14-tip-icon">
               <img src="/icons/sovet.png" alt="Совет" className="w-10 h-10 object-contain" />
@@ -49,7 +57,33 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
           </div>
         </div>
       )}
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-lg" aria-hidden>🌗</span>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Темная тема</p>
+              <p className="text-xs text-gray-500">Переключите оформление на ночное небо</p>
+            </div>
+          </div>
 
+          <button
+            type="button"
+            onClick={handleThemeToggle}
+            className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              isDarkTheme ? 'bg-blue-600' : 'bg-gray-200'
+            }`}
+            aria-pressed={isDarkTheme}
+            aria-label="Переключить темную тему"
+          >
+            <span
+              className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition duration-200 ${
+                isDarkTheme ? 'translate-x-7' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
       {/* Дата рождения */}
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
         <div className="text-center mb-2">
@@ -57,9 +91,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
         </div>
         <div className="space-y-2">
           <div className="date-input-container">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              📅 Дата рождения
-            </label>
             <div className="relative">
               <input
                 type="date"
@@ -72,13 +103,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 aria-label="Дата рождения ребёнка"
                 aria-describedby="birth-date-description"
               />
-              <div className="focus-ring"></div>
+              <div></div>
             </div>
             <div id="birth-date-description" className="age-description">
               <span className="age-indicator"></span>
               <span>
                 Возраст:{' '}
-                <span className="age-value">{calculateAgeInMonths(settings.birthDate)} месяцев</span>
+                <span>{calculateAgeInMonths(settings.birthDate)} месяцев</span>
               </span>
             </div>
           </div>

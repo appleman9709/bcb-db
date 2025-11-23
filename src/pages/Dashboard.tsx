@@ -1449,7 +1449,7 @@ export default function Dashboard() {
 
         {/* Модальное окно графика роста и веса */}
         {growthChartModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-1 py-2">
+          <div className="fixed inset-0 flex items-center justify-center z-50 px-1 py-2">
             <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden animate-bounce-in">
               <div className="sticky top-0 bg-white border-b border-gray-200 px-3 py-2 rounded-t-3xl">
                 <div className="flex items-center justify-between">

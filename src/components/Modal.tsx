@@ -47,25 +47,26 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
   return (
     <div className="modal-overlay flex items-start justify-center px-1 py-2 sm:items-center sm:px-3 sm:py-4" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
       {/* Background overlay */}
-      <div className="absolute inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
-      
+      <div 
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
+        onClick={onClose}>
+      </div>
       {/* Modal - объединяем контейнер и содержимое */}
-      <div className={`modal-content relative w-full ${sizeClasses[size]} sm:mt-0 mt-10 flex flex-col overflow-hidden overflow-x-hidden rounded-3xl bg-white shadow-2xl animate-bounce-in`}>
-        {/* Close button */}
-        <button
+      <div 
+        className={`px-3 py-4 modal-content z-40 relative w-full ${sizeClasses[size]} sm:mt-0 mt-10 flex flex-col overflow-hidden overflow-x-hidden rounded-3xl bg-white shadow-2xl animate-bounce-in`}>
+
+        {/* Content */}
+        {children}
+      </div>
+      {/* Close button */}
+      <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 rounded-3xl p-1.5 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
+          className="animate-bounce-in z-50 absolute top-20 right-10 rounded-3xl p-1.5 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-4 sm:px-4 sm:py-5" style={{ maxHeight: size === 'lg' ? 'calc(100vh - 1rem)' : 'calc(100vh - 2rem)' }}>
-          {children}
-        </div>
-      </div>
     </div>
   )
 }

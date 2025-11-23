@@ -4,20 +4,33 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --app-bg: linear-gradient(135deg, #e0f2ff 0%, #c7dbff 50%, #d6e7fe 100%);
+  --app-bg-solid: #d6e7fe;
+  --app-text-color: #111827;
+  --app-card-bg: #ffffff;
+  --app-card-border: #f3f4f6;
+}
+
+:root.theme-dark {
+  --app-bg: radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.6), transparent 55%),
+    radial-gradient(1.2px 1.2px at 80% 20%, rgba(255, 255, 255, 0.6), transparent 55%),
+    radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.5), transparent 55%),
+    radial-gradient(1.5px 1.5px at 60% 50%, rgba(255, 255, 255, 0.5), transparent 55%),
+    linear-gradient(180deg, #0f1b39 0%, #0a0f24 55%, #040814 100%);
+  --app-bg-solid: #0b1224;
+  --app-text-color: #ffffff;
+  --app-card-bg: rgba(0, 0, 0, 0.28);
+  --app-card-border: rgba(0, 0, 0, 0.4);
+}
+
 @layer base {
   * {
     @apply border-gray-700;
   }
   
-  /* Prevent all scrolling in PWA */
-  * {
-    -webkit-overflow-scrolling: touch;
-  }
+
   
-  /* Ensure no scrollbars appear */
-  ::-webkit-scrollbar {
-    display: none;
-  }
   
   * {
     scrollbar-width: none;
@@ -25,21 +38,25 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen antialiased text-gray-900;
+    @apply min-h-screen antialiased;
     font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     overflow: hidden; /* Prevent body scroll in PWA */
     height: 100dvh; /* Dynamic viewport height for mobile */
     position: fixed;
     width: 100%;
     padding-top: env(safe-area-inset-top);
-    background-color: #d6e7fe;
+    color: var(--app-text-color);
+    background: var(--app-bg);
+    background-color: var(--app-bg-solid);
+    background-size: cover;
+    background-attachment: fixed;
   }
   
   html {
     scroll-behavior: smooth;
     overflow: hidden; /* Prevent html scroll in PWA */
     height: 100dvh; /* Dynamic viewport height for mobile */
-    background: #d6e7fe; /* Match theme color */
+    background: var(--app-bg-solid); /* Match theme color */
   }
   
   /* iOS Status Bar Background Fix */
@@ -51,12 +68,64 @@
       left: 0;
       right: 0;
       height: env(safe-area-inset-top);
-      background: #d6e7fe;
+      background: var(--app-bg-solid);
       z-index: 9999;
     }
   }
 }
 
+:root.theme-dark body {
+  color: var(--app-text-color);
+  background: var(--app-bg);
+  background-color: var(--app-bg-solid);
+}
+
+:root.theme-dark .text-gray-900,
+:root.theme-dark .text-gray-800,
+:root.theme-dark .text-gray-700,
+:root.theme-dark .text-gray-600,
+:root.theme-dark .text-gray-500,
+:root.theme-dark .text-gray-400 {
+  color: #ffffff !important;
+}
+
+
+:root.theme-dark .text-blue-600 {
+  color: var(--app-text-color);
+}
+
+:root.theme-dark .bg-white,
+:root.theme-dark .bg-gray-50 {
+  background-color: var(--app-card-bg) !important;
+}
+
+:root.theme-dark .border-gray-100 {
+  border-color: var(--app-card-border) !important;
+}
+
+:root.theme-dark input,
+:root.theme-dark select,
+:root.theme-dark textarea {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0);
+  border-color: var(--app-card-border);
+}
+
+:root.theme-dark .bg-green-50,
+:root.theme-dark .bg-blue-50,
+:root.theme-dark .bg-purple-50,
+:root.theme-dark .bg-orange-50,
+:root.theme-dark .bg-yellow-50,
+:root.theme-dark .bg-gray-50,
+:root.theme-dark .bg-indigo-50 {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+
+:root.theme-dark input::placeholder,
+:root.theme-dark textarea::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
 
 @layer components {
   .ios-input {
@@ -403,9 +472,8 @@
   }
   
   .slider-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
-    color: #1f2937;
     margin: 0 0 4px 0;
     line-height: 1.3;
   }
@@ -695,9 +763,6 @@
     font-size: 18px;
   }
 
-  .slider-title {
-    font-size: 13px;
-  }
 
   .slider-description {
     font-size: 10px;
@@ -1188,19 +1253,6 @@
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-100 rounded-full;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full hover:bg-gray-400;
-}
-
 /* Focus styles */
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
@@ -1336,25 +1388,11 @@
   min-height: 56px;
   padding: 16px;
   font-size: 16px; /* Предотвращает зум на iOS */
-  
-  /* iOS специфичные стили */
-  border-radius: 24px;
-  border: 1px solid #d1d5db;
-  background-color: #ffffff;
-  color: #374151;
   font-weight: 500;
   
   /* Улучшенная типографика для мобильных */
   line-height: 1.4;
   letter-spacing: 0.01em;
-  
-  /* Плавные переходы */
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  
-  /* Тени для глубины */
-  box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 /* Состояния фокуса и hover */
@@ -1422,7 +1460,6 @@
   gap: 4px;
   margin-top: 8px;
   font-size: 12px;
-  color: #6b7280;
 }
 
 .date-input-container .age-description .age-indicator {
@@ -1597,7 +1634,7 @@
 
 /* CSS-переменные для оптимизации модальных окон */
 :root {
-  --modal-z-index: 9999;
+
   --modal-content-max-height: 90vh;
   --modal-content-max-height-dvh: 90dvh;
   --modal-overlay-position: fixed;
@@ -1614,16 +1651,6 @@
   bottom: var(--modal-overlay-inset);
 }
 
-.modal-content {
-  max-height: var(--modal-content-max-height);
-  max-height: var(--modal-content-max-height-dvh);
-}
-
-/* Дополнительные стили для модальных окон на мобильных устройствах */
-:root {
-  --modal-content-max-height: 85vh;
-  --modal-content-max-height-dvh: 85dvh;
-}
 
 .modal-overlay {
   width: 100vw;
@@ -1631,9 +1658,6 @@
   height: 100dvh;
 }
 
-.modal-content {
-  margin-bottom: 2rem; /* Отступ снизу для нижней панели */
-}
 
 /* Стили для всех модальных окон - оптимизированная версия */
 [role="dialog"],
@@ -1641,39 +1665,7 @@
 .record-detail-modal,
 .duty-schedule-modal,
 .quick-action-modal {
-  z-index: var(--modal-z-index);
-}
-
-/* Дополнительные стили для модальных окон на всех устройствах */
-.modal-overlay {
-  /* Убеждаемся что модальное окно покрывает весь экран */
-  position: var(--modal-overlay-position);
-  top: var(--modal-overlay-inset);
-  left: var(--modal-overlay-inset);
-  right: var(--modal-overlay-inset);
-  bottom: var(--modal-overlay-inset);
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  z-index: var(--modal-z-index);
-}
-
-/* Стили для фона модального окна */
-.modal-overlay > div:first-child {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Специальные стили для модальных окон на очень маленьких экранах */
-.modal-content {
-  max-height: 80vh !important;
-  max-height: 80dvh !important;
-  margin-bottom: 3rem !important; /* Больший отступ для маленьких экранов */
+  z-index: 10;
 }
 
 /* Специальные стили для iPhone 14 Pro и подобных устройств */
@@ -1686,51 +1678,18 @@
   max-height: 75vh !important;
   max-height: 75dvh !important;
   margin-bottom: 1rem !important;
+  z-index: 40;
 }
-
-/* Дополнительные стили для iPhone с вырезом (notch) */
-@supports (padding: max(0px)) {
-  .modal-overlay {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
-  }
-}
-
-/* Специальные стили для QuickActionModal на мобильных устройствах */
-.quick-action-modal .modal-content {
-  max-height: 95vh !important;
-  max-height: 95dvh !important;
-  height: 95vh !important;
-  height: 95dvh !important;
-}
-
-.quick-action-modal .modal-overlay {
-  padding: 0.25rem !important;
-  padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
-}
-
 /* Специальные стили для очень маленьких экранов */
-.quick-action-modal .modal-content {
+.quick-action-modal {
   max-height: 98vh !important;
   max-height: 98dvh !important;
-  height: 98vh !important;
-  height: 98dvh !important;
-}
-
-.quick-action-modal .modal-overlay {
-  padding: 0.125rem !important;
-  padding-bottom: max(0.125rem, env(safe-area-inset-bottom)) !important;
 }
 
 /* Убираем прокрутку для QuickActionModal на мобильных устройствах */
 .quick-action-modal .modal-content > div {
   overflow-y: visible !important;
-  max-height: none !important;
   height: auto !important;
-}
-
-/* Предотвращение горизонтальной прокрутки в модальных окнах с графиками */
-.modal-content {
-  overflow-x: hidden !important;
 }
 
 .modal-content > * {
@@ -1752,7 +1711,6 @@ canvas {
 /* CSS-переменные для контейнера Тамагочи */
 :root {
   --tamagotchi-container-height: 100%;
-  --tamagotchi-container-max-height: 100vh;
   --tamagotchi-container-max-height-dvh: 100dvh;
   --tamagotchi-container-overflow: hidden;
   --tamagotchi-container-display: flex;
@@ -2769,12 +2727,8 @@ canvas {
   z-index: var(--tab-bar-z-index);
 }
 
-/* Tamagotchi specific modal styles - оптимизированная версия */
-.tamagotchi-container .modal-overlay {
-  z-index: var(--modal-z-index);
-}
 
-.tamagotchi-container .modal-content {
+.tamagotchi-container {
   z-index: calc(var(--modal-z-index) + 1);
 }
 
@@ -2787,13 +2741,12 @@ canvas {
 }
 
 /* Mobile-specific styles for Tamagotchi modals */
-  .tamagotchi-container .modal-overlay {
-    width: 100vw;
+  .tamagotchi-container {
     height: 100vh;
     height: 100dvh;
   }
 
-  .tamagotchi-container .modal-content {
+  .tamagotchi-container {
     max-height: 85vh;
     max-height: 85dvh;
     margin-bottom: 2rem;
