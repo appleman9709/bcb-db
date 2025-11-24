@@ -1220,7 +1220,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         <div
           key={coin.id}
           className={`absolute w-16 h-16 transition-all duration-200 cursor-pointer ${
-            coin.falling ? 'coin-falling' : coin.collected ? 'opacity-0 scale-0' : 'coin-float'
+            coin.falling ? 'coin-pickup' : coin.collected ? 'opacity-0 scale-0' : 'coin-float'
           }`}
           style={{
             left: `${coin.x - 24}px`,

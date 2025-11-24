@@ -342,7 +342,7 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
       ) : (
         <div className="space-y-3">
           <header className={`rounded-2xl bg-gradient-to-br ${palette.gradient} p-3 text-white shadow-lg sm:p-4`}>
-            <div className="flex items-start gap-3">
+            <div className="flex justify-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-2xl">
                 {palette.emoji}
               </div>
@@ -353,7 +353,7 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
           </header>
 
           {summary && (
-            <section className="grid grid-cols-3 gap-2 rounded-3xl border border-gray-100 bg-white/95 p-2 text-center shadow-sm sm:gap-2 sm:p-3">
+            <section className="grid grid-cols-3 gap-2 rounded-3xl border border-gray-100 p-2 text-center shadow-sm sm:gap-2 sm:p-3">
               <div className="space-y-0.5">
                 <span className="block text-[10px] font-semibold uppercase tracking-wide text-gray-400">Итого</span>
                 <span className="text-base font-semibold text-gray-900 sm:text-lg">{summary.total}</span>

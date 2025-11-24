@@ -308,7 +308,7 @@ export default function GrowthChartCard({
   const formatValue = (value: number) => value.toFixed(valuePrecision)
 
   return (
-    <div className={compact ? "space-y-2 overflow-x-hidden" : "bg-white rounded-3xl p-3 shadow-sm border border-gray-100 space-y-3 iphone14-card"}>
+    <div className={compact ? "space-y-2 overflow-x-hidden" : "bg-white/80 rounded-3xl p-3 shadow-sm border border-gray-100 space-y-3 iphone14-card"}>
       {!compact && (
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">

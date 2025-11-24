@@ -93,13 +93,13 @@ export default function NotificationSender() {
   return (
     <div className="space-y-3">
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 rounded-2xl text-sm border border-red-200 whitespace-pre-line">
+        <div className="p-3 bg-red-50 text-red-700 rounded-3xl text-sm border border-red-200 whitespace-pre-line">
           {error}
         </div>
       )}
       
       {success && (
-        <div className="p-3 bg-green-50 text-green-700 rounded-2xl text-sm border border-green-200">
+        <div className="p-3 bg-green-50 text-green-700 rounded-3xl text-sm border border-green-200">
           {success}
         </div>
       )}
