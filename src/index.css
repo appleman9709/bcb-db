@@ -29,14 +29,6 @@
     @apply border-gray-700;
   }
   
-
-  
-  
-  * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
   body {
     @apply min-h-screen antialiased;
     font-family: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -127,6 +119,10 @@
 
 :root.theme-dark .bg-ring {
   background-color: rgba(9,14,34);
+}
+
+:root.theme-dark .liquid-glass-tab-icon {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .bg-ring {
@@ -1255,10 +1251,6 @@ canvas {
     cursor: pointer;
   }
   
-  input[type="time"]::-webkit-calendar-picker-indicator:hover {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 24px;
-  }
   
   /* Firefox стили */
   input[type="date"]::-moz-calendar-picker-indicator,
@@ -1361,7 +1353,7 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(0, 0, 0, 0.6);
+    color: rgba(237, 0, 0, 0.874);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     font-size: 32px;
   }
@@ -1369,14 +1361,7 @@ canvas {
   .liquid-glass-tab-icon svg {
     width: 40px;
     height: 40px;
-  }
-
-  .liquid-glass-tab-icon img {
-    width: 40px;
-    height: 40px;
-    /* Фильтр для темно-серого цвета по умолчанию */
-    filter: brightness(0) saturate(100%) invert(27%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.6) contrast(1);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: rgb(250, 0, 0);
   }
 
   /* Активное состояние */
@@ -1411,7 +1396,6 @@ canvas {
     z-index: 2;
     font-size: 11px;
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.6);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
     line-height: 1.2;
@@ -1432,17 +1416,6 @@ canvas {
     border: none;
   }
 
-  .liquid-glass-tab-button:hover .liquid-glass-tab-icon {
-    color: rgba(0, 0, 0, 0.8);
-    transform: scale(1.08);
-  }
-
-  .liquid-glass-tab-button:hover .liquid-glass-tab-icon img {
-    /* Фильтр для более темного цвета при hover */
-    filter: brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.8) contrast(1);
-    transform: scale(1.08);
-  }
-
   .liquid-glass-tab-button:hover .liquid-glass-tab-label {
     color: rgba(0, 0, 0, 0.9);
   }
@@ -1455,10 +1428,6 @@ canvas {
     -webkit-backdrop-filter: none;
     box-shadow: none;
     border: none;
-    transform: scale(0.95);
-  }
-
-  .liquid-glass-tab-button:active .liquid-glass-tab-icon {
     transform: scale(0.95);
   }
 
@@ -1490,17 +1459,6 @@ canvas {
       0 0 0 1px rgba(59, 130, 246, 0.4);
   }
 
-  .liquid-glass-tab-active:hover .liquid-glass-tab-icon {
-    color: #2563eb;
-    transform: scale(1.1);
-  }
-
-  .liquid-glass-tab-active:hover .liquid-glass-tab-icon img {
-    /* Фильтр для более темного синего цвета при hover активной кнопки */
-    filter: brightness(0) saturate(100%) invert(27%) sepia(96%) saturate(1234%) hue-rotate(213deg) brightness(98%) contrast(101%);
-    transform: scale(1.1);
-  }
-
   .liquid-glass-tab-active:hover .liquid-glass-tab-label {
     color: #2563eb;
   }
@@ -1521,17 +1479,6 @@ canvas {
       border: none;
     }
     
-    /* Увеличенные иконки для планшетов */
-    .liquid-glass-tab-icon svg {
-      width: 36px;
-      height: 36px;
-    }
-
-    .liquid-glass-tab-icon img {
-      width: 36px;
-      height: 36px;
-    }
-
     .liquid-glass-tab-button {
       flex: 1 1 0;
       min-width: 56px;
@@ -1575,16 +1522,6 @@ canvas {
       border: none;
     }
     
-    .liquid-glass-tab-button:hover .liquid-glass-tab-icon {
-      color: rgba(0, 0, 0, 0.6);
-      transform: scale(1);
-    }
-
-    .liquid-glass-tab-button:hover .liquid-glass-tab-icon img {
-      filter: brightness(0) saturate(100%) invert(27%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0.6) contrast(1);
-      transform: scale(1);
-    }
-
     .liquid-glass-tab-button:hover .liquid-glass-tab-label {
       color: rgba(0, 0, 0, 0.6);
     }
@@ -1597,10 +1534,6 @@ canvas {
       box-shadow: none;
       border: none;
       transform: scale(0.92);
-    }
-    
-    .liquid-glass-tab-button:active .liquid-glass-tab-icon {
-      transform: scale(0.9);
     }
 
     .liquid-glass-tab-button:active .liquid-glass-tab-label {

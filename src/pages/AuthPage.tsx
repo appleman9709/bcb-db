@@ -80,7 +80,7 @@ export default function AuthPage() {
 
         <div className="relative space-y-2">
           <div className="inline-flex items-center gap-3 rounded-3xl border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em]">
-            BabyCare
+            Забота о малыше
           </div>
 
           <h1 className="text-3xl font-semibold text-white">Вход в систему</h1>
@@ -101,7 +101,7 @@ export default function AuthPage() {
                 value={familyName}
                 onChange={(event) => setFamilyName(event.target.value)}
                 className="w-full rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-base text-white placeholder-slate-300/50 outline-none focus:border-sky-300 focus:ring-2 focus:ring-sky-300/60"
-                placeholder="Например: семья Ивановых"
+                placeholder="Например: Коршиковы"
                 autoFocus
               />
             </div>
