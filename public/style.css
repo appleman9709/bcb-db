@@ -16,7 +16,7 @@ body {
     height: 100dvh;
     margin: 0;
     padding: 0;
-    color: #1F2937;
+    color: #ffffff;
     overflow: hidden;
     position: fixed;
     width: 100%;
@@ -26,8 +26,8 @@ body {
 
 /* Основной контейнер игры */
 .game-container {
-    background: #f5f3ef00;
-    background-color: #f5f3ef00; /* Дублируем для надежности */
+    background: #f5f3ef;
+    background-color: #f5f3ef; /* Дублируем для надежности */
     height: 100vh;
     height: 100dvh;
     max-height: 100vh;
