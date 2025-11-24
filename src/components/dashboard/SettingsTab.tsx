@@ -41,23 +41,23 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
       {/* Совет дня */}
       {dailyTip && (
-        <div className="rounded-3xl p-2.5 shadow-sm border border-blue-100 iphone14-tip">
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 flex items-center justify-center iphone14-tip-icon">
+            <div className="w-10 h-10 flex items-center justify-center">
               <img src="/icons/sovet.png" alt="Совет" className="w-10 h-10 object-contain" />
             </div>
             <div className="flex-1">
               <h3 className="text-base font-semibold text-gray-900 mb-1">Совет дня</h3>
               <p className="text-xs text-gray-700 mb-1">{dailyTip.content}</p>
               <div className="flex flex-wrap gap-1 text-xs text-gray-500">
-                <span className="bg-white px-1.5 py-0.5 rounded-3xl">📌 {dailyTip.category}</span>
-                <span className="bg-white px-1.5 py-0.5 rounded-3xl">👶 {dailyTip.age_months} мес.</span>
+                <span className="bg-white px-1.5 py-0.5 rounded-2xl">📌 {dailyTip.category}</span>
+                <span className="bg-white px-1.5 py-0.5 rounded-2xl">👶 {dailyTip.age_months} мес.</span>
               </div>
             </div>
           </div>
         </div>
       )}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg" aria-hidden>🌗</span>
@@ -85,7 +85,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
         </div>
       </div>
       {/* Дата рождения */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
         <div className="text-center mb-2">
           <h2 className="text-base font-semibold text-gray-900">Дата рождения</h2>
         </div>
@@ -117,7 +117,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       </div>
 
       {/* Интервалы */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
         <div className="text-center mb-2">
           <h2 className="text-base font-semibold text-gray-900">Интервалы</h2>
         </div>
@@ -221,34 +221,31 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       </div>
 
       {/* Push уведомления */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
-        <h2 className="text-base font-semibold text-gray-900 mb-3">🔔 Push-уведомления</h2>
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
+        <h2 className="text-base font-semibold text-gray-900 text-center mb-2">🔔 Push-уведомления</h2>
         <PushNotificationManager />
       </div>
 
       {/* Отправить уведомление */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
-        <h2 className="text-base font-semibold text-gray-900 mb-3">📤 Отправить уведомление</h2>
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <h2 className="text-base font-semibold text-gray-900 text-center mb-2">📤 Отправить уведомление</h2>
         <NotificationSender />
       </div>
 
       {/* Семья и профиль */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 iphone14-card">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 flex items-center justify-center text-sm">
-            👨‍👩‍👧‍👦
-          </div>
-          <h2 className="text-base font-semibold text-gray-900">Семья и профиль</h2>
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
+        <div className="flex gap-2">
+          <h2 className="text-base font-semibold text-gray-900 text-center mb-2">Семья и профиль</h2>
         </div>
         <div className="space-y-2">
-          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-3xl">
+          <div className="flex justify-between items-center p-2">
             <div>
               <p className="text-xs font-medium text-gray-900">Семья</p>
               <p className="text-xs text-gray-500">Название вашей семьи</p>
             </div>
             <span className="text-xs font-medium text-gray-700">{familyName ?? 'Family'}</span>
           </div>
-          <div className="flex justify-between items-center p-2 bg-gray-50 rounded-3xl">
+          <div className="flex justify-between items-center p-2">
             <div>
               <p className="text-xs font-medium text-gray-900">Ваше имя</p>
               <p className="text-xs text-gray-500">Имя участника в семье</p>
@@ -257,9 +254,9 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
           </div>
           <button
             onClick={onSignOut}
-            className="w-full mt-2 px-3 py-1.5 bg-red-500 text-white rounded-3xl hover:bg-red-600 transition-colors font-medium text-xs"
+            className="w-full mt-2 px-3 py-2 bg-red-500 text-white rounded-xl font-medium text-xs"
           >
-            🚪 Выйти из аккаунта
+          Выйти из аккаунта
           </button>
         </div>
       </div>
@@ -267,7 +264,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       {/* Сохранить настройки */}
       <button
         onClick={onSaveSettings}
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-4 rounded-3xl shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 text-sm"
+        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 px-4 rounded-2xl shadow-lg text-sm"
       >
         💾 Сохранить настройки
       </button>

@@ -90,13 +90,13 @@ export default function PushNotificationManager() {
   return (
     <div className="space-y-3">
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 rounded-3xl text-sm border border-red-200">
+        <div className="p-3 bg-red-50 text-red-700 rounded-2xl text-sm border border-red-200">
           {error}
         </div>
       )}
       
       {success && (
-        <div className="p-3 bg-green-50 text-green-700 rounded-3xl text-sm border border-green-200">
+        <div className="p-3 bg-green-50 text-green-700 rounded-2xl text-sm border border-green-200">
           {success}
         </div>
       )}
@@ -110,7 +110,7 @@ export default function PushNotificationManager() {
           <button
             onClick={handleSubscribe}
             disabled={isLoading}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
           >
             {isLoading ? 'Подписка...' : '🔔 Подписаться на уведомления'}
           </button>
@@ -118,7 +118,7 @@ export default function PushNotificationManager() {
           <button
             onClick={handleUnsubscribe}
             disabled={isLoading}
-            className="w-full px-4 py-2 bg-gray-600 text-white rounded-3xl hover:bg-gray-700 disabled:opacity-50 text-sm font-medium"
+            className="w-full px-4 py-2 bg-gray-600 text-white rounded-2xl hover:bg-gray-700 disabled:opacity-50 text-sm font-medium"
           >
             {isLoading ? 'Отписка...' : '🔕 Отписаться от уведомлений'}
           </button>

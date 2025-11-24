@@ -96,6 +96,38 @@ export default function Dashboard() {
     sleep: '0м'
   })
   
+  const clockRef = useRef(null)
+  const startYRef = useRef(0)
+  const swipeActiveRef = useRef(false)
+  const triggeredRef = useRef(false)
+  const SWIPE_THRESHOLD = 70
+
+  const handleSwipeStart = (e) => {
+    if (clockRef.current && clockRef.current.contains(e.target)) {
+      swipeActiveRef.current = true
+      startYRef.current = e.touches[0].clientY
+      triggeredRef.current = false
+    } else {
+      swipeActiveRef.current = false
+    }
+  }
+
+  const handleSwipeMove = (e) => {
+    if (!swipeActiveRef.current || triggeredRef.current) return
+
+    const currentY = e.touches[0].clientY
+    const diff = startYRef.current - currentY
+
+    if (diff > SWIPE_THRESHOLD) {
+      triggeredRef.current = true
+      handleRecentEventsClick()
+    }
+  }
+
+  const handleSwipeEnd = () => {
+    swipeActiveRef.current = false
+    triggeredRef.current = false
+  }
   // Tamagotchi modal state
   const [tamagotchiModalOpen, setTamagotchiModalOpen] = useState(false)
   const [tamagotchiModalAction, setTamagotchiModalAction] = useState<QuickActionType>('feeding')
@@ -524,7 +556,7 @@ export default function Dashboard() {
   )
 
   const getRingStyle = (color: string, percent: number) => ({
-    background: `conic-gradient(from 0deg, ${color} 0% ${percent}%, #d0e4fe ${percent}% 100%)`
+    background: `conic-gradient(from 0deg, ${color} 0% ${percent}%,rgba(208, 228, 254, 0) ${percent}% 100%)`
   })
 
   const handleModalSuccess = async () => {
@@ -866,6 +898,10 @@ export default function Dashboard() {
       if (event.touches.length !== 1) {
         return
       }
+    // 🛑 Блокируем pull-to-refresh, если свайп начинается на иконке часов
+    if (clockRef.current && clockRef.current.contains(event.target as Node)) {
+      return
+    }
 
       // Проверяем, что пользователь в самом верху страницы (с небольшим допуском)
       const scrollTop = getScrollTop()
@@ -888,7 +924,11 @@ export default function Dashboard() {
       if (!isPullingRef.current || pullStartYRef.current === null) {
         return
       }
-
+      
+      if (clockRef.current && clockRef.current.contains(event.target as Node)) {
+        return
+      }
+      
       // Дополнительная проверка: не активируем pull-to-refresh в настройках, истории, тетрисе, тамагочи, когда открыт таймлайн или когда открыто любое модальное окно
       if (activeTab === 'settings' || activeTab === 'tetris' || activeTab === 'tamagotchi' || recentEventsExpanded || modalOpen || tamagotchiModalOpen || recordDetailModalOpen || dutyModalOpen || growthChartModalOpen || weeklyStatsChartOpen) {
         resetPullState()
@@ -1117,13 +1157,13 @@ export default function Dashboard() {
               <div className="flex flex-wrap gap-2 py-4">
                 <button
                     onClick={() => handleQuickAction('feeding')}
-                  className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
+                  className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
                 >
                   <div
                     className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
                     style={getRingStyle(feedingProgress.overdue ? '#ef4444' : '#38bdf8', feedingProgress.overdue ? 100 : feedingProgress.remainingPercent)}
                   >
-                    <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-ring flex items-center justify-center">
                       <img src="/icons/feeding.png" alt="Кормление" className="w-[54px] h-[54px] object-contain" />
                     </div>
                   </div>
@@ -1148,7 +1188,7 @@ export default function Dashboard() {
                     className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
                     style={getRingStyle(diaperProgress.overdue ? '#ef4444' : '#22c55e', diaperProgress.overdue ? 100 : diaperProgress.remainingPercent)}
                   >
-                    <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-ring flex items-center justify-center">
                       <img src="/icons/diaper.png" alt="Смена подгузника" className="w-[54px] h-[54px] object-contain" />
                     </div>
                   </div>
@@ -1173,7 +1213,7 @@ export default function Dashboard() {
                     className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
                     style={getRingStyle(bathProgress.overdue ? '#ef4444' : '#f59e0b', bathProgress.overdue ? 100 : bathProgress.remainingPercent)}
                   >
-                    <div className="w-full h-full rounded-full bg-[#d0e4fe] flex items-center justify-center">
+                    <div className="w-full h-full rounded-full bg-ring flex items-center justify-center">
                       <img src="/icons/bath.png" alt="Купание" className="w-[54px] h-[54px] object-contain" />
                     </div>
                   </div>
@@ -1208,12 +1248,19 @@ export default function Dashboard() {
                   </button>
                   
                   {/* Основное изображение малыша */}
-                  <img 
-                    src="/icons/clock.png" 
-                    alt="Часы" 
-                    className="w-32 h-32 object-contain transition-all duration-200 active:scale-95 hover:scale-105 cursor-pointer" 
-                    onClick={handleRecentEventsClick}
-                  />
+                  <div
+                    onTouchStart={handleSwipeStart}
+                    onTouchMove={handleSwipeMove}
+                    onTouchEnd={handleSwipeEnd}
+                  >
+                    <img
+                      ref={clockRef}
+                      src="/icons/clock.png"
+                      alt="Часы"
+                      className="w-32 h-32 object-contain transition-all duration-200 active:scale-95 hover:scale-105 cursor-pointer"
+                      onClick={handleRecentEventsClick}
+                    />
+                  </div>
                   
                   {/* Кнопка графика роста справа */}
                   <button

@@ -118,7 +118,7 @@ export default function TetrisPage() {
   }, [family, member])
 
   return (
-    <div className="h-full w-full flex flex-col bg-gradient-to-b from-yellow-50 to-yellow-100">
+    <div className="h-full w-full flex flex-col">
       {/* Предзагрузка изображений для навигации */}
       <CategoryPreloader category="navigation" priority="medium" delay={200} />
       
@@ -135,10 +135,10 @@ export default function TetrisPage() {
       )}
 
       {/* Игра Тетрис */}
-      <div className="flex-1 relative pb-20">
+      <div className="flex-1 relative">
         <iframe
           ref={iframeRef}
-          className="absolute inset-0 w-full h-full border-0"
+          className="absolute inset-0 w-full h-full"
           style={{ 
             bottom: '80px', // Оставляем место для панели навигации
             zIndex: 10

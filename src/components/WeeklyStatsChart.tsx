@@ -341,9 +341,9 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
         </div>
       ) : (
         <div className="space-y-3">
-          <header className={`rounded-3xl bg-gradient-to-br ${palette.gradient} p-3 text-white shadow-lg sm:p-4`}>
+          <header className={`rounded-2xl bg-gradient-to-br ${palette.gradient} p-3 text-white shadow-lg sm:p-4`}>
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/20 text-2xl shadow-inner backdrop-blur">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-2xl">
                 {palette.emoji}
               </div>
               <div className="flex-1">
@@ -378,7 +378,7 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
             </div>
           </section>
 
-          <div className="rounded-3xl border border-blue-100 bg-blue-50/70 p-2 text-xs text-blue-700 shadow-inner sm:text-sm">
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-2 text-xs text-blue-700 shadow-inner sm:text-sm">
             {summary && summary.last > 0
               ? `Вчера записано ${summary.last} ${palette.legend.toLowerCase()} — отличный результат!`
               : 'За последние сутки нет новых записей — самое время добавить свежие данные.'}

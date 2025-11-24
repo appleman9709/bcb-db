@@ -93,23 +93,20 @@ export default function NotificationSender() {
   return (
     <div className="space-y-3">
       {error && (
-        <div className="p-3 bg-red-50 text-red-700 rounded-3xl text-sm border border-red-200 whitespace-pre-line">
+        <div className="p-3 bg-red-50 text-red-700 rounded-2xl text-sm border border-red-200 whitespace-pre-line">
           {error}
         </div>
       )}
       
       {success && (
-        <div className="p-3 bg-green-50 text-green-700 rounded-3xl text-sm border border-green-200">
+        <div className="p-3 bg-green-50 text-green-700 rounded-2xl text-sm border border-green-200">
           {success}
         </div>
       )}
       
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Кому отправить
-          </label>
-          <div className="space-y-2 bg-gray-50 p-3 rounded-3xl">
+          <div className="space-y-2 bg-gray-50 p-3 rounded-2xl">
             <label className="flex items-center text-sm">
               <input
                 type="checkbox"
@@ -136,29 +133,25 @@ export default function NotificationSender() {
         </div>
         
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Заголовок
-          </label>
+          
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Заголовок уведомления"
-            className="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500"
             style={{ fontSize: '16px' }}
           />
         </div>
         
         <div>
-          <label className="block text-xs font-medium text-gray-700 mb-2">
-            Текст
-          </label>
+          
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Текст уведомления"
             rows={3}
-            className="w-full px-4 py-2 border border-gray-300 rounded-3xl focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500"
             style={{ fontSize: '16px' }}
           />
         </div>
@@ -166,7 +159,7 @@ export default function NotificationSender() {
         <button
           onClick={handleSend}
           disabled={isLoading || !title.trim() || !body.trim()}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-3xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
         >
           {isLoading ? 'Отправка...' : '📤 Отправить уведомление'}
         </button>
