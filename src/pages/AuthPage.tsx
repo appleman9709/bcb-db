@@ -74,7 +74,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center px-6 py-16 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-300 via-indigo-400 to-slate-300 flex items-center justify-center px-6 py-16 text-white">
       <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-8 shadow-2xl backdrop-blur-lg">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-sky-500/10 to-purple-500/10" aria-hidden="true" />
 
