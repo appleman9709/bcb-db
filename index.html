@@ -8,8 +8,6 @@
     <!-- PWA Meta Tags -->
     <meta name="description" content="Панель управления по уходу за сыном" />
     <meta name="theme-color" content="#d6e7fe" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#d6e7fe" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1224" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -31,42 +29,6 @@
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
-
-    <script>
-      (function bootstrapTheme() {
-        const savedTheme = localStorage.getItem('theme')
-        const theme = savedTheme === 'dark' ? 'dark' : 'light'
-        const root = document.documentElement
-        const lightThemeColor = '#d6e7fe'
-        const darkThemeColor = '#0b1224'
-        const statusBarStyle = 'black-translucent'
-
-        root.classList.add(`theme-${theme}`)
-
-        document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
-          const media = meta.getAttribute('media')
-          if (media?.includes('dark')) {
-            meta.setAttribute('content', darkThemeColor)
-            return
-          }
-
-          if (media?.includes('light')) {
-            meta.setAttribute('content', lightThemeColor)
-            return
-          }
-
-          meta.setAttribute('content', theme === 'dark' ? darkThemeColor : lightThemeColor)
-        })
-
-        const statusBarMeta = document.querySelector(
-          'meta[name="apple-mobile-web-app-status-bar-style"]'
-        )
-
-        if (statusBarMeta) {
-          statusBarMeta.setAttribute('content', statusBarStyle)
-        }
-      })()
-    </script>
   </head>
   <body>
     <div id="root"></div>

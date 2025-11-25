@@ -25,7 +25,7 @@ body {
 
 /* Основной контейнер игры */
 .game-container {
-    background: #f5f3ef00;
+    background: #f5f3ef;
     height: 100vh;
     height: 100dvh;
     max-height: 100vh;
