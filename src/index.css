@@ -37,7 +37,7 @@
     position: fixed;
     width: 100%;
     padding-top: env(safe-area-inset-top);
-    color: var(--app-text-color);
+    color: var(--app-bg);
     background: var(--app-bg);
     background-color: var(--app-bg-solid);
     background-size: cover;
