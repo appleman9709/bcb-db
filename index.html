@@ -39,8 +39,7 @@
         const root = document.documentElement
         const lightThemeColor = '#d6e7fe'
         const darkThemeColor = '#0b1224'
-        const lightStatusBarStyle = 'default'
-        const darkStatusBarStyle = 'black-translucent'
+        const statusBarStyle = 'black-translucent'
 
         root.classList.add(`theme-${theme}`)
 
@@ -64,10 +63,7 @@
         )
 
         if (statusBarMeta) {
-          statusBarMeta.setAttribute(
-            'content',
-            theme === 'dark' ? darkStatusBarStyle : lightStatusBarStyle
-          )
+          statusBarMeta.setAttribute('content', statusBarStyle)
         }
       })()
     </script>

@@ -31,8 +31,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const lightThemeColor = '#d6e7fe'
     const darkThemeColor = '#0b1224'
     const themeColor = theme === 'dark' ? darkThemeColor : lightThemeColor
-    const lightStatusBarStyle = 'default'
-    const darkStatusBarStyle = 'black-translucent'
+    const statusBarStyle = 'black-translucent'
 
     document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
       const media = meta.getAttribute('media')
@@ -55,10 +54,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     )
 
     if (statusBarMeta) {
-      statusBarMeta.setAttribute(
-        'content',
-        theme === 'dark' ? darkStatusBarStyle : lightStatusBarStyle
-      )
+      statusBarMeta.setAttribute('content', statusBarStyle)
     }
   }, [theme])
 
