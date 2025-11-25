@@ -28,7 +28,6 @@ import {
   saveDutyScheduleHybrid,
   type DutySchedule
 } from '../services/dutyScheduleService'
-import { initGradientTimer } from '../lib/gradientUtils'
 
 type DashboardSection = 'dashboard' | 'settings'
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
@@ -843,22 +842,6 @@ export default function Dashboard() {
 
     fetchData()
   }, [member, family, fetchData])
-
-  // Инициализируем таймер градиентов (заменяет старый проблемный таймер)
-  useEffect(() => {
-    if (!data) return
-
-    const cleanup = initGradientTimer(
-      data.lastFeeding?.timestamp || null,
-      data.lastDiaper?.timestamp || null,
-      data.lastBath?.timestamp || null,
-      settings.feedingInterval,
-      settings.diaperInterval,
-      settings.bathInterval
-    )
-
-    return cleanup
-  }, [data?.lastFeeding?.timestamp, data?.lastDiaper?.timestamp, data?.lastBath?.timestamp, settings.feedingInterval, settings.diaperInterval, settings.bathInterval])
 
   useEffect(() => {
   }, [activeTab, member, family])
