@@ -24,6 +24,14 @@
   --app-card-border: rgba(0, 0, 0, 0.4);
 }
 
+:root.theme-light {
+  --app-bg: #d6e7fe;
+  --app-bg-solid: #d6e7fe;
+  --app-text-color: #111827;
+  --app-card-bg: #ffffff;
+  --app-card-border: #f3f4f6;
+}
+
 @layer base {
   * {
     @apply border-gray-700;
