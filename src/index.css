@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 :root {
-  --app-bg: linear-gradient(135deg, #e0f2ff 0%, #c7dbff 50%, #d6e7fe 100%);
+  --app-bg: #d6e7fe;
   --app-bg-solid: #d6e7fe;
   --app-text-color: #111827;
   --app-card-bg: #ffffff;
@@ -48,25 +48,7 @@
     scroll-behavior: smooth;
     overflow: hidden; /* Prevent html scroll in PWA */
     height: 100dvh; /* Dynamic viewport height for mobile */
-    background: var(--app-bg-solid); /* Match theme color */
-  }
-  
-  /* iOS Status Bar Background Fix */
-  @supports (padding: max(0px)) {
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: env(safe-area-inset-top);
-      background: color-mix(in srgb, var(--app-bg-solid) 94%, transparent);
-      backdrop-filter: saturate(180%) blur(16px);
-      -webkit-backdrop-filter: saturate(180%) blur(16px);
-      pointer-events: none;
-      z-index: 9999;
-      transition: background 150ms ease;
-    }
+    background: var(--app-bg); /* Match theme color */
   }
 }
 
