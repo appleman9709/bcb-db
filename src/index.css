@@ -606,52 +606,7 @@
   @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
 }
 
-/* Loading animation */
-.loading-dots {
-  display: inline-block;
-}
 
-.loading-dots::after {
-  content: '';
-  animation: loading-dots 1.5s infinite;
-}
-
-/* CSS переменные для динамических градиентов */
-:root {
-  --gradient-feeding-progress: 0;
-  --gradient-feeding-color-start: rgb(34, 197, 94);
-  --gradient-feeding-color-end: rgb(22, 163, 74);
-  
-  --gradient-diaper-progress: 0;
-  --gradient-diaper-color-start: rgb(34, 197, 94);
-  --gradient-diaper-color-end: rgb(22, 163, 74);
-  
-  --gradient-bath-progress: 0;
-  --gradient-bath-color-start: rgb(34, 197, 94);
-  --gradient-bath-color-end: rgb(22, 163, 74);
-}
-
-/* Динамические градиенты на основе CSS переменных */
-.gradient-feeding-progress {
-  background: linear-gradient(135deg, var(--gradient-feeding-color-start) 0%, var(--gradient-feeding-color-end) 100%);
-  transition: background 0.3s ease;
-}
-
-.gradient-diaper-progress {
-  background: linear-gradient(135deg, var(--gradient-diaper-color-start) 0%, var(--gradient-diaper-color-end) 100%);
-  transition: background 0.3s ease;
-}
-
-.gradient-bath-progress {
-  background: linear-gradient(135deg, var(--gradient-bath-color-start) 0%, var(--gradient-bath-color-end) 100%);
-  transition: background 0.3s ease;
-}
-
-/* Анимация для прогресс-баров */
-.progress-bar-animated {
-  background-color: var(--gradient-feeding-color-start);
-  transition: background-color 0.3s ease;
-}
 
 /* Улучшенные стили для контрастности текста на градиентах */
 .drop-shadow-sm {
