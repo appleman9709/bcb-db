@@ -37,7 +37,6 @@
     position: fixed;
     width: 100%;
     padding-top: env(safe-area-inset-top);
-    color: var(--app-bg);
     background: var(--app-bg);
     background-color: var(--app-bg-solid);
     background-size: cover;
@@ -183,7 +182,6 @@
   .slider-title {
     font-size: 18px;
     font-weight: 600;
-
     line-height: 1.3;
   }
   
@@ -725,7 +723,7 @@
 
 .date-input-container .age-description .age-value {
   font-weight: 500;
-  color: #374151;
+  color: #000001;
 }
 
 /* Адаптивность для разных размеров экрана */

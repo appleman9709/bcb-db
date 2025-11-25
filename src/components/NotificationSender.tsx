@@ -107,7 +107,7 @@ export default function NotificationSender() {
       <div className="space-y-3">
         <div>
           <div className="space-y-2 bg-gray-50 p-3 rounded-2xl">
-            <label className="flex items-center text-sm">
+            <label className="flex items-center text-sm text-gray-600">
               <input
                 type="checkbox"
                 checked={targetUsers.length === 0}
@@ -119,7 +119,7 @@ export default function NotificationSender() {
             {familyMembers
               .filter(m => m.user_id !== member?.user_id)
               .map(m => (
-                <label key={m.user_id} className="flex items-center text-sm">
+                <label key={m.user_id} className="flex items-center text-sm text-gray-600">
                   <input
                     type="checkbox"
                     checked={targetUsers.includes(m.user_id)}

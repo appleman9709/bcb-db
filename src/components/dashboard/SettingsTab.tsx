@@ -96,7 +96,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 type="date"
                 value={settings.birthDate}
                 onChange={(event) => onSettingChange('birthDate', event.target.value)}
-                className="w-full text-center"
+                className="w-full text-center text-gray-800"
                 inputMode="numeric"
                 autoComplete="bday"
                 placeholder=""
@@ -105,7 +105,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               />
               <div></div>
             </div>
-            <div id="birth-date-description" className="age-description">
+            <div id="birth-date-description" className="age-description text-gray-600">
               <span className="age-indicator"></span>
               <span>
                 Возраст:{' '}
