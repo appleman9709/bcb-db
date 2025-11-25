@@ -39,6 +39,8 @@
         const root = document.documentElement
         const lightThemeColor = '#d6e7fe'
         const darkThemeColor = '#0b1224'
+        const lightStatusBarStyle = 'default'
+        const darkStatusBarStyle = 'black-translucent'
 
         root.classList.add(`theme-${theme}`)
 
@@ -56,6 +58,17 @@
 
           meta.setAttribute('content', theme === 'dark' ? darkThemeColor : lightThemeColor)
         })
+
+        const statusBarMeta = document.querySelector(
+          'meta[name="apple-mobile-web-app-status-bar-style"]'
+        )
+
+        if (statusBarMeta) {
+          statusBarMeta.setAttribute(
+            'content',
+            theme === 'dark' ? darkStatusBarStyle : lightStatusBarStyle
+          )
+        }
       })()
     </script>
   </head>

@@ -31,6 +31,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const lightThemeColor = '#d6e7fe'
     const darkThemeColor = '#0b1224'
     const themeColor = theme === 'dark' ? darkThemeColor : lightThemeColor
+    const lightStatusBarStyle = 'default'
+    const darkStatusBarStyle = 'black-translucent'
 
     document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((meta) => {
       const media = meta.getAttribute('media')
@@ -47,6 +49,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
       meta.setAttribute('content', themeColor)
     })
+
+    const statusBarMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="apple-mobile-web-app-status-bar-style"]'
+    )
+
+    if (statusBarMeta) {
+      statusBarMeta.setAttribute(
+        'content',
+        theme === 'dark' ? darkStatusBarStyle : lightStatusBarStyle
+      )
+    }
   }, [theme])
 
   return (
