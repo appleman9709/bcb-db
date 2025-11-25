@@ -1257,7 +1257,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             scoreAnimation ? 'score-animation bg-gray-200 shadow-lg' : 'scale-100'
           }`}>
             <span className="text-xs font-bold text-gray-800">⭐</span>
-            <span className={`text-xs font-bold text-gray-800 transition-all duration-300 ${
+            <span className={`text-xs font-bold transition-all duration-300 ${
               scoreAnimation ? 'text-gray-900' : ''
             }`}>{coinCounts.score}</span>
           </div>
@@ -1556,20 +1556,20 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
               <div className="flex flex-1 flex-col gap-2.5 px-3 pb-2 pt-2.5 overflow-y-auto sm:gap-3 sm:px-4 sm:pb-3 sm:pt-3">
                 <div className="grid grid-cols-2 gap-2">
                   <div className={`rounded-xl border p-2.5 ${lowOnDiapers ? "border-amber-200 bg-amber-50/70" : "border-emerald-100 bg-emerald-50/60"}`}>
-                    <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">Подгузники</div>
+                    <div className="text-[9px] font-semibold uppercase tracking-wide">Подгузники</div>
                     <div className="mt-1 flex items-baseline gap-1">
-                      <span className="text-lg font-bold text-slate-900">{inventoryTotals.diapers}</span>
-                      <span className="text-[10px] font-semibold text-slate-500">шт.</span>
+                      <span className="text-lg font-bold">{inventoryTotals.diapers}</span>
+                      <span className="text-[10px] font-semibold">шт.</span>
                     </div>
                   </div>
 
                   <div className={`rounded-xl border p-2.5 ${lowOnFormula ? "border-amber-200 bg-amber-50/70" : "border-indigo-100 bg-indigo-50/60"}`}>
-                    <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">Смесь</div>
+                    <div className="text-[9px] font-semibold uppercase tracking-wide">Смесь</div>
                     <div className="mt-1 flex items-baseline gap-1">
-                      <span className="text-lg font-bold text-slate-900">{displayPortionsText}</span>
-                      <span className="text-[10px] font-semibold text-slate-500">порций</span>
+                      <span className="text-lg font-bold">{displayPortionsText}</span>
+                      <span className="text-[10px] font-semibold">порций</span>
                     </div>
-                    <p className="mt-1 text-[9px] text-slate-400">
+                    <p className="mt-1 text-[9px]">
                       ~{inventoryTotals.grams} г / {portionSizeOunces} оз на порцию
                     </p>
                   </div>
@@ -1578,8 +1578,8 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1.2fr,0.8fr] sm:items-center sm:gap-3">
                   <div className="rounded-xl border border-slate-200 bg-white p-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-800">Размер порции</span>
-                      <span className="text-[10px] text-slate-400">унц.</span>
+                      <span className="text-xs font-semibold">Размер порции</span>
+                      <span className="text-[10px]">унц.</span>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <button
@@ -1589,12 +1589,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.max(0.5, current - 0.5)
                           setPortionSizeOuncesInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors hover:bg-slate-200"
                         aria-label="Уменьшить размер порции"
                       >
                         -
                       </button>
-                      <span className="text-lg font-semibold text-slate-900">
+                      <span className="text-lg font-semibold">
                         {portionSizeOuncesInput}
                       </span>
                       <button
@@ -1604,13 +1604,13 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.min(20, current + 0.5)
                           setPortionSizeOuncesInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors hover:bg-slate-200"
                         aria-label="Увеличить размер порции"
                       >
                         +
                       </button>
                     </div>
-                    <p className="mt-1.5 text-center text-[9px] text-slate-400">
+                    <p className="mt-1.5 text-center text-[9px]">
                       Выбранное значение указано в унциях.
                     </p>
                   </div>
@@ -1631,9 +1631,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
                  <form className="grid grid-cols-1 gap-2 rounded-xl sm:grid-cols-2 sm:gap-3" onSubmit={handleRestockSubmit}>
                   <div className="rounded-xl border border-slate-200 bg-white p-2.5">
-                    <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                    <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide">
                       <span>Подгузники</span>
-                      <span className="text-[9px] text-slate-400">шт.</span>
+                      <span className="text-[9px]">шт.</span>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <button
@@ -1643,12 +1643,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.max(0, current - 25)
                           setRestockDiapersInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors hover:bg-slate-200"
                         aria-label="Уменьшить количество подгузников"
                       >
                         -
                       </button>
-                      <span className="text-lg font-semibold text-slate-900">
+                      <span className="text-lg font-semibold">
                         {restockDiapersInput || "0"}
                       </span>
                       <button
@@ -1658,7 +1658,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.min(500, current + 25)
                           setRestockDiapersInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors hover:bg-slate-200"
                         aria-label="Увеличить количество подгузников"
                       >
                         +
@@ -1667,9 +1667,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                   </div>
 
                   <div className="rounded-xl border border-slate-200 bg-white p-2.5">
-                    <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                    <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide">
                       <span>Смесь</span>
-                      <span className="text-[9px] text-slate-400">г</span>
+                      <span className="text-[9px]">г</span>
                     </div>
                     <div className="mt-2 flex items-center justify-between">
                       <button
@@ -1679,12 +1679,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.max(0, current - 100)
                           setRestockGramsInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors hover:bg-slate-200"
                         aria-label="Уменьшить количество смеси"
                       >
                         -
                       </button>
-                      <span className="text-lg font-semibold text-slate-900">
+                      <span className="text-lg font-semibold">
                         {restockGramsInput || "0"}
                       </span>
                       <button
@@ -1694,14 +1694,14 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.min(4000, current + 100)
                           setRestockGramsInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors hover:bg-slate-200"
                         aria-label="Увеличить количество смеси"
                       >
                         +
                       </button>
                     </div>
                     {restockPortionsPreviewText && (
-                      <span className="mt-1.5 block text-[9px] font-medium text-slate-500">
+                      <span className="mt-1.5 block text-[9px] font-medium">
                         ≈ {restockPortionsPreviewText} порций ({portionSizeOunces} оз.)
                       </span>
                     )}
@@ -1727,7 +1727,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                 <button
                   type="button"
                   onClick={() => setBackpackOpen(false)}
-                  className="w-full rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                  className="w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors"
                 >
                   Закрыть
                 </button>

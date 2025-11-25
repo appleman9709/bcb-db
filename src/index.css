@@ -53,15 +53,19 @@
   
   /* iOS Status Bar Background Fix */
   @supports (padding: max(0px)) {
-    html::before {
+    body::before {
       content: '';
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       height: env(safe-area-inset-top);
-      background: var(--app-bg-solid);
+      background: color-mix(in srgb, var(--app-bg-solid) 94%, transparent);
+      backdrop-filter: saturate(180%) blur(16px);
+      -webkit-backdrop-filter: saturate(180%) blur(16px);
+      pointer-events: none;
       z-index: 9999;
+      transition: background 150ms ease;
     }
   }
 }
@@ -121,8 +125,13 @@
   background-color: rgba(9,14,34);
 }
 
-:root.theme-dark .liquid-glass-tab-icon {
-  color: rgba(255, 255, 255, 0.6);
+:root.theme-dark .liquid-glass-tab-button img {
+  filter: brightness(0) invert(1);
+}
+
+:root.theme-dark .liquid-glass-tab-button.liquid-glass-tab-active img {
+  filter: brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1234%) hue-rotate(213deg) brightness(98%) contrast(101%);
+  transform: scale(1.05);
 }
 
 .bg-ring {
@@ -204,16 +213,6 @@
     justify-content: center;
   }
     
-  .slider-value-badge {
-    display: flex;
-    align-items: baseline;
-    gap: 2px;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 24px;
-    padding: 8px 12px;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-  }
   
   /* Обертка слайдера */
   .slider-wrapper {
@@ -310,37 +309,8 @@
     position: relative;
   }
   
-  .modern-slider::-moz-range-track {
-    background: transparent !important;
-    height: 8px !important;
-    border-radius: 24px !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-  
-  .modern-slider::-moz-range-thumb {
-    height: 32px !important;
-    width: 32px !important;
-    border-radius: 50% !important;
-    cursor: pointer !important;
-    border: 4px solid white !important;
-    box-shadow: 
-      0 4px 12px rgba(0, 0, 0, 0.15),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-    transition: none !important;
-  }
-  
   /* Специальные стили для разных типов слайдеров */
   .feeding-slider::-webkit-slider-thumb {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-    box-shadow: 
-      0 4px 12px rgba(59, 130, 246, 0.3),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-  }
-  
-  .feeding-slider::-moz-range-thumb {
     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
     box-shadow: 
       0 4px 12px rgba(59, 130, 246, 0.3),
@@ -356,23 +326,7 @@
       0 0 0 2px rgba(16, 185, 129, 0.2) !important;
   }
   
-  .diaper-slider::-moz-range-thumb {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-    box-shadow: 
-      0 4px 12px rgba(16, 185, 129, 0.3),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(16, 185, 129, 0.2) !important;
-  }
-  
   .bath-slider::-webkit-slider-thumb {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-    box-shadow: 
-      0 4px 12px rgba(249, 115, 22, 0.3),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(249, 115, 22, 0.2) !important;
-  }
-  
-  .bath-slider::-moz-range-thumb {
     background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
     box-shadow: 
       0 4px 12px rgba(249, 115, 22, 0.3),
@@ -388,16 +342,7 @@
       0 2px 4px rgba(0, 0, 0, 0.1),
       0 0 0 2px rgba(59, 130, 246, 0.2) !important;
   }
-  
-  .modern-slider::-moz-range-thumb:hover {
-    transform: none !important;
-    box-shadow: 
-      0 4px 12px rgba(0, 0, 0, 0.15),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-  }
-  
-  
+
   .slider-label:hover {
     background: rgba(59, 130, 246, 0.05);
     transform: translateY(-1px);
@@ -425,6 +370,17 @@
 
   .slider-description {
     font-size: 10px;
+  }
+
+  .slider-value-badge {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, .1) 0%, rgba(59, 130, 246, .05) 100%);
+    border: 1px solid rgba(59, 130, 246, .2);
+    border-radius: 24px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px #3b82f61a;
   }
 
   .value-number {
@@ -482,12 +438,6 @@
   .slider-track {
     height: 12px;
   }
-
-  .modern-slider::-moz-range-thumb {
-    height: 36px !important;
-    width: 36px !important;
-    border: 5px solid white !important;
-  }
   
   .slider-label::before {
     content: '';
@@ -516,12 +466,8 @@
     opacity: 1;
   }
   
-  /* Анимация изменения значения */
-  .slider-value-badge {
-    transition: none;
-  }
   
-  .modern-slider-card:focus-within .slider-value-badge {
+  .modern-slider-card:focus-within {
     transform: none;
   }
   
@@ -594,83 +540,6 @@
     animation: none;
   }
     
-  /* Дополнительные красивые эффекты */
-  
-  /* Пульсирующая анимация для активных ползунков */
-  @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(59, 130, 246, 0.2);
-    }
-    50% {
-      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.6), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(59, 130, 246, 0.4);
-    }
-  }
-
-  @keyframes pulse-glow-green {
-    0%, 100% {
-      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(16, 185, 129, 0.2);
-    }
-    50% {
-      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.6), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(16, 185, 129, 0.4);
-    }
-  }
-
-  @keyframes pulse-glow-orange {
-    0%, 100% {
-      box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4), 0 3px 6px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(249, 115, 22, 0.2);
-    }
-    50% {
-      box-shadow: 0 8px 24px rgba(249, 115, 22, 0.6), 0 4px 8px rgba(0, 0, 0, 0.2), 0 0 0 3px rgba(249, 115, 22, 0.4);
-    }
-  }
-
-  /* Анимация при изменении значения */
-  input[type="range"]:active::-webkit-slider-thumb {
-    animation: none;
-  }
-
-  input[type="range"]:active::-moz-range-thumb {
-    animation: none;
-  }
-
-  .feeding-slider:active::-webkit-slider-thumb {
-    animation: none;
-  }
-
-  .feeding-slider:active::-moz-range-thumb {
-    animation: none;
-  }
-
-  .diaper-slider:active::-webkit-slider-thumb {
-    animation: none;
-  }
-
-  .diaper-slider:active::-moz-range-thumb {
-    animation: none;
-  }
-
-  .bath-slider:active::-webkit-slider-thumb {
-    animation: none;
-  }
-
-  .bath-slider:active::-moz-range-thumb {
-    animation: none;
-  }
-
-  /* Красивые метки значений */
-  .slider-value-display {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%); /* Более контрастный фон */
-    backdrop-filter: blur(12px); /* Увеличен blur с 10px до 12px */
-    border: 2px solid rgba(255, 255, 255, 0.4); /* Увеличена толщина границы с 1px до 2px */
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.3); /* Усилены тени */
-    transition: none;
-  }
-
-  .slider-value-display:hover {
-    transform: none; /* Убрана анимация масштабирования */
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.3); /* Убраны усиленные тени */
-  }
-
   /* Settings specific styles */
   .settings-section {
     @apply animate-fade-in;
@@ -721,14 +590,6 @@
     @apply transition-all duration-300 hover:shadow-xl hover:scale-105;
   }
   
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-in-out;
-  }
-  
-  .animate-slide-up {
-    animation: slideUp 0.5s ease-out;
-  }
-  
   .animate-bounce-in {
     animation: bounceIn 0.6s ease-out;
   }
@@ -737,26 +598,6 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -791,21 +632,6 @@
 .loading-dots::after {
   content: '';
   animation: loading-dots 1.5s infinite;
-}
-
-@keyframes loading-dots {
-  0%, 20% {
-    content: '';
-  }
-  40% {
-    content: '.';
-  }
-  60% {
-    content: '..';
-  }
-  80%, 100% {
-    content: '...';
-  }
 }
 
 /* CSS переменные для динамических градиентов */
@@ -1251,21 +1077,6 @@ canvas {
     cursor: pointer;
   }
   
-  
-  /* Firefox стили */
-  input[type="date"]::-moz-calendar-picker-indicator,
-  input[type="time"]::-moz-calendar-picker-indicator {
-    opacity: 0;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: auto;
-    height: auto;
-    cursor: pointer;
-  }
-  
   /* Улучшенные стили для мобильных устройств */
   input[type="date"],
   input[type="time"] {
@@ -1699,31 +1510,6 @@ canvas {
     opacity: 0.3 !important;
   }
 
-/* ========================================
-   ОПТИМИЗИРОВАННЫЕ АНИМАЦИИ МОНЕТ
-   ======================================== */
-
-/* Упрощенная анимация падения монет */
-@keyframes coinFallOptimized {
-  0% {
-    transform: scale(0) translateY(-20px);
-    opacity: 0;
-  }
-  20% {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.8) translateY(20px);
-    opacity: 0;
-  }
-}
-
-.coin-falling-optimized {
-  animation: coinFallOptimized 1s ease-out forwards;
-  pointer-events: none;
-  will-change: transform, opacity;
-}
 
 /* ========================================
    ОПТИМИЗИРОВАННЫЕ АНИМАЦИИ ЗАГРУЗКИ
@@ -1750,18 +1536,6 @@ canvas {
   animation-delay: 1s;
 }
 
-/* ========================================
-   ОПТИМИЗАЦИЯ СУЩЕСТВУЮЩИХ АНИМАЦИЙ
-   ======================================== */
-
-/* Оптимизированная анимация coin-falling */
-.coin-falling {
-  /* Заменяем две анимации на одну оптимизированную */
-  animation: coinFallOptimized 1s ease-out forwards;
-  pointer-events: none;
-  z-index: 10;
-  will-change: transform, opacity;
-}
 
   /* ОСНОВНАЯ АНИМАЦИЯ: используем только безопасные свойства */
   @keyframes liquidGlassBreathing {
@@ -1900,27 +1674,6 @@ canvas {
     line-height: 1;
   }
 
-
-  @keyframes lowStockPulse {
-    0%, 100% {
-      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-    }
-    50% {
-      box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-    }
-  }
-
-  /* Адаптивная анимация дыхания для мобильных - ОПТИМИЗИРОВАННАЯ */
-  @keyframes liquidGlassBreathingMobile {
-    0%, 100% {
-      /* Убираем дорогие backdrop-filter из анимации */
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.003);
-    }
-  }
-
   /* Адаптивная анимация плавания для мобильных */
   @keyframes inventoryItemFloatMobile {
     0%, 100% {
@@ -2039,9 +1792,6 @@ canvas {
     margin-bottom: 2rem;
   }
 
-  /* ------------------------------ */
-  /*  Анимация подбора монет       */
-  /* ------------------------------ */
 
   @keyframes coinPickup {
     0% {

@@ -1084,7 +1084,7 @@ export default function Dashboard() {
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 iphone14-dashboard pwa-content'} ${
+        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 pwa-content'} ${
           // Оставляем прокрутку только для settings или когда открыты недавние события на home
           activeTab === 'settings' ? 'overflow-y-auto overflow-x-hidden' : 
           (activeTab === 'home' && recentEventsExpanded) ? 'overflow-y-auto overflow-x-hidden' : 
@@ -1157,7 +1157,7 @@ export default function Dashboard() {
               <div className="flex flex-wrap gap-2 py-4">
                 <button
                     onClick={() => handleQuickAction('feeding')}
-                  className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
+                  className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
                 >
                   <div
                     className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
@@ -1182,7 +1182,7 @@ export default function Dashboard() {
 
                 <button
                     onClick={() => handleQuickAction('diaper')}
-                  className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
+                  className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
                 >
                   <div
                     className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
@@ -1207,7 +1207,7 @@ export default function Dashboard() {
 
                 <button
                     onClick={() => handleQuickAction('bath')}
-                  className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200 iphone14-quick-action"
+                  className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200"
                 >
                   <div
                     className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
