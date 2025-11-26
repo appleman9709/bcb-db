@@ -41,6 +41,7 @@
     background-color: var(--app-bg-solid);
     background-size: cover;
     background-attachment: fixed;
+    color: var(--app-text-color);
   }
   
   html {
