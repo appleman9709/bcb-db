@@ -468,7 +468,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             {/* Поле времени - акцентное оформление */}
             <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
               <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
-              <div className="flex items-center gap-1.5">
+              <div className="date-input-container">
                 <input
                   type="time"
                   step={300}

@@ -227,7 +227,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       </div>
 
       {/* Отправить уведомление */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
         <h2 className="text-base font-semibold text-gray-900 text-center mb-2">📤 Отправить уведомление</h2>
         <NotificationSender />
       </div>
