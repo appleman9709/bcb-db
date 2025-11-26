@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { pushService } from '../services/pushService'
 import { dataService } from '../services/dataService'
+import Button from './Button'
 
 export default function NotificationSender() {
   const { family, member } = useAuth()
@@ -156,13 +157,13 @@ export default function NotificationSender() {
           />
         </div>
         
-        <button
+        <Button
           onClick={handleSend}
           disabled={isLoading || !title.trim() || !body.trim()}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+          className="w-full text-sm"
         >
           {isLoading ? 'Отправка...' : '📤 Отправить уведомление'}
-        </button>
+        </Button>
       </div>
     </div>
   )

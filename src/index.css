@@ -825,7 +825,6 @@
 
 .modal-overlay {
   width: 100vw;
-  height: 100vh;
   height: 100dvh;
 }
 
@@ -846,7 +845,7 @@
 }
 
 .modal-content {
-  max-height: 80dvh !important;
+  max-height: 85dvh !important;
   margin-bottom: 1rem !important;
   z-index: 40;
 }

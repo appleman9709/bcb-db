@@ -53,7 +53,7 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
       </div>
       {/* Modal - объединяем контейнер и содержимое */}
       <div 
-        className={`px-3 py-4 modal-content z-40 relative w-full ${sizeClasses[size]} sm:mt-0 mt-10 flex flex-col overflow-hidden overflow-x-hidden rounded-3xl bg-white shadow-2xl animate-bounce-in`}>
+        className={`px-3 py-4 modal-content relative w-full ${sizeClasses[size]} sm:mt-0 mt-10 flex flex-col overflow-hidden overflow-x-hidden rounded-3xl bg-white shadow-2xl animate-bounce-in`}>
 
         {/* Content */}
         {children}

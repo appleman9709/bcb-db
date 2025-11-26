@@ -97,7 +97,6 @@ export default function DutyScheduleModal({
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <div className="space-y-3">
         <div className="space-y-1">
-          <h2 className="text-base font-semibold text-gray-900">График дежурств</h2>
           <img 
             src="/icons/profile.png" 
             alt="Настройка графика дежурств" 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { pushService } from '../services/pushService'
+import Button from './Button'
 
 export default function PushNotificationManager() {
   const { family, member } = useAuth()
@@ -107,21 +108,21 @@ export default function PushNotificationManager() {
         </p>
         
         {!isSubscribed ? (
-          <button
+          <Button
             onClick={handleSubscribe}
             disabled={isLoading}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+            className="w-full text-sm"
           >
             {isLoading ? 'Подписка...' : '🔔 Подписаться на уведомления'}
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             onClick={handleUnsubscribe}
             disabled={isLoading}
-            className="w-full px-4 py-2 bg-gray-600 text-white rounded-2xl hover:bg-gray-700 disabled:opacity-50 text-sm font-medium"
+            className="w-full text-sm"
           >
             {isLoading ? 'Отписка...' : '🔕 Отписаться от уведомлений'}
-          </button>
+          </Button>
         )}
       </div>
     </div>
