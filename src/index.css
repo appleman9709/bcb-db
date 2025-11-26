@@ -342,13 +342,6 @@
     display: flex;
   }
 
-  .slider-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-  }
-
-
   .slider-description {
     font-size: 10px;
   }
@@ -451,27 +444,8 @@
   .modern-slider-card:focus-within {
     transform: none;
   }
-  
-  /* Эффект волны для ползунка */
-  .modern-slider::-webkit-slider-thumb::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 100%;
-    height: 100%;
-    background: rgba(59, 130, 246, 0.3);
-    border-radius: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    animation: none;
-  }
-  
-  /* Улучшенные hover эффекты для иконок */
-  .slider-icon {
-    transition: none;
-  }
-  
-  .modern-slider-card:hover .slider-icon {
+    
+  .modern-slider-card:hover {
     transform: none;
     box-shadow: none;
   }
@@ -604,8 +578,6 @@
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
 }
-
-
 
 /* Улучшенные стили для контрастности текста на градиентах */
 .drop-shadow-sm {

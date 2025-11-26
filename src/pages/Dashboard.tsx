@@ -1067,7 +1067,7 @@ export default function Dashboard() {
       </div>
       
       <div className="relative z-10 flex flex-col h-full">
-        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-2 pb-16 pwa-content'} ${
+        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-4 pb-16 pwa-content'} ${
           // Оставляем прокрутку только для settings или когда открыты недавние события на home
           activeTab === 'settings' ? 'overflow-y-auto overflow-x-hidden' : 
           (activeTab === 'home' && recentEventsExpanded) ? 'overflow-y-auto overflow-x-hidden' : 

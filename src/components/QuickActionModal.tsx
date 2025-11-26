@@ -31,7 +31,7 @@ const actionConfig: Record<QuickActionType, {
     title: 'Кормление',
     icon: '/icons/feeding.png',
     description: 'Запишите кормление, чтобы контролировать режим и заранее планировать следующее.',
-    buttonText: 'Добавить кормление',
+    buttonText: 'Записать кормление',
     buttonVariant: 'primary',
     accent: 'from-blue-500 to-purple-500'
   },
@@ -425,7 +425,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
               <span className="text-lg font-semibold text-blue-600 text-center block">
                 {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
               </span>
-              <div className="slider-wrapper">
                 <div className="slider-track-container">
                   <div className="slider-track">
                     <div 
@@ -443,7 +442,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     className="modern-slider feeding-slider"
                   />
                 </div>
-              </div>
             </div>
           )}
 
@@ -468,20 +466,18 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             {/* Поле времени - акцентное оформление */}
             <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
               <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
-              <div className="date-input-container">
                 <input
                   type="time"
                   step={300}
                   value={timePart}
                   onChange={(event) => handleTimeChange(event.target.value)}
-                  className="flex-1 text-xs font-semibold text-blue-700 focus:outline-none focus:ring-0 cursor-pointer"
+                  className="w-full text-center text-gray-800"
                   style={{
                     colorScheme: 'light',
                     WebkitAppearance: 'none',
                     MozAppearance: 'textfield'
                   }}
                 />
-              </div>
             </div>
           </div>
 
