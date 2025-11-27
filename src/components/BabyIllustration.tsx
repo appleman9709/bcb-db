@@ -83,7 +83,7 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
         {/* Основной круг с градиентом */}
         <div 
           className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-52 h-52 ${getGradientClass()} rounded-full shadow-lg flex items-center justify-center iphone14-baby-illustration ${
-            onClick ? 'cursor-pointer hover:shadow-xl transition-all duration-200 hover:scale-105' : ''
+            onClick ? 'cursor-pointer transition-all duration-200' : ''
           }`}
           onClick={onClick}
         >

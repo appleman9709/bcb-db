@@ -2,6 +2,7 @@
 import Modal from './Modal'
 import Button from './Button'
 import { dataService } from '../services/dataService'
+import React from 'react';
 
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
 
@@ -448,7 +449,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           {/* Раздел для даты и времени */}
           <div className="space-y-3">
             {/* Поле даты - компактное оформление */}
-            <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm hover:border-gray-300 hover:bg-gray-100 transition-all duration-200 cursor-pointer flex items-center gap-1">
+            <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
               <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
               <input
                 type="date"
@@ -464,7 +465,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             </div>
             
             {/* Поле времени - акцентное оформление */}
-            <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm hover:border-blue-300 hover:shadow-md transition-all duration-200 cursor-pointer">
+            <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
               <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
                 <input
                   type="time"
@@ -523,7 +524,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                   loading
                     ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'border-orange-500 bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    : 'border-orange-500 bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg'
                 }`}
               >
                 <img 
@@ -543,7 +544,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                   loading
                     ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'border-green-500 bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    : 'border-green-500 bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg'
                 }`}
               >
                 <img 
@@ -571,7 +572,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                   loading
                     ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'border-orange-500 bg-gradient-to-br from-orange-400 to-yellow-500 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    : 'border-orange-500 bg-gradient-to-br from-orange-400 to-yellow-500 text-white shadow-lg'
                 }`}
               >
                 <img 
@@ -591,7 +592,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                   loading
                     ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'border-blue-500 bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    : 'border-blue-500 bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg'
                 }`}
               >
                 <img 
@@ -621,7 +622,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                   className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                     loading
                       ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg hover:shadow-xl hover:scale-105`
+                      : `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg`
                   }`}
                 >
                   <img 

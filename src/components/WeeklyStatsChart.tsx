@@ -342,7 +342,7 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
       ) : (
         <div className="space-y-3">
           <header className={`rounded-2xl bg-gradient-to-br ${palette.gradient} p-3 text-white shadow-lg sm:p-4`}>
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-3 items-center">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-2xl">
                 {palette.emoji}
               </div>

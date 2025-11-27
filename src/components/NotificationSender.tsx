@@ -4,6 +4,7 @@ import { pushService } from '../services/pushService'
 import { dataService } from '../services/dataService'
 import Button from './Button'
 
+
 export default function NotificationSender() {
   const { family, member } = useAuth()
   const [title, setTitle] = useState('')

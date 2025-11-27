@@ -536,7 +536,7 @@ export default function GrowthChartCard({
 
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center rounded-3xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:ring-offset-1 sm:ml-auto sm:w-auto sm:text-base"
+            className="inline-flex w-full items-center justify-center rounded-3xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:ring-offset-1 sm:ml-auto sm:w-auto sm:text-base"
           >
             Сохранить
           </button>
@@ -559,7 +559,7 @@ export default function GrowthChartCard({
                 <button
                   type="button"
                   onClick={() => handleRemove(measurement.month)}
-                  className="text-rose-500 transition hover:text-rose-600 focus:outline-none focus:underline"
+                  className="text-rose-500 transition focus:outline-none focus:underline"
                 >
                   Удалить
                 </button>

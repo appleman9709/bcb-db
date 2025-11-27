@@ -180,7 +180,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
          (record.type === 'diaper' && record.diaper_type) || 
          (record.type === 'bath' && record.bath_mood) || 
          (record.type === 'activity' && record.activity_type) ? (
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-4 space-y-3 border border-blue-100">
+          <div className="rounded-3xl p-4 space-y-3 border border-blue-100">
             <h3 className="text-sm font-semibold text-gray-800">📊 Детали события</h3>
             
             {record.type === 'feeding' && record.ounces && (

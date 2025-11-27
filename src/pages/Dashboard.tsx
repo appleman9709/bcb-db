@@ -1224,10 +1224,10 @@ export default function Dashboard() {
                       setGrowthChartType('weight')
                       setGrowthChartModalOpen(true)
                     }}
-                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95 hover:scale-105"
+                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95"
                     title="График веса"
                   >
-                    <img src="/icons/wight.png" alt="График веса" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" />
+                    <img src="/icons/wight.png" alt="График веса" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95" />
                   </button>
                   
                   {/* Основное изображение малыша */}
@@ -1240,7 +1240,7 @@ export default function Dashboard() {
                       ref={clockRef}
                       src="/icons/clock.png"
                       alt="Часы"
-                      className="w-32 h-32 object-contain transition-all duration-200 active:scale-95 hover:scale-105 cursor-pointer"
+                      className="w-32 h-32 object-contain transition-all duration-200 active:scale-95 cursor-pointer"
                       onClick={handleRecentEventsClick}
                     />
                   </div>
@@ -1251,10 +1251,10 @@ export default function Dashboard() {
                       setGrowthChartType('height')
                       setGrowthChartModalOpen(true)
                     }}
-                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95 hover:scale-105"
+                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95"
                     title="График роста"
                   >
-                    <img src="/icons/height.png" alt="График роста" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95 hover:scale-105" />
+                    <img src="/icons/height.png" alt="График роста" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95" />
                   </button>
                 </div>
                 
@@ -1268,7 +1268,7 @@ export default function Dashboard() {
                           setWeeklyStatsChartType('feedings')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
+                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-blue-50 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-xs font-semibold">Кормление</span>
@@ -1280,7 +1280,7 @@ export default function Dashboard() {
                           setWeeklyStatsChartType('diapers')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-green-50 hover:bg-green-100 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
+                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-green-50 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-xs font-semibold">Подгузник</span>
@@ -1292,7 +1292,7 @@ export default function Dashboard() {
                           setWeeklyStatsChartType('poo')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
+                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-amber-50 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-xs font-semibold">Покакал</span>
@@ -1488,7 +1488,7 @@ export default function Dashboard() {
                   </h2>
                   <button
                     onClick={() => setGrowthChartModalOpen(false)}
-                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center transition-colors"
                   >
                     <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -244,7 +244,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                 type="button"
                 onClick={handleClose}
                 disabled={loading}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white text-xs font-semibold text-slate-500 transition-colors disabled:opacity-50"
                 aria-label="Закрыть"
               >
                 ×
@@ -354,7 +354,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                               type="button"
                               onClick={() => handleDeleteMedication(med.id)}
                               disabled={loading}
-                              className="ml-2 text-red-500 hover:text-red-700 disabled:opacity-50"
+                              className="ml-2 text-red-500 disabled:opacity-50"
                               aria-label="Удалить"
                             >
                               ×
@@ -365,7 +365,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                               type="button"
                               onClick={() => handleMarkMedicationTaken(med.id)}
                               disabled={loading}
-                              className="w-full mt-2 rounded-lg bg-green-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-green-600 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                              className="w-full mt-2 rounded-lg bg-green-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                             >
                               <span>✓</span>
                               <span>Отметить прием</span>
@@ -447,7 +447,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                     type="button"
                     onClick={handleAddMedication}
                     disabled={loading}
-                    className="w-full rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
+                    className="w-full rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition-colors disabled:opacity-50"
                   >
                     Добавить лекарство
                   </button>
@@ -461,7 +461,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
               type="button"
               onClick={handleRecover}
               disabled={loading}
-              className="w-full rounded-xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-green-600 disabled:opacity-50"
+              className="w-full rounded-xl bg-green-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50"
             >
               ✓ Выздоровел
             </button>
@@ -470,7 +470,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                 type="button"
                 onClick={handleClose}
                 disabled={loading}
-                className="flex-1 rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-300 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors disabled:opacity-50"
               >
                 Отмена
               </button>
@@ -478,7 +478,7 @@ export default function EditIllnessModal({ isOpen, illness, onClose, onSuccess }
                 type="button"
                 onClick={handleSave}
                 disabled={loading}
-                className="flex-1 rounded-xl bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50"
               >
                 {loading ? 'Сохранение...' : 'Сохранить'}
               </button>

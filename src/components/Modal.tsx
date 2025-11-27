@@ -1,4 +1,5 @@
 import { ReactNode, useEffect } from 'react'
+import React from 'react';
 
 interface ModalProps {
   isOpen: boolean
@@ -57,16 +58,16 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
 
         {/* Content */}
         {children}
-      </div>
-      {/* Close button */}
+              {/* Close button */}
       <button
           onClick={onClose}
-          className="animate-bounce-in z-50 absolute top-20 right-10 rounded-3xl p-1.5 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
+          className="z-50 absolute top-8 right-8 rounded-3xl p-1.5 text-gray-400 transition-colors duration-200"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+      </div>
     </div>
   )
 }

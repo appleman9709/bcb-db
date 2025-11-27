@@ -102,7 +102,7 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 rounded-3xl p-2 text-gray-400 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-600"
+          className="absolute top-4 right-4 z-10 rounded-3xl p-2 text-gray-400 transition-colors duration-200"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -116,7 +116,7 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
             className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${
               activeTab === 'family'
                 ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:text-gray-800'
+                : 'text-gray-600'
             }`}
           >
             👨‍👩‍👧‍👦 Семья
@@ -126,7 +126,7 @@ export default function TetrisLeaderboard({ onClose }: TetrisLeaderboardProps) {
             className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${
               activeTab === 'personal'
                 ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:text-gray-800'
+                : 'text-gray-600'
             }`}
           >
             👤 Личные

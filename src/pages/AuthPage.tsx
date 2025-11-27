@@ -2,6 +2,7 @@
 import { FormEvent, useMemo, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import type { Family, FamilyMember } from '../services/dataService'
+import React from 'react';
 
 export default function AuthPage() {
   const { findFamilyByName, selectMember } = useAuth()
@@ -115,7 +116,7 @@ export default function AuthPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30 transition hover:shadow-sky-500/50 disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-sky-500/30 transition disabled:cursor-not-allowed disabled:opacity-70"
             >
               {submitting ? 'Поиск...' : 'Найти'}
             </button>
@@ -144,7 +145,7 @@ export default function AuthPage() {
                       key={`${memberOption.user_id}-${memberOption.role}`}
                       type="button"
                       onClick={() => handleSelectMember(memberOption)}
-                      className="flex items-center justify-between rounded-3xl border border-white/15 bg-white/10 px-4 py-3 text-left transition hover:border-sky-400/50 hover:bg-white/15"
+                      className="flex items-center justify-between rounded-3xl border border-white/15 bg-white/10 px-4 py-3 text-left transition"
                     >
                       <span className="text-sm font-semibold text-white">{memberOption.role ?? 'Участник семьи'}</span>
                       {memberOption.name && (
@@ -164,14 +165,14 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={goBack}
-                className="flex-1 rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition hover:border-white/40"
+                className="flex-1 rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white transition"
               >
                 Назад
               </button>
               <button
                 type="button"
                 onClick={handleGuestEntry}
-                className="flex-1 rounded-3xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-emerald-500/30 transition hover:shadow-emerald-500/50"
+                className="flex-1 rounded-3xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 px-4 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg shadow-emerald-500/30 transition"
               >
                 Войти как гость
               </button>

@@ -118,7 +118,7 @@ export default function DutyScheduleModal({
                     className={`rounded-3xl border px-2.5 py-1 text-xs font-semibold transition ${
                       isActive
                         ? 'border-blue-500 bg-blue-500 text-white shadow-sm'
-                        : 'border-gray-200 bg-white text-gray-600 hover:border-blue-200 hover:text-blue-600'
+                        : 'border-gray-200 bg-white text-gray-600'
                     }`}
                   >
                     {hours} ч

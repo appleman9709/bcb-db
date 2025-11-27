@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { pushService } from '../services/pushService'
 import Button from './Button'
+import React from 'react'
 
 export default function PushNotificationManager() {
   const { family, member } = useAuth()

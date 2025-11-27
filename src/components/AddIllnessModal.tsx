@@ -196,7 +196,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                 type="button"
                 onClick={handleClose}
                 disabled={loading}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white text-xs font-semibold text-slate-500 transition-colors disabled:opacity-50"
                 aria-label="Закрыть"
               >
                 ×
@@ -248,7 +248,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                       className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
                         hasMedications === true
                           ? 'bg-blue-500 text-white'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 text-slate-700'
                       }`}
                     >
                       Да
@@ -263,7 +263,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                       className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
                         hasMedications === false
                           ? 'bg-blue-500 text-white'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 text-slate-700'
                       }`}
                     >
                       Нет
@@ -286,7 +286,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                             <button
                               type="button"
                               onClick={() => handleRemoveMedication(index)}
-                              className="ml-2 text-red-500 hover:text-red-700"
+                              className="ml-2 text-red-500"
                               aria-label="Удалить"
                             >
                               ×
@@ -358,7 +358,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                       <button
                         type="button"
                         onClick={handleAddMedication}
-                        className="w-full rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
+                        className="w-full rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition-colors"
                       >
                         Добавить лекарство
                       </button>
@@ -385,7 +385,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                       className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
                         hasDoctorAppointment === true
                           ? 'bg-blue-500 text-white'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 text-slate-700'
                       }`}
                     >
                       Да
@@ -401,7 +401,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                       className={`flex-1 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
                         hasDoctorAppointment === false
                           ? 'bg-blue-500 text-white'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 text-slate-700'
                       }`}
                     >
                       Нет
@@ -448,7 +448,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                   type="button"
                   onClick={handleBack}
                   disabled={loading}
-                  className="flex-1 rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-300 disabled:opacity-50"
+                  className="flex-1 rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors disabled:opacity-50"
                 >
                   Назад
                 </button>
@@ -457,7 +457,7 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
                 type="button"
                 onClick={step === 3 ? handleSubmit : handleNext}
                 disabled={loading}
-                className="flex-1 rounded-xl bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
+                className="flex-1 rounded-xl bg-blue-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors disabled:opacity-50"
               >
                 {loading ? 'Сохранение...' : step === 3 ? 'Сохранить' : 'Далее'}
               </button>
