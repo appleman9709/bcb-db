@@ -68,14 +68,6 @@ export default function TetrisGame({ onGameOver }: TetrisGameProps) {
               title="Отменить ход"
               alt="Отменить ход"
             />
-            <img
-              src="/mix.png"
-              id="refreshBtn"
-              className="game-control-btn"
-              style={{ width: 34, height: 34, marginLeft: 8, cursor: 'pointer' }}
-              title="Обновить"
-              alt="Обновить"
-            />
           </div>
           <div className="score-section">
             <div className="current-score" id="currentScore">
