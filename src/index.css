@@ -10,6 +10,11 @@
   --app-text-color: #111827;
   --app-card-bg: #ffffff;
   --app-card-border: #f3f4f6;
+  --tab-bar-z-index: 50;
+  --tab-bar-position: fixed;
+  --tab-bar-bottom: 18px;
+  --tab-bar-left: 16px;
+  --tab-bar-right: 16px;
 }
 
 :root.theme-dark {
@@ -169,9 +174,6 @@
     transition: none;
   }
   
-  .modern-slider-card:hover::before {
-    opacity: 0;
-  }
     
   .slider-info {
     flex: 1;
@@ -236,7 +238,6 @@
       rgba(255, 255, 255, 0.3) 0%, 
       rgba(255, 255, 255, 0.1) 50%, 
       rgba(255, 255, 255, 0.3) 100%);
-    animation: none;
   }
     
   .feeding-progress {
@@ -315,20 +316,6 @@
       0 0 0 2px rgba(249, 115, 22, 0.2) !important;
   }
   
-  /* Активные состояния */
-  .modern-slider::-webkit-slider-thumb:hover {
-    transform: none !important;
-    box-shadow: 
-      0 4px 12px rgba(0, 0, 0, 0.15),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-  }
-
-  .slider-label:hover {
-    background: rgba(59, 130, 246, 0.05);
-    transform: translateY(-1px);
-  }
-  
   .label-value {
     font-size: 12px;
     font-weight: 600;
@@ -384,14 +371,6 @@
     font-size: 8px;
   }
 
-  .modern-slider-card:hover::before {
-    opacity: 0;
-  }
-
-  .modern-slider-card:hover::after {
-    opacity: 0;
-  }
-
   /* Улучшенная обратная связь для touch */
   .modern-slider:active::-webkit-slider-thumb {
     transform: scale(1.2) !important;
@@ -444,12 +423,7 @@
   .modern-slider-card:focus-within {
     transform: none;
   }
-    
-  .modern-slider-card:hover {
-    transform: none;
-    box-shadow: none;
-  }
-  
+      
   /* Анимация появления карточек с задержкой */
   .modern-slider-card:nth-child(1) {
     animation-delay: 0.1s;
@@ -476,10 +450,6 @@
     transition: opacity 0.3s ease;
     pointer-events: none;
   }
-  
-  .modern-slider-card:hover::after {
-    opacity: 1;
-  }
     
   /* Эффект магнитного притяжения для меток */
   .slider-label {
@@ -490,18 +460,14 @@
   .value-number {
     transition: none;
   }
-  
-  .modern-slider-card:focus-within .value-number {
-    animation: none;
-  }
-    
+      
   /* Settings specific styles */
   .settings-section {
     @apply animate-fade-in;
   }
 
   .settings-card {
-    @apply rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl backdrop-blur transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_25px_55px_-20px_rgba(59,130,246,0.45)];
+    @apply rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl backdrop-blur transition-transform duration-300;
   }
 
   .settings-heading {
@@ -609,17 +575,17 @@
   touch-action: manipulation;
   
   /* Улучшенная область касания */
-  min-height: 56px;
-  padding: 16px;
+  min-height: 60px;
+  padding: 18px 16px;
   font-size: 16px; /* Предотвращает зум на iOS */
   font-weight: 500;
-  
+  border-radius: 24px;
   /* Улучшенная типографика для мобильных */
   line-height: 1.4;
   letter-spacing: 0.01em;
 }
 
-/* Состояния фокуса и hover */
+/* Состояния фокуса */
 .date-input-container input[type="date"]:focus {
   outline: none;
   border-color: #3b82f6;
@@ -628,13 +594,6 @@
     0 4px 6px rgba(0, 0, 0, 0.1),
     0 1px 3px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
-}
-
-.date-input-container input[type="date"]:hover {
-  border-color: #9ca3af;
-  box-shadow: 
-    0 2px 4px rgba(0, 0, 0, 0.1),
-    0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 /* Календарная иконка */
@@ -652,10 +611,6 @@
   cursor: pointer;
   opacity: 0.7;
   transition: opacity 0.2s ease;
-}
-
-.date-input-container input[type="date"]:hover::-webkit-calendar-picker-indicator {
-  opacity: 1;
 }
 
 .date-input-container input[type="date"]:focus::-webkit-calendar-picker-indicator {
@@ -699,14 +654,6 @@
   color: #000001;
 }
 
-/* Адаптивность для разных размеров экрана */
-.date-input-container input[type="date"] {
-  min-height: 48px;
-  padding: 12px 14px;
-  font-size: 16px; /* Критично для предотвращения зума */
-  border-radius: 24px;
-}
-
 .date-input-container input[type="date"]::-webkit-calendar-picker-indicator {
   width: 16px;
   height: 16px;
@@ -717,27 +664,12 @@
   border-radius: 24px;
 }
 
-/* Touch-оптимизация для устройств без hover */
-.date-input-container input[type="date"]:hover {
-  border-color: #d1d5db;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    0 1px 2px rgba(0, 0, 0, 0.06);
-  transform: none;
-}
-
 .date-input-container input[type="date"]:active {
   transform: scale(0.98);
   border-color: #3b82f6;
   box-shadow:
     0 0 0 3px rgba(59, 130, 246, 0.1),
     0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Увеличенная область касания для touch-устройств */
-.date-input-container input[type="date"] {
-  min-height: 60px;
-  padding: 18px 16px;
 }
 
 /* Улучшенная доступность */
@@ -772,16 +704,7 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-
-.coin-falling {
-  animation: cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards, coinFloat 2s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 10;
-}
-
 .coin-float {
-  /* Отключены постоянные анимации для экономии ресурсов */
-  /* animation: coinFloat 3s ease-in-out infinite, coinPulse 2s ease-in-out infinite; */
   pointer-events: auto;
   z-index: 20;
 }
@@ -921,24 +844,13 @@ canvas {
 
 .tamagotchi-coins {
   flex-shrink: 0;
-  padding: 0.25rem 0;
-}
-
-.tamagotchi-inventory {
-  flex-shrink: 0;
-  padding: 0.5rem;
-  margin-bottom: 5rem; /* Увеличиваем отступ снизу для новой панели навигации */
-}
-
-/* Адаптивность для очень маленьких экранов */
-
-.tamagotchi-coins {
   padding: 0.125rem 0;
 }
 
 .tamagotchi-inventory {
+  flex-shrink: 0;
   padding: 0.25rem;
-  margin-bottom: 4rem; /* Отступ для маленьких экранов */
+  margin-bottom: 4rem; /* Увеличиваем отступ снизу для новой панели навигации */
 }
 
 /* Стили для нативных элементов выбора даты и времени */
@@ -960,12 +872,7 @@ canvas {
     background: transparent;
     cursor: pointer;
   }
-  
-  input[type="date"]::-webkit-calendar-picker-indicator:hover {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 24px;
-  }
-  
+    
   /* Колесико выбора времени */
   input[type="time"] {
     position: relative;
@@ -1012,20 +919,23 @@ canvas {
     justify-content: center;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
+    padding: 2px;
     width: 100%;
     max-width: 100%;
     margin: 0;
     background: rgba(255, 255, 255, 0.2);
     box-shadow: var(--glass-shadow);
     border: var(--glass-border);
-    border-radius: 32px;
+    border-radius: 24px;
     transition: all 0.3s ease;
     transform-origin: center;
     z-index: 16;
     pointer-events: auto;
-    filter: none;
     background-image: none;
+    backdrop-filter: blur(32px) saturate(1.1);
+    -webkit-backdrop-filter: blur(32px) saturate(1.1);
+      
+    animation: liquidGlassBreathingSmall 6s ease-in-out infinite;
   }
 
   .liquid-glass-tab-button {
@@ -1035,9 +945,9 @@ canvas {
     align-items: center;
     justify-content: center;
     flex: 1 1 0;
-    min-width: 72px;
-    height: 88px;
-    padding: 8px 6px;
+    min-width: 60px;
+    height: 72px;
+    padding: 8px 8px;
     border: none;
     border-radius: 24px;
     cursor: pointer;
@@ -1071,15 +981,14 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(237, 0, 0, 0.874);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #3b82f6;
+    transform: scale(1.05);
     font-size: 32px;
   }
   
   .liquid-glass-tab-icon svg {
-    width: 40px;
-    height: 40px;
-    color: rgb(250, 0, 0);
+    width: 32px;
+    height: 32px;
   }
 
   /* Активное состояние */
@@ -1124,19 +1033,6 @@ canvas {
     font-weight: 600;
   }
 
-  /* Hover эффекты */
-  .liquid-glass-tab-button:hover::before {
-    /* Убираем подложку у hover для неактивных кнопок */
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
-    border: none;
-  }
-
-  .liquid-glass-tab-button:hover .liquid-glass-tab-label {
-    color: rgba(0, 0, 0, 0.9);
-  }
 
   /* Press эффекты */
   .liquid-glass-tab-button:active::before {
@@ -1146,7 +1042,7 @@ canvas {
     -webkit-backdrop-filter: none;
     box-shadow: none;
     border: none;
-    transform: scale(0.95);
+    transform: scale(0.92);
   }
 
   /* Активная вкладка в состоянии :active - сохраняем фон */
@@ -1163,96 +1059,6 @@ canvas {
     border: none !important;
     transform: scale(0.95);
   }
-
-  /* Активное состояние с hover */
-  .liquid-glass-tab-button.liquid-glass-tab-active:hover::before {
-    background: rgba(59, 130, 246, 0.15) !important;
-    backdrop-filter: blur(32px) !important;
-    -webkit-backdrop-filter: blur(32px) !important;
-    
-    box-shadow: 
-      0 10px 20px rgba(59, 130, 246, 0.25),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.2),
-      0 0 0 1px rgba(59, 130, 246, 0.4);
-  }
-
-  .liquid-glass-tab-active:hover .liquid-glass-tab-label {
-    color: #2563eb;
-  }
-    
-    .liquid-glass-tab-button {
-      flex: 1 1 0;
-      min-width: 64px;
-      height: 80px;
-      padding: 8px 4px;
-    }
-    
-    .liquid-glass-tab-button::before {
-      /* Убираем подложку у неактивных кнопок на планшетах */
-      background: transparent;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      box-shadow: none;
-      border: none;
-    }
-    
-    .liquid-glass-tab-button {
-      flex: 1 1 0;
-      min-width: 56px;
-      height: 72px;
-      padding: 6px 4px;
-    }
-    
-    .liquid-glass-tab-button::before {
-      /* Убираем подложку у неактивных кнопок на мобильных */
-      background: transparent;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      box-shadow: none;
-      border: none;
-    }
-    
-    /* Увеличенные иконки для мобильных */
-    .liquid-glass-tab-icon svg {
-      width: 32px;
-      height: 32px;
-    }
-
-    .liquid-glass-tab-icon img {
-      width: 32px;
-      height: 32px;
-    }
-
-    /* Уменьшаем размер подписей на мобильных */
-    .liquid-glass-tab-label {
-      font-size: 9px;
-    }
-
-
-  /* Оптимизация для touch-устройств */
-    .liquid-glass-tab-button:hover::before {
-      /* Убираем подложку у неактивных кнопок на touch */
-      background: transparent;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      box-shadow: none;
-      border: none;
-    }
-    
-    .liquid-glass-tab-button:hover .liquid-glass-tab-label {
-      color: rgba(0, 0, 0, 0.6);
-    }
-    
-    .liquid-glass-tab-button:active::before {
-      /* Убираем подложку у неактивных кнопок на touch */
-      background: transparent;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      box-shadow: none;
-      border: none;
-      transform: scale(0.92);
-    }
 
     .liquid-glass-tab-button:active .liquid-glass-tab-label {
       transform: scale(0.95);
@@ -1272,59 +1078,7 @@ canvas {
       border: none !important;
       transform: scale(0.92);
     }
-    
-    .liquid-glass-tab-button.liquid-glass-tab-active:hover::before {
-      background: rgba(59, 130, 246, 0.15) !important;
-      backdrop-filter: blur(28px) !important;
-      -webkit-backdrop-filter: blur(28px) !important;
-    }
-    
-    .liquid-glass-tab-active:hover .liquid-glass-tab-icon {
-      color: #3b82f6;
-      transform: scale(1.05);
-    }
-
-    .liquid-glass-tab-active:hover .liquid-glass-tab-icon img {
-      filter: brightness(0) saturate(100%) invert(39%) sepia(96%) saturate(1234%) hue-rotate(213deg) brightness(98%) contrast(101%);
-      transform: scale(1.05);
-    }
-
-    .liquid-glass-tab-active:hover .liquid-glass-tab-label {
-      color: #3b82f6;
-    }
-
-
-  /* Tamagotchi Inventory Liquid Glass Styles */
-  .tamagotchi-inventory-liquid {
-    position: relative;
-    margin-top: -2rem; /* Уменьшенный отрицательный отступ - опускаем контейнер ниже */
-    margin-bottom: 6rem; /* Отступ снизу для нижней панели навигации */
-    z-index: 15; /* Увеличенный z-index для наезжания на relative inline-block */
-  }
-
-  /* CSS-переменные для оптимизации производительности */
-  :root {
-    --glass-bg: linear-gradient(135deg, 
-      rgba(255, 255, 255, 0.25) 0%, 
-      rgba(255, 255, 255, 0.15) 100%);
-    --glass-shadow: 
-      inset 0 1px 2px rgba(255, 255, 255, 0.1),
-      0 8px 16px rgba(0, 0, 0, 0.12);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.2);
-    --glass-blur: blur(20px);
-    
-    /* Переменные для оптимизированной анимации дыхания */
-    --breathing-intensity: 1;
-    --breathing-scale-min: 1;
-    --breathing-scale-max: 1.005;
-    --breathing-overlay-opacity-min: 0.3;
-    --breathing-overlay-opacity-max: 0.5;
-    --breathing-duration: 4s;
-  }
-
  
-
-
   /* Псевдоэлемент для дополнительного эффекта дыхания */
   .liquid-glass-tab-container::after {
     content: '';
@@ -1340,87 +1094,6 @@ canvas {
     z-index: -1;
     pointer-events: none;
   }
-
-  /* Отключение дорогих эффектов на слабых устройствах и мобильных */
-    .liquid-glass-tab-container {
-      animation: none !important;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      background: rgba(255, 255, 255, 0.2) !important;
-    }
-
-    .liquid-glass-tab-container::before {
-      animation: none !important;
-      opacity: 0.2;
-    }
-
-    .liquid-glass-tab-container::after {
-      animation: none !important;
-      opacity: 0.1;
-    }
-
-    .coin-float {
-      animation: none !important;
-    }
-
-    .coin-falling {
-      animation: cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
-    }
-
-/* Дополнительная оптимизация для мобильных устройств */
-  .liquid-glass-tab-container {
-    /* Отключен backdrop-filter для экономии ресурсов на мобильных */
-    /* backdrop-filter: blur(10px); */
-    /* -webkit-backdrop-filter: blur(10px); */
-    background: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-
-/* ========================================
-   СИСТЕМА ПРИОРИТЕТОВ АНИМАЦИЙ
-   ======================================== */
-
-/* Базовые классы для управления анимациями */
-.animation-priority-high {
-  /* Критически важные анимации - всегда включены */
-}
-
-.animation-priority-medium {
-  /* Важные анимации - отключаются на слабых устройствах */
-}
-
-.animation-priority-low {
-  /* Декоративные анимации - отключаются первыми */
-}
-
-/* Отключение анимаций на слабых устройствах */
-  .animation-priority-medium,
-  .animation-priority-low {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  /* Отключение hover эффектов на touch устройствах */
-  .hover-effect {
-    transform: none !important;
-    box-shadow: none !important;
-  }
-
-/* Отключение на очень слабых устройствах */
-  .animation-priority-high {
-    animation-duration: 0.1s !important;
-  }
-
-  /* Отключение всех декоративных анимаций */
-  .decoration-animation {
-    animation: none !important;
-    opacity: 0.3 !important;
-  }
-
-
-/* ========================================
-   ОПТИМИЗИРОВАННЫЕ АНИМАЦИИ ЗАГРУЗКИ
-   ======================================== */
 
 /* Упрощенные анимации загрузки */
 @keyframes loadingPulseOptimized {
@@ -1442,7 +1115,6 @@ canvas {
   animation: loadingPulseOptimized 2s ease-in-out infinite;
   animation-delay: 1s;
 }
-
 
   /* ОСНОВНАЯ АНИМАЦИЯ: используем только безопасные свойства */
   @keyframes liquidGlassBreathing {
@@ -1564,8 +1236,8 @@ canvas {
   }
 
   .tamagotchi-inventory-icon img {
-    width: 56px;
-    height: 56px;
+    width: 46px;
+    height: 46px;
     object-fit: contain;
     transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     filter: brightness(1) contrast(1.1);
@@ -1573,7 +1245,7 @@ canvas {
 
   .tamagotchi-inventory-label {
     position: relative;
-    font-size: 16px;
+    font-size: 10px;
     font-weight: 700;
     color: rgba(0, 0, 0, 0.7);
     margin-top: 2px;
@@ -1595,34 +1267,8 @@ canvas {
     75% {
       transform: translateY(-2px) rotate(-0.3deg);
     }
-  }
-
-    .liquid-glass-tab-container {
-      gap: 8px;
-      padding: 2px;
-      border-radius: 24px;
-      backdrop-filter: blur(32px) saturate(1.1);
-      -webkit-backdrop-filter: blur(32px) saturate(1.1);
-      
-      /* ОПТИМИЗИРОВАННАЯ анимация для маленьких экранов */
-      animation: liquidGlassBreathingSmall 6s ease-in-out infinite;
-    }
-
-
-    .liquid-glass-tab-container {
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
-    }   
-    
-    .tamagotchi-inventory-icon img {
-      width: 48px;
-      height: 48px;
-    }
-    
-    .tamagotchi-inventory-label {
-      font-size: 10px;
-    }
+  }  
+  
   /* Адаптивная анимация дыхания для маленьких экранов - ОПТИМИЗИРОВАННАЯ */
   @keyframes liquidGlassBreathingSmall {
     0%, 100% {
@@ -1665,40 +1311,6 @@ canvas {
     z-index: -1;
     opacity: 0.4;
   }
-/* CSS-переменные для нижней панели навигации */
-:root {
-  --tab-bar-z-index: 50;
-  --tab-bar-position: fixed;
-  --tab-bar-bottom: 18px;
-  --tab-bar-left: 16px;
-  --tab-bar-right: 16px;
-}
-
-/* Tamagotchi specific bottom navigation - оптимизированная версия */
-.tamagotchi-container .liquid-glass-tab-bar {
-  z-index: var(--tab-bar-z-index);
-}
-
-/* Ensure all modals in Tamagotchi context have proper z-index */
-.tamagotchi-container [role="dialog"],
-.tamagotchi-container .record-detail-modal,
-.tamagotchi-container .duty-schedule-modal,
-.tamagotchi-container .quick-action-modal {
-  z-index: var(--modal-z-index);
-}
-
-/* Mobile-specific styles for Tamagotchi modals */
-  .tamagotchi-container {
-    height: 100vh;
-    height: 100dvh;
-  }
-
-  .tamagotchi-container {
-    max-height: 85vh;
-    max-height: 85dvh;
-    margin-bottom: 2rem;
-  }
-
 
   @keyframes coinPickup {
     0% {
