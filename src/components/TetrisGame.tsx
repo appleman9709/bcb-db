@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { MobileSudokuTetris } from '../lib/TetrisGame'
+import React from 'react';
 
 export interface GameOverStats {
   score: number

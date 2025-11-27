@@ -2159,10 +2159,13 @@ export class MobileSudokuTetris {
 
         const step = (timestamp) => {
             this.updateClearAnimationProgress(timestamp);
-            if (this.clearAnimations.length > 0 || this.pointsAnimations.length > 0) {
-                this.draw();
+            
+            const hasActiveAnimations = this.clearAnimations.length > 0 || this.pointsAnimations.length > 0;
+
+            if (hasActiveAnimations) {
                 this.animationFrameId = requestAnimationFrame(step);
             } else {
+                this.draw();
                 this.animationFrameId = null;
             }
         };
