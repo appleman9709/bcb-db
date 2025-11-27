@@ -104,7 +104,7 @@ export default function PushNotificationManager() {
       
       <div className="space-y-3">
         <p className="text-xs text-gray-600">
-          Получайте push-уведомления о важных событиях в BabyCare Dashboard
+          Получайте push-уведомления о важных событиях от Николы
         </p>
         
         {!isSubscribed ? (

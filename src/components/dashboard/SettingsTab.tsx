@@ -6,6 +6,7 @@ import PushNotificationManager from '../PushNotificationManager'
 import NotificationSender from '../NotificationSender'
 import { useTheme } from '../../contexts/ThemeContext'
 
+
 interface SettingsTabProps {
   dailyTip: Tip | null
   settings: SettingsState
@@ -254,7 +255,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
           </div>
           <button
             onClick={onSignOut}
-            className="w-full mt-2 px-3 py-2 bg-red-500 text-white rounded-xl font-medium text-xs"
+            className="w-full mt-2 px-3 py-2 bg-red-500 text-white rounded-3xl font-medium text-xs"
           >
           Выйти из аккаунта
           </button>
@@ -264,7 +265,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       {/* Сохранить настройки */}
       <button
         onClick={onSaveSettings}
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 px-4 rounded-2xl shadow-lg text-sm"
+        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 px-4 rounded-3xl shadow-lg text-sm"
       >
         💾 Сохранить настройки
       </button>

@@ -1,13 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, type TetrisRecord } from '../services/dataService'
 import BottomNavigation from '../components/BottomNavigation'
 import { RecordDisplay } from '../components/ModalUtils'
 import { useTetrisRecordCache } from '../hooks/useTetrisRecordCache'
 import CategoryPreloader from '../components/CategoryPreloader'
+import TetrisGame, { type GameOverStats } from '../components/TetrisGame'
 
 export default function TetrisPage() {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+
   const { family, member } = useAuth()
   const [familyBestRecord, setFamilyBestRecord] = useState<TetrisRecord | null>(null)
   const [loading, setLoading] = useState(true)
@@ -22,12 +23,6 @@ export default function TetrisPage() {
       detail: { tab } 
     }))
   }
-
-  useEffect(() => {
-    if (iframeRef.current) {
-      iframeRef.current.src = '/tetris.html'
-    }
-  }, [])
 
   useEffect(() => {
     const loadRecord = async () => {
@@ -59,63 +54,37 @@ export default function TetrisPage() {
     })
   }
 
-  useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      if (event.data?.type === 'TETRIS_RECORD') {
-        if (!family || !member) return
+  const handleGameOver = useCallback(async (stats: GameOverStats) => {
+    if (!family || !member) return
 
-        try {
-          const recordData = event.data.data
-          const newRecord = {
-            player_name: member.name || member.role || 'Игрок',
-            score: recordData.score,
-            level: recordData.level,
-            lines_cleared: recordData.lines_cleared,
-            game_duration_seconds: recordData.game_duration_seconds,
-            pieces_placed: recordData.pieces_placed,
-            game_mode: recordData.game_mode || 'classic'
-          }
-          
-          await dataService.addTetrisRecord(newRecord)
-          
-          // Проверяем, действительно ли новый рекорд лучше текущего
-          const wasUpdated = updateCacheIfBetter(newRecord)
-          
-          if (wasUpdated) {
-            // Обновляем состояние с новым рекордом из кэша
-            const updatedRecord = getCachedRecord()
-            if (updatedRecord) {
-              setFamilyBestRecord(updatedRecord)
-            }
-          }
-          
-          console.log('Tetris record saved from iframe:', recordData)
-        } catch (error) {
-          console.error('Error saving tetris record from iframe:', error)
-        }
-      } else if (event.data?.type === 'NAVIGATION') {
-        // Обработка навигации из iframe
-        const tab = event.data.tab
-        console.log('Navigation from iframe:', tab)
-        
-        // Отправляем событие для переключения вкладки
-        window.dispatchEvent(new CustomEvent('tetris-navigation', { 
-          detail: { tab } 
-        }))
-      } else if (event.data?.type === 'TETRIS_BACK') {
-        // Обработка кнопки "Назад" из iframe
-        console.log('Back button pressed in tetris iframe')
-        
-        // Отправляем событие для переключения на главную вкладку
-        window.dispatchEvent(new CustomEvent('tetris-navigation', { 
-          detail: { tab: 'home' } 
-        }))
+    try {
+      const newRecord = {
+        player_name: member.name || member.role || 'Игрок',
+        score: stats.score,
+        level: stats.level,
+        lines_cleared: stats.lines_cleared,
+        game_duration_seconds: stats.game_duration_seconds,
+        pieces_placed: stats.pieces_placed,
+        game_mode: stats.game_mode || 'classic'
       }
-    }
 
-    window.addEventListener('message', handleMessage)
-    return () => window.removeEventListener('message', handleMessage)
-  }, [family, member])
+      await dataService.addTetrisRecord(newRecord)
+
+      const wasUpdated = updateCacheIfBetter(newRecord)
+
+      if (wasUpdated) {
+        const updatedRecord = getCachedRecord()
+        if (updatedRecord) {
+          setFamilyBestRecord(updatedRecord)
+        }
+      
+      }
+
+      console.log('Tetris record saved from React game:', stats)
+    } catch (error) {
+      console.error('Error saving tetris record:', error)
+    }
+  }, [family, member, getCachedRecord, updateCacheIfBetter])
 
   return (
     <div className="h-full w-full flex flex-col">
@@ -135,16 +104,8 @@ export default function TetrisPage() {
       )}
 
       {/* Игра Тетрис */}
-      <div className="flex-1 relative">
-        <iframe
-          ref={iframeRef}
-          className="absolute inset-0 w-full h-full"
-          style={{ 
-            bottom: '80px', // Оставляем место для панели навигации
-            zIndex: 10
-          }}
-          title="Tetris Game"
-        />
+      <div className="flex-1 relative pb-20">
+        <TetrisGame onGameOver={handleGameOver} />
       </div>
 
       {/* Панель навигации */}

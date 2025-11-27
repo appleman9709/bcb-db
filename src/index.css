@@ -72,6 +72,7 @@
   color: #ffffff !important;
 }
 
+
 :root.theme-dark .text-blue-600 {
   color: var(--app-text-color);
 }
@@ -1026,6 +1027,7 @@ canvas {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
     line-height: 1.2;
+
   }
 
   .liquid-glass-tab-active .liquid-glass-tab-label {
