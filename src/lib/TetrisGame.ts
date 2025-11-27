@@ -38,7 +38,7 @@ export class MobileSudokuTetris {
         this.boardColors = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
         
         this.MAX_BLOCKS_PER_PIECE = 4;
-        this.CLEAR_ANIMATION_DURATION = 360;
+        this.CLEAR_ANIMATION_DURATION = 520;
         this.clearAnimations = [];
         this.placementAnimations = [];
         this.animationFrameId = null;
@@ -2108,7 +2108,10 @@ export class MobileSudokuTetris {
         const ctx = this.ctx;
         const centerX = pixelX + this.CELL_SIZE / 2;
         const centerY = pixelY + this.CELL_SIZE / 2;
-        const expansion = this.CELL_SIZE * (0.4 + 0.6 * progress);
+        
+        // Мягкое расширение с плавным исчезновением
+        const expansion = this.CELL_SIZE * (0.35 + 0.65 * progress);
+        const glowFade = 1 - progress * 0.9;
 
         const gradient = ctx.createRadialGradient(
             centerX,
@@ -2118,19 +2121,35 @@ export class MobileSudokuTetris {
             centerY,
             expansion
         );
-        gradient.addColorStop(0, this.addAlpha('#ffffff', 0.75 * (1 - progress)));
-        gradient.addColorStop(0.6, this.addAlpha(this.lightenColor(baseColor, 0.3), 0.45 * (1 - progress)));
+        gradient.addColorStop(0, this.addAlpha('#ffffff', 0.85 * glowFade));
+        gradient.addColorStop(0.55, this.addAlpha(this.lightenColor(baseColor, 0.35), 0.55 * glowFade));
         gradient.addColorStop(1, this.addAlpha(baseColor, 0));
+
+        const haloRadius = this.CELL_SIZE * (0.55 + 0.45 * progress);
+        const haloGradient = ctx.createRadialGradient(
+            centerX,
+            centerY,
+            this.CELL_SIZE * 0.2,
+            centerX,
+            centerY,
+            haloRadius * 1.25
+        );
+        haloGradient.addColorStop(0, this.addAlpha('#ffffff', 0.18 * glowFade));
+        haloGradient.addColorStop(1, this.addAlpha('#ffffff', 0));
 
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = haloGradient;
+        ctx.fillRect(pixelX - haloRadius, pixelY - haloRadius, this.CELL_SIZE + haloRadius * 2, this.CELL_SIZE + haloRadius * 2);
+
         ctx.fillStyle = gradient;
         ctx.fillRect(pixelX - expansion, pixelY - expansion, this.CELL_SIZE + expansion * 2, this.CELL_SIZE + expansion * 2);
 
-        ctx.strokeStyle = this.addAlpha('#ffffff', 0.28 * (1 - progress));
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = this.addAlpha('#ffffff', 0.22 * glowFade);
+        ctx.lineWidth = 1 + (1 - progress) * 1.2;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, this.CELL_SIZE * (0.55 + 0.4 * progress), 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, haloRadius, 0, Math.PI * 2);
+        
         ctx.stroke();
 
         ctx.restore();
@@ -2159,12 +2178,14 @@ export class MobileSudokuTetris {
 
         const step = (timestamp) => {
             this.updateClearAnimationProgress(timestamp);
-            
+
             const hasActiveAnimations = this.clearAnimations.length > 0 || this.pointsAnimations.length > 0;
 
             if (hasActiveAnimations) {
+                this.draw();
                 this.animationFrameId = requestAnimationFrame(step);
             } else {
+                // Выполняем финальный рендер, чтобы очистить артефакты анимации на мобильных устройствах
                 this.draw();
                 this.animationFrameId = null;
             }
