@@ -193,11 +193,6 @@ body {
     background: transparent;
 }
 
-/* Эффекты при наведении */
-[id^="slot"]:hover:not(.empty) {
-    transform: scale(1.02);
-}
-
 [id^="slot"]:active:not(.empty) {
     transform: scale(0.98);
 }
@@ -217,11 +212,6 @@ body {
     position: relative;
     background: transparent;
     box-shadow: none;
-}
-
-/* Базовые эффекты для фигур */
-.piece-item:hover {
-    transform: scale(1.05);
 }
 
 .piece-item:active {
@@ -269,11 +259,6 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.new-game-btn:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
 .new-game-btn:active {
     transform: scale(0.98);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -296,13 +281,6 @@ body {
     background: transparent !important;
     box-shadow: none !important;
     padding: 0 !important;
-}
-
-/* Эффекты при наведении - только легкое масштабирование */
-.piece-item:hover {
-    background: transparent !important;
-    box-shadow: none !important;
-    filter: none !important;
 }
 
 /* Модальное окно окончания игры */
@@ -362,11 +340,6 @@ body {
     font-weight: 600;
     font-family: inherit;
     letter-spacing: 0.5px;
-}
-
-.game-over button:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .game-over button:active {
@@ -496,11 +469,6 @@ body, html {
     font-weight: 600;
     font-family: inherit;
     letter-spacing: 0.5px;
-}
-
-.compliment-close:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 8px rgba(49, 196, 141, 0.3);
 }
 
 .compliment-close:active {

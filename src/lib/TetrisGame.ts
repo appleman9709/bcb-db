@@ -1436,6 +1436,9 @@ export class MobileSudokuTetris {
         // Убираем выделение с размещенной фигуры
         this.clearSelection();
         
+        // Тактильный отклик за успешное размещение фигуры
+        this.triggerVibration(12);
+
         // Добавляем анимацию размещения фигуры (отключена для корректного отображения цветов)
         // this.animatePiecePlacement(x, y, piece);
         
@@ -1548,6 +1551,7 @@ export class MobileSudokuTetris {
 
         if (clearedCells.length) {
             this.triggerClearAnimation(clearedCells);
+            this.triggerVibration([25, 40, 30]);
         }
 
         // Новая система подсчета очков
@@ -1612,6 +1616,14 @@ export class MobileSudokuTetris {
 
         this.updateUI();
         this.saveGameState();
+    }
+
+    triggerVibration(pattern) {
+        if (typeof navigator === 'undefined') return;
+        const vibrateFn = navigator.vibrate || navigator.webkitVibrate;
+        if (typeof vibrateFn === 'function') {
+            vibrateFn.call(navigator, pattern);
+        }
     }
 
     isRegionFilled(startX, startY) {
