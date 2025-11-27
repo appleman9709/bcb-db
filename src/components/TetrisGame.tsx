@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { MobileSudokuTetris } from '../lib/TetrisGame'
 import React from 'react';
 
+
 export interface GameOverStats {
   score: number
   level: number
@@ -13,11 +14,13 @@ export interface GameOverStats {
 
 interface TetrisGameProps {
   onGameOver?: (stats: GameOverStats) => void
+  familyRecordScore?: number | null
 }
 
-export default function TetrisGame({ onGameOver }: TetrisGameProps) {
+export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGameProps) {
   const gameInstanceRef = useRef<MobileSudokuTetris | null>(null)
   const gameOverHandlerRef = useRef<typeof onGameOver>()
+  const initialRecordRef = useRef<number | undefined>(familyRecordScore ?? undefined)
 
   gameOverHandlerRef.current = onGameOver
 
@@ -35,7 +38,10 @@ export default function TetrisGame({ onGameOver }: TetrisGameProps) {
     stylesheet.href = '/style.css'
     document.head.appendChild(stylesheet)
 
-    const gameInstance = new MobileSudokuTetris({ onGameOver: memoizedCallback })
+    const gameInstance = new MobileSudokuTetris({
+      onGameOver: memoizedCallback,
+      initialRecord: initialRecordRef.current
+    })
     gameInstanceRef.current = gameInstance
     ;(window as any).game = gameInstance
 
@@ -47,6 +53,12 @@ export default function TetrisGame({ onGameOver }: TetrisGameProps) {
       }
     }
   }, [memoizedCallback])
+
+  useEffect(() => {
+    if (gameInstanceRef.current && typeof familyRecordScore === 'number') {
+      gameInstanceRef.current.setRecord(familyRecordScore)
+    }
+  }, [familyRecordScore])
 
   return (
     <div className="game-container">
@@ -76,6 +88,7 @@ export default function TetrisGame({ onGameOver }: TetrisGameProps) {
             <div className="level-display text-[#f5865e] font-bold text-sm" title="Уровень">
               Ур. <span id="levelDisplay">1</span>
             </div>
+            
             <div className="record-display text-[#f5865e] font-bold text-sm" title="Рекорд">
               Рекорд: <span id="record">0</span>
             </div>

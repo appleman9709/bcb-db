@@ -3,6 +3,7 @@
 export class MobileSudokuTetris {
     constructor(options = {}) {
         this.onGameOver = options.onGameOver;
+        this.initialRecord = options.initialRecord;
         this.cleanupFns = [];
         this.gameStartTime = Date.now();
         this.piecesPlaced = 0;
@@ -28,7 +29,7 @@ export class MobileSudokuTetris {
         console.log('Контейнер фигур найден:', this.piecesContainer);
         
         this.BOARD_SIZE = 9;
-        this.CELL_SIZE = 40; // Адаптивный размер для мобильных устройств
+        this.CELL_SIZE = 38; // Адаптивный размер для мобильных устройств
         
         // Устанавливаем размер canvas
         this.canvas.width = this.BOARD_SIZE * this.CELL_SIZE;
@@ -51,7 +52,7 @@ export class MobileSudokuTetris {
         this.level = 1;
         this.lines = 0;
         this.gameRunning = true;
-        this.record = this.loadRecord();
+        this.record = typeof this.initialRecord === 'number' ? this.initialRecord : 0;
         
         // История ходов для отмены
         this.moveHistory = [];
@@ -376,9 +377,10 @@ export class MobileSudokuTetris {
     }
     
     // Функции для работы с рекордом
-    loadRecord() {
-        const saved = localStorage.getItem('sudokuTetrisRecord');
-        return saved ? parseInt(saved) : 0;
+    setRecord(score) {
+        const normalizedScore = typeof score === 'number' && !isNaN(score) ? score : 0;
+        this.record = normalizedScore;
+        this.updateUI();
     }
     
     saveRecord(score) {

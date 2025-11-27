@@ -91,21 +91,12 @@ export default function TetrisPage() {
       {/* Предзагрузка изображений для навигации */}
       <CategoryPreloader category="navigation" priority="medium" delay={200} />
       
-      {/* Лучший рекорд семьи */}
-      {!loading && familyBestRecord && (
-        <RecordDisplay
-          icon="👑"
-          title="Лучший рекорд семьи"
-          playerName={familyBestRecord.player_name}
-          date={formatDate(familyBestRecord.created_at)}
-          score={familyBestRecord.score}
-          details={`Ур. ${familyBestRecord.level} • ${familyBestRecord.lines_cleared} линий • ${formatDuration(familyBestRecord.game_duration_seconds)}`}
-        />
-      )}
-
       {/* Игра Тетрис */}
       <div className="flex-1 relative pb-20">
-        <TetrisGame onGameOver={handleGameOver} />
+        <TetrisGame
+          onGameOver={handleGameOver}
+          familyRecordScore={familyBestRecord?.score ?? null}
+        />
       </div>
 
       {/* Панель навигации */}
