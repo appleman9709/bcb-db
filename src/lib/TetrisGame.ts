@@ -37,7 +37,7 @@ export class MobileSudokuTetris {
         this.board = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(0));
         this.boardColors = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
         
-        this.MAX_BLOCKS_PER_PIECE = 4;
+        this.MAX_BLOCKS_PER_PIECE = 5;
         this.CLEAR_ANIMATION_DURATION = 520;
         this.clearAnimations = [];
         this.placementAnimations = [];
@@ -162,18 +162,6 @@ export class MobileSudokuTetris {
                 color: '#F97316', // Оранжевый (классический цвет L)
                 size: 3
             },
-            // Дополнительные фигуры с уникальными цветами
-            {
-                id: 'CROSS',
-                name: 'Крест',
-                shape: [
-                    [0, 1, 0],
-                    [1, 1, 1],
-                    [0, 1, 0]
-                ],
-                color: '#60A5FA', // Голубой (светлый синий)
-                size: 3
-            },
             {
                 id: 'CORNER',
                 name: 'Уголок',
@@ -206,42 +194,14 @@ export class MobileSudokuTetris {
                 size: 1
             },
             {
-                id: 'LONG',
-                name: 'Длинная',
-                shape: [[1, 1, 1, 1, 1]],
-                color: '#FBBF24', // Желтый (светлый янтарный)
-                size: 5
-            },
-            {
                 id: 'STAIRS',
                 name: 'Лестница',
                 shape: [
                     [1, 0, 0],
-                    [1, 1, 0],
-                    [1, 1, 1]
+                    [0, 1, 0],
+                    [0, 0, 1]
                 ],
                 color: '#84CC16', // Лайм (светлый лаймовый)
-                size: 3
-            },
-            {
-                id: 'SMALLT',
-                name: 'Маленькая Т',
-                shape: [
-                    [0, 1, 0],
-                    [1, 1, 1]
-                ],
-                color: '#2563EB', // Темно-синий
-                size: 3
-            },
-            {
-                id: 'PLUS',
-                name: 'Плюс',
-                shape: [
-                    [0, 1, 0],
-                    [1, 1, 1],
-                    [0, 1, 0]
-                ],
-                color: '#059669', // Темно-зеленый
                 size: 3
             },
             {
@@ -274,17 +234,6 @@ export class MobileSudokuTetris {
                 size: 3
             },
             {
-                id: 'ZIGZAG',
-                name: 'Зигзаг',
-                shape: [
-                    [1, 1, 0],
-                    [0, 1, 1],
-                    [0, 0, 1]
-                ],
-                color: '#D97706', // Темно-янтарный
-                size: 3
-            },
-            {
                 id: 'HOOK',
                 name: 'Крючок',
                 shape: [
@@ -299,9 +248,9 @@ export class MobileSudokuTetris {
                 id: 'DIAMOND',
                 name: 'Ромб',
                 shape: [
-                    [0, 1, 0],
-                    [1, 1, 1],
-                    [0, 1, 0]
+                    [1, 1],
+                    [1, 1],
+                    [1, 1]
                 ],
                 color: '#0284C7', // Циан (бирюзовый)
                 size: 3
@@ -310,9 +259,9 @@ export class MobileSudokuTetris {
                 id: 'CROSS2',
                 name: 'Крест 2',
                 shape: [
-                    [1, 0, 1],
-                    [0, 1, 0],
-                    [1, 0, 1]
+                    [0, 0, 1],
+                    [0, 0, 1],
+                    [1, 1, 1]
                 ],
                 color: '#14B8A6', // Бирюзовый
                 size: 3
@@ -323,17 +272,6 @@ export class MobileSudokuTetris {
                 shape: [[1, 1, 1, 1]],
                 color: '#F59E0B', // Янтарный (темнее)
                 size: 4
-            },
-            {
-                id: 'BLOCK',
-                name: 'Блок',
-                shape: [
-                    [1, 1],
-                    [1, 1],
-                    [1, 0]
-                ],
-                color: '#8B5CF6', // Индиго (темнее фиолетового)
-                size: 3,
             }
         ];
         
