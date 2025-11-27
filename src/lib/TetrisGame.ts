@@ -61,7 +61,6 @@ export class MobileSudokuTetris {
         this.comboCount = 0;
         this.lastClearTime = 0;
         this.COMBO_TIMEOUT = 2000; // Комбо сбрасывается через 2 секунды
-        this.reportedVibrationWarning = false;
         
         // Состояние перетаскивания
         this.draggedPiece = null;
@@ -88,8 +87,6 @@ export class MobileSudokuTetris {
         this.dragCanvas.style.display = 'none';
         this.dragCanvas.style.zIndex = '9999';
         this.document.body.appendChild(this.dragCanvas);
-        
-        this.vibrationSupported = this.detectVibrationSupport();
         
         // Состояние выбранной фигуры
         this.selectedPiece = null;
@@ -1439,9 +1436,6 @@ export class MobileSudokuTetris {
         // Убираем выделение с размещенной фигуры
         this.clearSelection();
         
-        // Тактильный отклик за успешное размещение фигуры
-        this.triggerVibration(12);
-
         // Добавляем анимацию размещения фигуры (отключена для корректного отображения цветов)
         // this.animatePiecePlacement(x, y, piece);
         
@@ -1554,7 +1548,6 @@ export class MobileSudokuTetris {
 
         if (clearedCells.length) {
             this.triggerClearAnimation(clearedCells);
-            this.triggerVibration([25, 40, 30]);
         }
 
         // Новая система подсчета очков
@@ -1620,38 +1613,6 @@ export class MobileSudokuTetris {
         this.updateUI();
         this.saveGameState();
     }
-
-    detectVibrationSupport() {
-        if (typeof navigator === 'undefined') return false;
-
-        const vibrateFn = navigator.vibrate || navigator.webkitVibrate;
-        if (typeof vibrateFn === 'function') {
-            return true;
-        }
-
-        const userAgent = navigator.userAgent || '';
-        const isIOS = /iP(ad|hone|od)/.test(userAgent);
-        const isStandalone = typeof window !== 'undefined' && (
-            window.matchMedia?.('(display-mode: standalone)')?.matches ||
-            navigator.standalone === true
-        );
-
-        if (isIOS && isStandalone && !this.reportedVibrationWarning) {
-            console.info('Вибрация недоступна в PWA на iOS из-за ограничений платформы.');
-            this.reportedVibrationWarning = true;
-        }
-
-        return false;
-    }
-
-    triggerVibration(pattern) {
-        if (!this.vibrationSupported || typeof navigator === 'undefined') return;
-        const vibrateFn = navigator.vibrate || navigator.webkitVibrate;
-        if (typeof vibrateFn === 'function') {
-            vibrateFn.call(navigator, pattern);
-        }
-    }
-
 
     isRegionFilled(startX, startY) {
         for (let y = startY; y < startY + 3; y++) {
