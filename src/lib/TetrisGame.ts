@@ -37,7 +37,7 @@ export class MobileSudokuTetris {
         this.board = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(0));
         this.boardColors = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
         
-        this.MAX_BLOCKS_PER_PIECE = 5;
+        this.MAX_BLOCKS_PER_PIECE = 6;
         this.CLEAR_ANIMATION_DURATION = 520;
         this.clearAnimations = [];
         this.placementAnimations = [];

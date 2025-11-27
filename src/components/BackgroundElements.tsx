@@ -40,7 +40,7 @@ export default function BackgroundElements() {
       </div>
       
       {/* Ландшафт */}
-      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-green-300 to-green-200">
+      <div className="absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-green-300 to-green-200">
         {/* Холмы */}
         <div className="absolute bottom-0 left-0 w-32 h-20 bg-green-400 rounded-t-full"></div>
         <div className="absolute bottom-0 left-24 w-24 h-16 bg-green-500 rounded-t-full"></div>
