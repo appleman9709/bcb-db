@@ -28,7 +28,7 @@ export class MobileSudokuTetris {
         console.log('Контейнер фигур найден:', this.piecesContainer);
         
         this.BOARD_SIZE = 9;
-        this.CELL_SIZE = 36; // Адаптивный размер для мобильных устройств
+        this.CELL_SIZE = 40; // Адаптивный размер для мобильных устройств
         
         // Устанавливаем размер canvas
         this.canvas.width = this.BOARD_SIZE * this.CELL_SIZE;
@@ -77,7 +77,7 @@ export class MobileSudokuTetris {
         // Плавающий canvas для превью фигуры под/над пальцем
         this.dragCanvas = this.document.createElement('canvas');
         this.dragCanvasCtx = this.dragCanvas.getContext('2d');
-        this.previewOffsetY = Math.max(80, Math.round(this.CELL_SIZE * 2.5));
+        this.previewOffsetY = Math.max(100, Math.round(this.CELL_SIZE * 3));
         this.previewCenterX = 0;
         this.previewCenterY = 0;
         this.dragCanvas.style.position = 'fixed';
@@ -772,7 +772,7 @@ export class MobileSudokuTetris {
     
     // Новый метод для отрисовки современной клетки согласно спецификации
     drawModernCell(ctx, x, y, size, baseColor) {
-        const radius = 8; // Скругление 8px согласно спецификации
+        const radius = 6; // Скругление 8px согласно спецификации
         const padding = 1;
         
         ctx.save();
@@ -813,7 +813,7 @@ export class MobileSudokuTetris {
     
     // Метод для отрисовки клеток фигур в лотке с плоским дизайном + "soft 3D" эффектом
     drawPieceCell(ctx, x, y, size, baseColor) {
-        const radius = 8; // Скругление 8px согласно спецификации
+        const radius = 6; // Скругление 8px согласно спецификации
         const padding = 1;
         
         ctx.save();
@@ -900,7 +900,7 @@ export class MobileSudokuTetris {
     
     // Метод для отрисовки предварительного просмотра согласно спецификации
     drawModernCellPreview(ctx, x, y, size, baseColor) {
-        const radius = 8; // Скругление 8px согласно спецификации
+        const radius = 6; // Скругление 8px согласно спецификации
         const padding = 1;
         
         ctx.save();
@@ -1149,7 +1149,7 @@ export class MobileSudokuTetris {
         // Проверяем, был ли touch в области canvas
         const marginX = 10; // Горизонтальный запас
         const marginYTop = 10; // Верхний запас
-        const marginYBottom = 60; // Увеличенный нижний запас для удобного размещения на нижних строках
+        const marginYBottom = Math.max(60, this.previewOffsetY + this.dragCanvas.height / 2); // Увеличенный нижний запас для удобного размещения на нижних строках
         if (touch.clientX >= canvasRect.left - marginX && touch.clientX <= canvasRect.right + marginX &&
             touch.clientY >= canvasRect.top - marginYTop && touch.clientY <= canvasRect.bottom + marginYBottom) {
             
@@ -1279,7 +1279,7 @@ export class MobileSudokuTetris {
         // Проверяем, был ли клик над canvas (с небольшим запасом для лучшего UX)
         const marginX = 10; // Горизонтальный запас
         const marginYTop = 10; // Верхний запас
-        const marginYBottom = 60; // Увеличенный нижний запас для удобного размещения на нижних строках
+        const marginYBottom = Math.max(60, this.previewOffsetY + this.dragCanvas.height / 2); // Увеличенный нижний запас для удобного размещения на нижних строках
         if (e.clientX >= canvasRect.left - marginX && e.clientX <= canvasRect.right + marginX &&
             e.clientY >= canvasRect.top - marginYTop && e.clientY <= canvasRect.bottom + marginYBottom) {
             
