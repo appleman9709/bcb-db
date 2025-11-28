@@ -80,11 +80,6 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
               title="Отменить ход"
               alt="Отменить ход"
             />
-          </div>
-          <div className="score-section">
-            <div className="current-score" id="currentScore">
-              0
-            </div>
             <div className="level-display text-[#f5865e] font-bold text-sm" title="Уровень">
               Ур. <span id="levelDisplay">1</span>
             </div>
@@ -93,6 +88,12 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
               Рекорд: <span id="record">0</span>
             </div>
           </div>
+          <div className="score-section">
+          <div className="current-score" id="currentScore">
+              0
+            </div>
+          </div>
+          
       </header>
 
       <main className="game-main">

@@ -56,7 +56,7 @@ body {
     background: transparent;
     display: flex;
     gap: 8px;
-    justify-content: space-between;
+    flex-direction: column;
 }
 
 .header-content {
@@ -80,9 +80,9 @@ body {
 
 .score-section {
     display: flex;
-    align-items: center;
     gap: 12px;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: center;
 }
 
 .current-score {

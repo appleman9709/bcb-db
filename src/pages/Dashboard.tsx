@@ -554,9 +554,60 @@ export default function Dashboard() {
     settings.bathInterval * 24 * 60 * 60 * 1000
   )
 
-  const getRingStyle = (color: string, percent: number) => ({
-    background: `conic-gradient(from 0deg, ${color} 0% ${percent}%,rgba(208, 228, 254, 0) ${percent}% 100%)`
-  })
+  const quickActionGradients: Record<'feeding' | 'diaper' | 'bath', [string, string, string]> = {
+    feeding: ['#3b82f6', '#0ea5e9', '#6366f1'],
+    diaper: ['#22c55e', '#34d399', '#16a34a'],
+    bath: ['#eaf316', '#f0f65c', '#e0e48b']
+  }
+
+  const renderQuickActionRing = (
+    type: 'feeding' | 'diaper' | 'bath',
+    iconSrc: string,
+    alt: string,
+    progress: { remainingPercent: number; overdue: boolean }
+  ) => {
+    const radius = 44
+    const circumference = 2 * Math.PI * radius
+    const percent = progress.overdue
+      ? 100
+      : Math.max(0, Math.min(100, progress.remainingPercent))
+    const [start, middle, end] = progress.overdue
+      ? ['#ef4444', '#ef4444', '#ef4444']
+      : quickActionGradients[type]
+
+    const gradientId = `${type}-quick-action-gradient`
+
+    return (
+      <div className="relative w-[98px] h-[98px]">
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor={start} />
+              <stop offset="50%" stopColor={middle} />
+              <stop offset="100%" stopColor={end} />
+            </linearGradient>
+          </defs>
+          <circle cx="50" cy="50" r={radius} fill="none" stroke="#e5e7eb" strokeWidth="6" />
+          <circle
+            cx="50"
+            cy="50"
+            r={radius}
+            fill="none"
+            stroke={`url(#${gradientId})`}
+            strokeWidth="12"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference * (1 - percent / 100)}
+            className="transition-all duration-500 ease-out"
+            style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
+          />
+        </svg>
+        <div className="absolute inset-2 rounded-full bg-ring flex items-center justify-center">
+          <img src={iconSrc} alt={alt} className="w-[54px] h-[54px] object-contain" />
+        </div>
+      </div>
+    )
+  }
 
   const handleModalSuccess = async () => {
     // Обновляем данные после записи активности
@@ -1142,13 +1193,8 @@ export default function Dashboard() {
                     onClick={() => handleQuickAction('feeding')}
                   className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
                 >
-                  <div
-                    className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
-                    style={getRingStyle(feedingProgress.overdue ? '#ef4444' : '#38bdf8', feedingProgress.overdue ? 100 : feedingProgress.remainingPercent)}
-                  >
-                    <div className="w-full h-full rounded-full bg-ring flex items-center justify-center">
-                      <img src="/icons/feeding.png" alt="Кормление" className="w-[54px] h-[54px] object-contain" />
-                    </div>
+                <div className="mt-2">
+                    {renderQuickActionRing('feeding', '/icons/feeding.png', 'Кормление', feedingProgress)}
                   </div>
                   <span className="mt-2 font-semibold text-gray-900 text-sm">Кормление</span>
                   <span className="mt-2 text-sm font-medium text-gray-700">
@@ -1167,13 +1213,8 @@ export default function Dashboard() {
                     onClick={() => handleQuickAction('diaper')}
                   className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
                 >
-                  <div
-                    className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
-                    style={getRingStyle(diaperProgress.overdue ? '#ef4444' : '#22c55e', diaperProgress.overdue ? 100 : diaperProgress.remainingPercent)}
-                  >
-                    <div className="w-full h-full rounded-full bg-ring flex items-center justify-center">
-                      <img src="/icons/diaper.png" alt="Смена подгузника" className="w-[54px] h-[54px] object-contain" />
-                    </div>
+                  <div className="mt-2">
+                  {renderQuickActionRing('diaper', '/icons/diaper.png', 'Смена подгузника', diaperProgress)}
                   </div>
                   <span className="mt-2 font-semibold text-gray-900 text-sm">Подгузник</span>
                   <span className="mt-2 text-sm font-medium text-gray-700">
@@ -1192,13 +1233,8 @@ export default function Dashboard() {
                     onClick={() => handleQuickAction('bath')}
                   className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200"
                 >
-                  <div
-                    className="mt-2 w-[98px] h-[98px] rounded-full p-2 flex items-center justify-center"
-                    style={getRingStyle(bathProgress.overdue ? '#ef4444' : '#f59e0b', bathProgress.overdue ? 100 : bathProgress.remainingPercent)}
-                  >
-                    <div className="w-full h-full rounded-full bg-ring flex items-center justify-center">
-                      <img src="/icons/bath.png" alt="Купание" className="w-[54px] h-[54px] object-contain" />
-                    </div>
+                  <div className="mt-2">
+                  {renderQuickActionRing('bath', '/icons/bath.png', 'Купание', bathProgress)}
                   </div>
                   <span className="mt-2 font-semibold text-gray-900 text-sm">Купание</span>
                   <span className="mt-2 text-sm font-medium text-gray-700">
@@ -1536,9 +1572,5 @@ export default function Dashboard() {
           />
         )}
       </div>
-
   )
 }
-
-
-
