@@ -1291,8 +1291,8 @@ export class MobileSudokuTetris {
             const previewCanvasX = this.previewCenterX - canvasRect.left;
             // Ограничиваем previewCanvasY для корректного размещения на нижних строках
             const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
-            let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-            let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+            let gridX = Math.floor(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+            let gridY = Math.floor(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
             gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
