@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { MobileSudokuTetris } from '../lib/TetrisGame'
 import React from 'react';
 
@@ -24,11 +24,9 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
 
   gameOverHandlerRef.current = onGameOver
 
-  const memoizedCallback = useMemo(() => {
-    return (stats: GameOverStats) => {
-      if (gameOverHandlerRef.current) {
-        gameOverHandlerRef.current(stats)
-      }
+  const memoizedCallback = useCallback((stats: GameOverStats) => {
+    if (gameOverHandlerRef.current) {
+      gameOverHandlerRef.current(stats)
     }
   }, [])
 

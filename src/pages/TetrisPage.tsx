@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, type TetrisRecord } from '../services/dataService'
 import BottomNavigation from '../components/BottomNavigation'
-import { RecordDisplay } from '../components/ModalUtils'
 import { useTetrisRecordCache } from '../hooks/useTetrisRecordCache'
 import CategoryPreloader from '../components/CategoryPreloader'
 import TetrisGame, { type GameOverStats } from '../components/TetrisGame'
@@ -11,27 +10,22 @@ export default function TetrisPage() {
 
   const { family, member } = useAuth()
   const [familyBestRecord, setFamilyBestRecord] = useState<TetrisRecord | null>(null)
-  const [loading, setLoading] = useState(true)
   
   // Используем хук для кэширования рекордов
   const { loadBestRecord, updateCacheIfBetter, getCachedRecord } = useTetrisRecordCache()
 
   const handleTabChange = (tab: 'home' | 'history' | 'settings' | 'tamagotchi' | 'tetris') => {
-    console.log('TetrisPage: Switching to tab:', tab)
-    // Отправляем событие для переключения вкладки в родительском компоненте
-    window.dispatchEvent(new CustomEvent('tetris-navigation', { 
-      detail: { tab } 
+    window.dispatchEvent(new CustomEvent('tetris-navigation', {
+      detail: { tab }
     }))
   }
 
   useEffect(() => {
     if (!family) return
-    setLoading(true)
     loadBestRecord().then(record => {
       setFamilyBestRecord(record)
-      setLoading(false)
     })
-  }, [family])
+  }, [family, loadBestRecord])
 
   const handleGameOver = useCallback(async (stats: GameOverStats) => {
     if (!family || !member) return
