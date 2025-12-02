@@ -588,7 +588,7 @@ export class MobileSudokuTetris {
             const maxDimension = Math.max(pieceWidth, pieceHeight);
             
             // Размер клетки 75% от размера на игровом поле (27px)
-            const cellSize = this.CELL_SIZE * 0.75;
+            const cellSize = this.CELL_SIZE * 1.2;
             const gap = 2; // Зазор между клетками
             
             // Рассчитываем размер canvas с учетом зазоров
