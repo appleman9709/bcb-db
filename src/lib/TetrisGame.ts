@@ -1042,14 +1042,6 @@ export class MobileSudokuTetris {
         const canvasHeight = pieceHeight * cellSize + (pieceHeight - 1) * gap + padding * 2;
         this.dragCanvas.width = canvasWidth;
         this.dragCanvas.height = canvasHeight;
-
-                // Легкое смещение превью выше пальца, чтобы фигура оставалась видимой
-                const halfPreview = canvasHeight / 2;
-                const fingerGap = Math.max(10, Math.round(this.CELL_SIZE * 0.25));
-                const minOffset = Math.max(this.MIN_TOUCH_LIFT, Math.round(this.CELL_SIZE * 0.65));
-                const maxOffset = Math.round(this.CELL_SIZE * 2.2);
-                this.previewOffsetY = Math.min(maxOffset, Math.max(minOffset, Math.round(halfPreview + fingerGap)));
-                
         const ctx = this.dragCanvasCtx;
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         this.drawPieceOnCanvas(ctx, piece, cellSize, padding);
@@ -1132,13 +1124,14 @@ export class MobileSudokuTetris {
         // Обновляем позицию плавающего превью
         this.moveDragPreview(touch.clientX, touch.clientY);
 
-        // Центрируем тень под фактической позицией пальца
+        // Центрируем тень под визуальной фигурой (центр превью)
         const pieceWidth = this.draggedPiece.shape[0].length;
         const pieceHeight = this.draggedPiece.shape.length;
-        const touchX = touch.clientX - canvasRect.left;
-        const touchY = Math.min(touch.clientY - canvasRect.top, this.canvas.height);
-        let gridX = Math.round(touchX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-        let gridY = Math.round(touchY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+        const previewCanvasX = this.previewCenterX - canvasRect.left;
+        // Ограничиваем previewCanvasY для корректного отображения превью на нижних строках
+        const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
+        let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+        let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
         gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
         gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
         
@@ -1162,13 +1155,14 @@ export class MobileSudokuTetris {
         if (touch.clientX >= canvasRect.left - marginX && touch.clientX <= canvasRect.right + marginX &&
             touch.clientY >= canvasRect.top - marginYTop && touch.clientY <= canvasRect.bottom + marginYBottom) {
             
-            // Размещение по фактической позиции пальца, без смещения превью
+            // Размещение по центрированной тени под превью
             const pieceWidth = this.draggedPiece.shape[0].length;
             const pieceHeight = this.draggedPiece.shape.length;
-            const touchX = touch.clientX - canvasRect.left;
-            const touchY = Math.min(touch.clientY - canvasRect.top, this.canvas.height);
-            let gridX = Math.round(touchX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-            let gridY = Math.round(touchY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+            const previewCanvasX = this.previewCenterX - canvasRect.left;
+            // Ограничиваем previewCanvasY для корректного размещения на нижних строках
+            const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
+            let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+            let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
             gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
