@@ -588,7 +588,7 @@ export class MobileSudokuTetris {
             const maxDimension = Math.max(pieceWidth, pieceHeight);
             
             // Размер клетки 75% от размера на игровом поле (27px)
-            const cellSize = this.CELL_SIZE * 1.2;
+            const cellSize = this.CELL_SIZE * 0.65;
             const gap = 2; // Зазор между клетками
             
             // Рассчитываем размер canvas с учетом зазоров
@@ -1124,14 +1124,13 @@ export class MobileSudokuTetris {
         // Обновляем позицию плавающего превью
         this.moveDragPreview(touch.clientX, touch.clientY);
 
-        // Центрируем тень под визуальной фигурой (центр превью)
+        // Центрируем тень под фактической позицией пальца
         const pieceWidth = this.draggedPiece.shape[0].length;
         const pieceHeight = this.draggedPiece.shape.length;
-        const previewCanvasX = this.previewCenterX - canvasRect.left;
-        // Ограничиваем previewCanvasY для корректного отображения превью на нижних строках
-        const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
-        let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-        let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+        const touchX = touch.clientX - canvasRect.left;
+        const touchY = Math.min(touch.clientY - canvasRect.top, this.canvas.height);
+        let gridX = Math.round(touchX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+        let gridY = Math.round(touchY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
         gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
         gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
         
@@ -1155,14 +1154,13 @@ export class MobileSudokuTetris {
         if (touch.clientX >= canvasRect.left - marginX && touch.clientX <= canvasRect.right + marginX &&
             touch.clientY >= canvasRect.top - marginYTop && touch.clientY <= canvasRect.bottom + marginYBottom) {
             
-            // Размещение по центрированной тени под превью
+            // Размещение по фактической позиции пальца, без смещения превью
             const pieceWidth = this.draggedPiece.shape[0].length;
             const pieceHeight = this.draggedPiece.shape.length;
-            const previewCanvasX = this.previewCenterX - canvasRect.left;
-            // Ограничиваем previewCanvasY для корректного размещения на нижних строках
-            const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
-            let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-            let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+            const touchX = touch.clientX - canvasRect.left;
+            const touchY = Math.min(touch.clientY - canvasRect.top, this.canvas.height);
+            let gridX = Math.round(touchX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+            let gridY = Math.round(touchY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
             gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
