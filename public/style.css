@@ -16,7 +16,6 @@ body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    position: fixed;
     width: 100%;
     font-size: 16px;
     font-feature-settings: "tnum"; /* Tabular numerals */
@@ -25,12 +24,7 @@ body {
 /* Основной контейнер игры */
 .game-container {
     background: #f5f3ef00;
-    height: 100vh;
     height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
-    min-height: 100vh;
-    min-height: 100dvh; /* Добавляем минимальную высоту */
     display: flex;
     flex-direction: column;
     position: relative;
@@ -272,14 +266,6 @@ body {
     margin: 2px 0;
     transition: opacity 0.2s ease;
 }
-
-/* Убираем цветную подложку у фигур в лотке - оставляем только сами фигуры */
-.piece-item {
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-}
-
 /* Модальное окно окончания игры */
 .game-over {
     position: fixed;
@@ -350,46 +336,9 @@ body {
     100% { transform: scale(1); }
 }
 
-@keyframes pieceAppear {
-    0% {
-        opacity: 0;
-        transform: scale(0.96) translateY(-10px);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
 @keyframes piecePlace {
     0% { transform: scale(0.96); }
     100% { transform: scale(1); }
-}
-
-@keyframes lineClear {
-    0% { 
-        opacity: 1;
-        transform: translateY(0);
-    }
-    100% { 
-        opacity: 0;
-        transform: translateY(-2px);
-    }
-}
-
-.piece-item.appearing {
-    animation: pieceAppear 120ms ease-out forwards;
-}
-
-.piece-item.placing {
-    animation: piecePlace 120ms ease-out forwards;
-}
-
-
-
-/* Дополнительные правила для предотвращения прокрутки */
-* {
-    -webkit-overflow-scrolling: touch;
 }
 
 body, html {

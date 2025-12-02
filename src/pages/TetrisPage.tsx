@@ -25,34 +25,13 @@ export default function TetrisPage() {
   }
 
   useEffect(() => {
-    const loadRecord = async () => {
-      if (!family) return
-      
-      setLoading(true)
-      const record = await loadBestRecord()
+    if (!family) return
+    setLoading(true)
+    loadBestRecord().then(record => {
       setFamilyBestRecord(record)
       setLoading(false)
-    }
-    
-    loadRecord()
-  }, [family, loadBestRecord])
-
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     })
-  }
+  }, [family])
 
   const handleGameOver = useCallback(async (stats: GameOverStats) => {
     if (!family || !member) return

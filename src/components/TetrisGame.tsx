@@ -42,8 +42,7 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
       onGameOver: memoizedCallback,
       initialRecord: initialRecordRef.current
     })
-    gameInstanceRef.current = gameInstance
-    ;(window as any).game = gameInstance
+    gameInstanceRef.current = gameInstance;
 
     return () => {
       gameInstance.destroy()
