@@ -1042,6 +1042,14 @@ export class MobileSudokuTetris {
         const canvasHeight = pieceHeight * cellSize + (pieceHeight - 1) * gap + padding * 2;
         this.dragCanvas.width = canvasWidth;
         this.dragCanvas.height = canvasHeight;
+
+                // Легкое смещение превью выше пальца, чтобы фигура оставалась видимой
+                const halfPreview = canvasHeight / 2;
+                const fingerGap = Math.max(10, Math.round(this.CELL_SIZE * 0.25));
+                const minOffset = Math.max(this.MIN_TOUCH_LIFT, Math.round(this.CELL_SIZE * 0.65));
+                const maxOffset = Math.round(this.CELL_SIZE * 2.2);
+                this.previewOffsetY = Math.min(maxOffset, Math.max(minOffset, Math.round(halfPreview + fingerGap)));
+                
         const ctx = this.dragCanvasCtx;
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         this.drawPieceOnCanvas(ctx, piece, cellSize, padding);
