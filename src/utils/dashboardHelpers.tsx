@@ -178,6 +178,6 @@ export const calculateAgeInWeeks = (birthDate: string, now: Date = new Date()) =
     return 0
   }
 
-  const diffWeeks = Math.floor(Math.max(0, diffMs) / (7 * 24 * 60 * 60 * 1000)+1)
+  const diffWeeks = Math.floor((Math.max(0, diffMs) / (7 * 24 * 60 * 60 * 1000))+1)
   return diffWeeks
 }
