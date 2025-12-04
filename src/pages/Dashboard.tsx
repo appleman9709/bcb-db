@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [pullDistance, setPullDistance] = useState(0)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [activeTab, setActiveTab] = useState<'home' | 'settings' | 'tamagotchi' | 'tetris'>('home')
+  const [isLandscape, setIsLandscape] = useState(false)
   const [recordDetailModalOpen, setRecordDetailModalOpen] = useState(false)
   const [growthChartModalOpen, setGrowthChartModalOpen] = useState(false)
   const [growthChartType, setGrowthChartType] = useState<'height' | 'weight'>('height')
@@ -95,7 +96,7 @@ export default function Dashboard() {
     sleep: '0м'
   })
   
-  const clockRef = useRef(null)
+  const clockRef = useRef<HTMLImageElement | null>(null)
   const startYRef = useRef(0)
   const swipeActiveRef = useRef(false)
   const triggeredRef = useRef(false)
@@ -200,8 +201,26 @@ export default function Dashboard() {
     [settings.birthDate, currentTime]
   )
 
-  // Загружаем текущего дежурного из БД
+// Отслеживаем горизонтальную ориентацию, чтобы перестраивать макет
+useEffect(() => {
+  if (typeof window === 'undefined') return
 
+  const mediaQuery = window.matchMedia('(orientation: landscape)')
+  const updateOrientation = () => {
+    setIsLandscape(mediaQuery.matches && window.innerWidth >= 640)
+  }
+
+  updateOrientation()
+  mediaQuery.addEventListener('change', updateOrientation)
+  window.addEventListener('resize', updateOrientation)
+
+  return () => {
+    mediaQuery.removeEventListener('change', updateOrientation)
+    window.removeEventListener('resize', updateOrientation)
+  }
+}, [])
+
+  // Загружаем текущего дежурного из БД
   useEffect(() => {
     const loadCurrentDutyMember = async () => {
       if (!family?.id) {
@@ -1125,7 +1144,7 @@ export default function Dashboard() {
           'overflow-hidden'
         }`}>
           {activeTab === 'tamagotchi' ? (
-            <TamagotchiPage 
+            <TamagotchiPage
               onModalOpen={handleTamagotchiModalOpen}
             />
           ) : activeTab === 'tetris' ? (
@@ -1141,118 +1160,118 @@ export default function Dashboard() {
               onSignOut={signOut}
             />
           ) : activeTab === 'home' && (
-            <div className="space-y-2">
-              {/* Дежурство */}
-              <div
-                className=""
-                role="button"
-                tabIndex={0}
-                onClick={() => setDutyModalOpen(true)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    setDutyModalOpen(true)
-                  }
-                }}
-              >
-                <div className="text-center space-y-0.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-500">Сейчас на подхвате</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {currentDutyName || 'Добавьте расписание'}
-                  </p>
-                  <p className="text-[10px] text-gray-500">
-                    {currentDutyBlock
-                      ? `Смена ${currentDutyBlock.label}`
-                      : 'Расскажите приложению, кто помогает семье и когда'}
-                  </p>
+            <div className={`space-y-2 ${isLandscape ? 'dashboard-landscape-grid gap-3' : ''}`}>
+              <div className={isLandscape ? 'dashboard-landscape-col space-y-3' : 'space-y-2'}>
+                {/* Дежурство */}
+                <div
+                  className=""
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setDutyModalOpen(true)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      setDutyModalOpen(true)
+                    }
+                  }}
+                >
+                  <div className="text-center space-y-0.5">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-500">Сейчас на подхвате</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {currentDutyName || 'Добавьте расписание'}
+                    </p>
+                    <p className="text-[10px] text-gray-500">
+                      {currentDutyBlock
+                        ? `Смена ${currentDutyBlock.label}`
+                        : 'Расскажите приложению, кто помогает семье и когда'}
+                    </p>
+                  </div>
+                  {familyMembers.length === 0 && (
+                    <p className="mt-1 text-[9px] text-gray-500 text-center">
+                      Добавьте родных и друзей, чтобы распределять заботу по очереди.
+                    </p>
+                  )}
                 </div>
-                {familyMembers.length === 0 && (
-                  <p className="mt-1 text-[9px] text-gray-500 text-center">
-                    Добавьте родных и друзей, чтобы распределять заботу по очереди.
-                  </p>
-                )}
-              </div>
-
               {/* Иллюстрация младенца */}
               <div className="text-center space-y-1">
-                <BabyIllustration 
-                  className="mb-3" 
-                  state={getBabyImageState()} 
-                  onClick={handleBabyImageClick}
-                  customImage={customBabyImage}
-                  dutyProgress={currentDutyProgressDisplay}
-                />
-                <p className="font-semibold text-gray-900 text-lg">
-                  Неделя {babyWeeks}
-                </p>
-              </div>
-
+                  <BabyIllustration
+                    className="mb-3"
+                    state={getBabyImageState()}
+                    onClick={handleBabyImageClick}
+                    customImage={customBabyImage}
+                    dutyProgress={currentDutyProgressDisplay}
+                  />
+                  <p className="font-semibold text-gray-900 text-lg">
+                    Неделя {babyWeeks}
+                  </p>
+                </div>
               {/* Карточки активности */}
               <div className="flex flex-wrap gap-2 py-4">
-                <button
+                  <button
                     onClick={() => handleQuickAction('feeding')}
-                  className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
-                >
-                <div className="mt-2">
-                    {renderQuickActionRing('feeding', '/icons/feeding.png', 'Кормление', feedingProgress)}
-                  </div>
-                  <span className="mt-2 font-semibold text-gray-900 text-sm">Кормление</span>
-                  <span className="mt-2 text-sm font-medium text-gray-700">
-                    {data?.lastFeeding
-                      ? formatDuration(
-                          Math.floor(
-                            (Date.now() - new Date(data.lastFeeding.timestamp).getTime()) /
-                              (1000 * 60),
-                          ),
-                        )
-                      : 'Нет данных'}
-                  </span>
-                </button>
-
-                <button
+                    className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
+                    >
+                      <div className="mt-2">
+                        {renderQuickActionRing('feeding', '/icons/feeding.png', 'Кормление', feedingProgress)}
+                      </div>
+                      <span className="mt-2 font-semibold text-gray-900 text-sm">Кормление</span>
+                      <span className="mt-2 text-sm font-medium text-gray-700">
+                        {data?.lastFeeding
+                          ? formatDuration(
+                              Math.floor(
+                                (Date.now() - new Date(data.lastFeeding.timestamp).getTime()) /
+                                  (1000 * 60),
+                              ),
+                            )
+                          : 'Нет данных'}
+                      </span>
+                    </button>
+  
+                    <button
                     onClick={() => handleQuickAction('diaper')}
-                  className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
-                >
-                  <div className="mt-2">
-                  {renderQuickActionRing('diaper', '/icons/diaper.png', 'Смена подгузника', diaperProgress)}
-                  </div>
-                  <span className="mt-2 font-semibold text-gray-900 text-sm">Подгузник</span>
-                  <span className="mt-2 text-sm font-medium text-gray-700">
-                    {data?.lastDiaper
-                      ? formatDuration(
-                          Math.floor(
-                            (Date.now() - new Date(data.lastDiaper.timestamp).getTime()) /
-                              (1000 * 60),
-                          ),
-                        )
-                      : 'Нет данных'}
-                  </span>
-                </button>
-
-                <button
+                    className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
+                    >
+                      <div className="mt-2">
+                        {renderQuickActionRing('diaper', '/icons/diaper.png', 'Смена подгузника', diaperProgress)}
+                      </div>
+                      <span className="mt-2 font-semibold text-gray-900 text-sm">Подгузник</span>
+                      <span className="mt-2 text-sm font-medium text-gray-700">
+                        {data?.lastDiaper
+                          ? formatDuration(
+                              Math.floor(
+                                (Date.now() - new Date(data.lastDiaper.timestamp).getTime()) /
+                                  (1000 * 60),
+                              ),
+                            )
+                          : 'Нет данных'}
+                      </span>
+                    </button>
+  
+                    <button
                     onClick={() => handleQuickAction('bath')}
-                  className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200"
-                >
-                  <div className="mt-2">
-                  {renderQuickActionRing('bath', '/icons/bath.png', 'Купание', bathProgress)}
+                    className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200"
+                    >
+                      <div className="mt-2">
+                        {renderQuickActionRing('bath', '/icons/bath.png', 'Купание', bathProgress)}
+                      </div>
+                      <span className="mt-2 font-semibold text-gray-900 text-sm">Купание</span>
+                      <span className="mt-2 text-sm font-medium text-gray-700">
+                        {data?.lastBath
+                          ? formatDuration(
+                              Math.floor(
+                                (Date.now() - new Date(data.lastBath.timestamp).getTime()) /
+                                  (1000 * 60),
+                              ),
+                            )
+                          : 'Нет данных'}
+                      </span>
+                    </button>
                   </div>
-                  <span className="mt-2 font-semibold text-gray-900 text-sm">Купание</span>
-                  <span className="mt-2 text-sm font-medium text-gray-700">
-                    {data?.lastBath
-                      ? formatDuration(
-                          Math.floor(
-                            (Date.now() - new Date(data.lastBath.timestamp).getTime()) /
-                              (1000 * 60),
-                          ),
-                        )
-                      : 'Нет данных'}
-                  </span>
-                </button>
               </div>
 
 
               {/* Блок истории событий */}
-              <div className="">
+              <div className={isLandscape ? 'dashboard-landscape-col dashboard-landscape-scroll' : ''}>
                 <div className="flex items-center justify-center mb-0.5 px-0.125 gap-2">
                   {/* Кнопка графика веса слева */}
                   <button
