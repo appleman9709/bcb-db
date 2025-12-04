@@ -1,23 +1,29 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 type Theme = 'light' | 'dark'
+type ThemeSetting = Theme | 'system'
 
 interface ThemeContextType {
-  theme: Theme
-  setTheme: (theme: Theme) => void
+  theme: ThemeSetting
+  setTheme: (theme: ThemeSetting) => void
   actualTheme: Theme
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
+  const [theme, setTheme] = useState<ThemeSetting>(() => {
     if (typeof window === 'undefined') return 'light'
-    const savedTheme = localStorage.getItem('theme') as Theme | null
-    return savedTheme ?? 'light'
+    const savedTheme = localStorage.getItem('theme') as ThemeSetting | null
+    return savedTheme ?? 'system'
   })
 
-  const actualTheme = useMemo(() => theme, [theme])
+  const [systemTheme, setSystemTheme] = useState<Theme>('light')
+
+  const actualTheme = useMemo(
+    () => (theme === 'system' ? systemTheme : theme),
+    [theme, systemTheme]
+  )
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -26,8 +32,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const root = document.documentElement
     root.classList.remove('theme-light', 'theme-dark')
-    root.classList.add(`theme-${theme}`)
-  }, [theme])
+    root.classList.add(`theme-${actualTheme}`)
+  }, [theme, actualTheme])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const updateSystemTheme = () => setSystemTheme(mediaQuery.matches ? 'dark' : 'light')
+
+    updateSystemTheme()
+    mediaQuery.addEventListener('change', updateSystemTheme)
+
+    return () => mediaQuery.removeEventListener('change', updateSystemTheme)
+  }, [])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, actualTheme }}>
