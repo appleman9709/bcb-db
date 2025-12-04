@@ -7,7 +7,7 @@ interface BottomNavigationProps {
 
 export default function BottomNavigation({ activeTab, onTabChange }: BottomNavigationProps) {
   return (
-    <div className="liquid-glass-tab-bar" data-landscape-side="lest">
+    <div className="liquid-glass-tab-bar" data-landscape-side="left">
       <div className="liquid-glass-tab-container">
         {/* Дом */}
         <button
