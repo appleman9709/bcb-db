@@ -1160,7 +1160,7 @@ useEffect(() => {
               onSignOut={signOut}
             />
           ) : activeTab === 'home' && (
-            <div className={`${isLandscape ? 'dashboard-landscape-grid gap-3 pr-[98px]' : ''}`}>
+            <div className={`${isLandscape ? 'dashboard-landscape-grid pr-[98px]' : ''}`}>
               <div className={isLandscape ? 'space-y-3' : 'space-y-2'}>
                 {/* Дежурство */}
                 <div
@@ -1276,7 +1276,7 @@ useEffect(() => {
                       setGrowthChartType('weight')
                       setGrowthChartModalOpen(true)
                     }}
-                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95"
+                    className={`${isLandscape ? 'w-24 h-24' : 'w-32 h-32'} object-contain transition-all duration-200 active:scale-95 cursor-pointer`}
                     title="График веса"
                   >
                     <img src="/icons/wight.png" alt="График веса" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95" />

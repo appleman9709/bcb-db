@@ -183,7 +183,7 @@
     align-items: flex-start;
   }
   .dashboard-landscape-scroll {
-    max-height: calc(100dvh - 170px);
+    max-height: 100dvh;
     overflow-y: auto;
     overflow-x: hidden;
   }
@@ -1047,7 +1047,7 @@ canvas {
 
     .liquid-glass-tab-container {
       flex-direction: column;
-      width: 98px;
+      width: 88px;
       height: auto;
       padding: 6px 6px;
       align-items: stretch;
