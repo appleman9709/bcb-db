@@ -617,7 +617,7 @@ useEffect(() => {
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={circumference * (1 - percent / 100)}
-            className="transition-all duration-500 ease-out"
+            className="duration-500 ease-out"
             style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
           />
         </svg>
@@ -1160,8 +1160,8 @@ useEffect(() => {
               onSignOut={signOut}
             />
           ) : activeTab === 'home' && (
-            <div className={`space-y-2 ${isLandscape ? 'dashboard-landscape-grid gap-3' : ''}`}>
-              <div className={isLandscape ? 'dashboard-landscape-col space-y-3' : 'space-y-2'}>
+            <div className={`${isLandscape ? 'dashboard-landscape-grid gap-3 pr-[98px]' : ''}`}>
+              <div className={isLandscape ? 'space-y-3' : 'space-y-2'}>
                 {/* Дежурство */}
                 <div
                   className=""
@@ -1193,14 +1193,12 @@ useEffect(() => {
                   )}
                 </div>
               {/* Иллюстрация младенца */}
-              <div className="text-center space-y-1">
+              <div className="text-center">
                   <BabyIllustration
-                    className="mb-3"
                     state={getBabyImageState()}
                     onClick={handleBabyImageClick}
                     customImage={customBabyImage}
                     dutyProgress={currentDutyProgressDisplay}
-                    size={isLandscape ? 'compact' : 'normal'}
                   />
                   <p className="font-semibold text-gray-900 text-lg">
                     Неделя {babyWeeks}
@@ -1208,7 +1206,7 @@ useEffect(() => {
                 </div>
                </div>
               {/* Блок истории событий */}
-              <div className={isLandscape ? 'dashboard-landscape-col dashboard-landscape-scroll' : ''}>
+              <div className={isLandscape ? 'dashboard-landscape-scroll' : ''}>
                 {/* Карточки активности */}
               <div className="flex flex-wrap gap-2 py-4">
                   <button
