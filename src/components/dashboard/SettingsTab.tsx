@@ -63,17 +63,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
         </div>
       )}
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-2">
+      <div className="flex items-center justify-center">
+        <div className="flex items-center justify-center gap-2">
             <span className="text-lg" aria-hidden>🌗</span>
             <div>
-            <p className="text-sm font-semibold text-gray-900">Оформление</p>
-              <p className="text-xs text-gray-500">Авто следует системной теме iPhone</p>
-              <p className="text-[11px] text-gray-500">Сейчас: {actualTheme === 'dark' ? 'Тёмная' : 'Светлая'}</p>
+            <p className="text-sm font-semibold text-gray-900">Оформление:</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 w-full sm:w-auto">
+          <div className="flex items-center justify-center">
             {themeOptions.map((option) => {
               const isActive = theme === option.value
               return (
@@ -81,13 +79,12 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   key={option.value}
                   type="button"
                   onClick={() => setTheme(option.value)}
-                  className={`flex flex-col items-start justify-center rounded-2xl px-3 py-2 text-left transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    isActive ? 'bg-blue-600 text-white shadow-sm' : 'bg-gray-100 text-gray-800'
+                  className={`flex items-center justify-center rounded-2xl px-3 py-2 text-centr ${
+                    isActive ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-800'
                   }`}
                   aria-pressed={isActive}
                 >
                   <span className="text-sm font-semibold leading-none">{option.label}</span>
-                  <span className="text-[11px] leading-tight opacity-80">{option.description}</span>
                 </button>
               )
             })}

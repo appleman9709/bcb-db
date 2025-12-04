@@ -1253,7 +1253,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           ))}
           
           {/* Общий счетчик очков */}
-          <div className={`inline-flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-3xl transition-all duration-300 ${
+          <div className={`inline-flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-3xl transition-all duration-300 ${
             scoreAnimation ? 'score-animation bg-gray-200 shadow-lg' : 'scale-100'
           }`}>
             <span className="text-xs font-bold text-gray-800">⭐</span>
@@ -1537,18 +1537,18 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                 ×
               </button>
 
-              <div className="bg-gradient-to-r from-sky-50 via-indigo-50 to-purple-50 px-3 pt-3 pb-1.5 sm:px-4 sm:pt-4 sm:pb-2">
+              <div className="px-3 pt-3 pb-1.5">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-inner">
+                  <div className="flex h-10 w-10 items-center justify-center">
                     <img
                       src="/icons/bag.png"
                       alt="Рюкзак"
-                      className="h-6 w-6 object-contain"
+                      className="h-10 w-10"
                     />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-slate-900">Рюкзак семьи</h3>
-                    <p className="text-[10px] leading-snug text-slate-600">{backpackIntroMessage}</p>
+                    <h3>Рюкзак семьи</h3>
+                    <p className="text-[10px]">{backpackIntroMessage}</p>
                   </div>
                 </div>
               </div>
@@ -1589,7 +1589,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.max(0.5, current - 0.5)
                           setPortionSizeOuncesInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-full"
                         aria-label="Уменьшить размер порции"
                       >
                         -
@@ -1604,7 +1604,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.min(20, current + 0.5)
                           setPortionSizeOuncesInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-full"
                         aria-label="Увеличить размер порции"
                       >
                         +
@@ -1643,7 +1643,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.max(0, current - 25)
                           setRestockDiapersInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-full"
                         aria-label="Уменьшить количество подгузников"
                       >
                         -
@@ -1658,7 +1658,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.min(500, current + 25)
                           setRestockDiapersInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-full"
                         aria-label="Увеличить количество подгузников"
                       >
                         +
@@ -1679,7 +1679,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.max(0, current - 100)
                           setRestockGramsInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-full"
                         aria-label="Уменьшить количество смеси"
                       >
                         -
@@ -1694,7 +1694,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                           const newValue = Math.min(4000, current + 100)
                           setRestockGramsInput(newValue.toString())
                         }}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-sm font-bold transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-full"
                         aria-label="Увеличить количество смеси"
                       >
                         +
