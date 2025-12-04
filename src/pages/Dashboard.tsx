@@ -613,7 +613,7 @@ useEffect(() => {
             r={radius}
             fill="none"
             stroke={`url(#${gradientId})`}
-            strokeWidth="12"
+            strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={circumference * (1 - percent / 100)}
@@ -621,7 +621,7 @@ useEffect(() => {
             style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
           />
         </svg>
-        <div className="absolute inset-2 rounded-full bg-ring flex items-center justify-center">
+        <div className="absolute inset-2 rounded-full flex items-center justify-center">
           <img src={iconSrc} alt={alt} className="w-[54px] h-[54px] object-contain" />
         </div>
       </div>
@@ -1200,12 +1200,16 @@ useEffect(() => {
                     onClick={handleBabyImageClick}
                     customImage={customBabyImage}
                     dutyProgress={currentDutyProgressDisplay}
+                    size={isLandscape ? 'compact' : 'normal'}
                   />
                   <p className="font-semibold text-gray-900 text-lg">
                     Неделя {babyWeeks}
                   </p>
                 </div>
-              {/* Карточки активности */}
+               </div>
+              {/* Блок истории событий */}
+              <div className={isLandscape ? 'dashboard-landscape-col dashboard-landscape-scroll' : ''}>
+                {/* Карточки активности */}
               <div className="flex flex-wrap gap-2 py-4">
                   <button
                     onClick={() => handleQuickAction('feeding')}
@@ -1267,11 +1271,6 @@ useEffect(() => {
                       </span>
                     </button>
                   </div>
-              </div>
-
-
-              {/* Блок истории событий */}
-              <div className={isLandscape ? 'dashboard-landscape-col dashboard-landscape-scroll' : ''}>
                 <div className="flex items-center justify-center mb-0.5 px-0.125 gap-2">
                   {/* Кнопка графика веса слева */}
                   <button
@@ -1489,12 +1488,9 @@ useEffect(() => {
                   </div>
                 )}
               </div>
-
-          </div>
+        </div>
         )}
-
-
-            </div>
+      </div>
 
         {activeTab !== 'tetris' && <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />}
               </div>
