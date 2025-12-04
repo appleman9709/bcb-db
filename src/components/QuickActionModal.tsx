@@ -405,41 +405,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
               </h2>
             </div>
 
-          {/* Раздел для даты и времени */}
-          <div className="space-y-3">
-              {/* Поле даты - компактное оформление */}
-              <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
-                <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
-                <input
-                  type="date"
-                  value={datePart}
-                  onChange={(event) => handleDateChange(event.target.value)}
-                  className="flex-1 bg-transparent text-[9px] font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
-                  style={{
-                    colorScheme: 'light',
-                    WebkitAppearance: 'none',
-                    MozAppearance: 'textfield'
-                  }}
-                />
-             </div>
-
-          {/* Поле времени - акцентное оформление */}
-          <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
-                <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
-                  <input
-                    type="time"
-                    step={300}
-                    value={timePart}
-                    onChange={(event) => handleTimeChange(event.target.value)}
-                    className="w-full text-center text-gray-800"
-                    style={{
-                      colorScheme: 'light',
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'textfield'
-                    }}
-                  />
-              </div>
-            </div>
+          
 
         {/* Быстрые кнопки временных смещений */}
         <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -501,7 +467,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           </div>
       ) : (
         <div className="quick-action-modal quick-action-layout gap-3 sm:gap-4">
-          <div className="quick-action-visual space-y-3 sm:space-y-4">
+          <div className="quick-action-visual">
             <img
               src={
                 actionType === 'diaper' ? '/icons/poo.png' :
@@ -513,7 +479,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             />
 
             {actionType === 'feeding' && (
-              <div className="space-y-2">
+              <div className="">
                 <span className="text-lg font-semibold text-blue-600 text-center block">
                   {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
                 </span>
@@ -534,6 +500,41 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                       className="modern-slider feeding-slider"
                     />
                   </div>
+                {/* Раздел для даты и времени */}
+          <div className="space-y-3">
+              {/* Поле даты - компактное оформление */}
+              <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
+                <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
+                <input
+                  type="date"
+                  value={datePart}
+                  onChange={(event) => handleDateChange(event.target.value)}
+                  className="flex-1 bg-transparent text-[9px] font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
+                  style={{
+                    colorScheme: 'light',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'textfield'
+                  }}
+                />
+             </div>
+
+          {/* Поле времени - акцентное оформление */}
+          <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
+                <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
+                  <input
+                    type="time"
+                    step={300}
+                    value={timePart}
+                    onChange={(event) => handleTimeChange(event.target.value)}
+                    className="w-full text-center text-gray-800"
+                    style={{
+                      colorScheme: 'light',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield'
+                    }}
+                  />
+              </div>
+            </div>
               </div>
             )}
 
@@ -633,7 +634,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
               </div>
             )}
           </div>
-          <div className="quick-action-main space-y-3 sm:space-y-4">
+          <div className="quick-action-main flex">
             <div className="text-center space-y-0.5">
               <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
                 {config.title}
@@ -643,42 +644,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                   {config.description}
                 </p>
               )}
-            </div>
-
-            {/* Раздел для даты и времени */}
-            <div className="space-y-3">
-              {/* Поле даты - компактное оформление */}
-              <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
-                <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
-                <input
-                  type="date"
-                  value={datePart}
-                  onChange={(event) => handleDateChange(event.target.value)}
-                  className="flex-1 bg-transparent text-[9px] font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
-                  style={{
-                    colorScheme: 'light',
-                    WebkitAppearance: 'none',
-                    MozAppearance: 'textfield'
-                  }}
-                />
-              </div>
-
-              {/* Поле времени - акцентное оформление */}
-              <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
-                <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
-                  <input
-                    type="time"
-                    step={300}
-                    value={timePart}
-                    onChange={(event) => handleTimeChange(event.target.value)}
-                    className="w-full text-center text-gray-800"
-                    style={{
-                      colorScheme: 'light',
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'textfield'
-                    }}
-                  />
-              </div>
             </div>
 
             {/* Быстрые кнопки временных смещений */}
