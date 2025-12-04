@@ -1160,7 +1160,7 @@ useEffect(() => {
               onSignOut={signOut}
             />
           ) : activeTab === 'home' && (
-            <div className={`${isLandscape ? 'dashboard-landscape-grid pr-[98px]' : ''}`}>
+            <div className={`${isLandscape ? 'dashboard-landscape-grid pl-[82px]' : ''}`}>
               <div className={isLandscape ? 'space-y-3' : 'space-y-2'}>
                 {/* Дежурство */}
                 <div
