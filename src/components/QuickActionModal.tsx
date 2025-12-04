@@ -392,222 +392,83 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     }
   }
 
+  const isActivityAction = actionType === 'activity'
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <div className={`quick-action-modal space-y-3 ${actionType === 'activity' ? 'sm:space-y-3' : 'sm:space-y-4'}`}>
-        {/* Иллюстрация внутри модального окна */}
-        {actionType !== 'activity' && (
-          <img 
-            src={
-              actionType === 'diaper' ? '/icons/poo.png' : 
-              actionType === 'bath' ? '/icons/alarm.png' : 
-              '/icons/eat.png'
-            } 
-            alt={config.title} 
-            className="w-24 h-24 object-contain mx-auto" 
-          />
-        )}
-
-        <div className="space-y-2 sm:space-y-3">
-          <div className="text-center space-y-0.5">
-            <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-              {config.title}
-            </h2>
-            {actionType !== 'feeding' && (
-              <p className="text-xs text-gray-500 sm:text-sm">
-                {config.description}
-              </p>
-            )}
-          </div>
-
-          {/* Выбор времени через слайдер */}
-          {actionType === 'feeding' && (
-            <div className="space-y-2">
-              <span className="text-lg font-semibold text-blue-600 text-center block">
-                {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
-              </span>
-                <div className="slider-track-container">
-                  <div className="slider-track">
-                    <div 
-                      className="slider-progress feeding-progress"
-                      style={{ width: `${(feedingOunces / 8) * 100}%` }}
-                    ></div>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="8"
-                    step="0.5"
-                    value={feedingOunces}
-                    onChange={(e) => handleFeedingOuncesChange(parseFloat(e.target.value))}
-                    className="modern-slider feeding-slider"
-                  />
-                </div>
+      {isActivityAction ? (
+        <div className="quick-action-modal space-y-3 sm:space-y-3">
+          <div className="space-y-2 sm:space-y-3">
+            <div className="text-center space-y-0.5">
+              <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                {config.title}
+              </h2>
             </div>
-          )}
 
           {/* Раздел для даты и времени */}
           <div className="space-y-3">
-            {/* Поле даты - компактное оформление */}
-            <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
-              <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
-              <input
-                type="date"
-                value={datePart}
-                onChange={(event) => handleDateChange(event.target.value)}
-                className="flex-1 bg-transparent text-[9px] font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
-                style={{
-                  colorScheme: 'light',
-                  WebkitAppearance: 'none',
-                  MozAppearance: 'textfield'
-                }}
-              />
-            </div>
-            
-            {/* Поле времени - акцентное оформление */}
-            <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
-              <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
+              {/* Поле даты - компактное оформление */}
+              <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
+                <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
                 <input
-                  type="time"
-                  step={300}
-                  value={timePart}
-                  onChange={(event) => handleTimeChange(event.target.value)}
-                  className="w-full text-center text-gray-800"
+                  type="date"
+                  value={datePart}
+                  onChange={(event) => handleDateChange(event.target.value)}
+                  className="flex-1 bg-transparent text-[9px] font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
                   style={{
                     colorScheme: 'light',
                     WebkitAppearance: 'none',
                     MozAppearance: 'textfield'
                   }}
                 />
+             </div>
+
+          {/* Поле времени - акцентное оформление */}
+          <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
+                <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
+                  <input
+                    type="time"
+                    step={300}
+                    value={timePart}
+                    onChange={(event) => handleTimeChange(event.target.value)}
+                    className="w-full text-center text-gray-800"
+                    style={{
+                      colorScheme: 'light',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield'
+                    }}
+                  />
+              </div>
             </div>
-          </div>
 
-          {/* Быстрые кнопки временных смещений */}
-          <div className="flex flex-wrap gap-1.5 sm:gap-2">
-            {QUICK_OFFSETS.map(option => {
-              const active = isQuickOptionActive(option.minutes)
-              return (
-                <button
-                  key={option.label}
-                  type="button"
-                  onClick={() => applyQuickOffset(option.minutes)}
-                  className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
-                    active
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'text-gray-600'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              )
-            })}
-          </div>
+        {/* Быстрые кнопки временных смещений */}
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {QUICK_OFFSETS.map(option => {
+                const active = isQuickOptionActive(option.minutes)
+                return (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => applyQuickOffset(option.minutes)}
+                    className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
+                      active
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-gray-600'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
 
-          <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
+            <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
             <span className="font-medium text-gray-900">{formattedPreview}</span>
-          </div>
-
-          {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
-        </div>
-
-        {/* Кнопки выбора типа подгузника */}
-        {actionType === 'diaper' && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={async () => {
-                  setDiaperType('Покакал')
-                  await handleDiaperSubmit('Покакал')
-                }}
-                disabled={loading}
-                className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
-                  loading
-                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'border-orange-500 bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg'
-                }`}
-              >
-                <img 
-                  src="/icons/poor.png" 
-                  alt="Покакал" 
-                  className="w-10 h-10 object-contain"
-                />
-                <span className="text-sm font-semibold">Покакал</span>
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  setDiaperType('Просто')
-                  await handleDiaperSubmit('Просто')
-                }}
-                disabled={loading}
-                className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
-                  loading
-                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'border-green-500 bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg'
-                }`}
-              >
-                <img 
-                  src="/icons/common.png" 
-                  alt="Просто" 
-                  className="w-10 h-10 object-contain"
-                />
-                <span className="text-sm font-semibold">Просто</span>
-              </button>
             </div>
+            {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
           </div>
-        )}
 
-        {/* Кнопки выбора настроения купания */}
-        {actionType === 'bath' && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={async () => {
-                  setBathMood('Беспокоился')
-                  await handleBathSubmit('Беспокоился')
-                }}
-                disabled={loading}
-                className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
-                  loading
-                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'border-orange-500 bg-gradient-to-br from-orange-400 to-yellow-500 text-white shadow-lg'
-                }`}
-              >
-                <img 
-                  src="/icons/angry.png" 
-                  alt="Беспокоился" 
-                  className="w-10 h-10 object-contain"
-                />
-                <span className="text-sm font-semibold">Беспокоился</span>
-              </button>
-              <button
-                type="button"
-                onClick={async () => {
-                  setBathMood('Спокойное')
-                  await handleBathSubmit('Спокойное')
-                }}
-                disabled={loading}
-                className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
-                  loading
-                    ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'border-blue-500 bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg'
-                }`}
-              >
-                <img 
-                  src="/icons/still.png" 
-                  alt="Спокойное" 
-                  className="w-10 h-10 object-contain"
-                />
-                <span className="text-sm font-semibold">Спокойное</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Кнопки выбора типа активности */}
-        {actionType === 'activity' && (
+        
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               {activityTypes.map((activity) => (
@@ -625,8 +486,8 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                       : `border-blue-500 bg-gradient-to-br ${activity.color} text-white shadow-lg`
                   }`}
                 >
-                  <img 
-                    src={activity.icon} 
+                  <img
+                    src={activity.icon}
                     alt={activity.label} 
                     className="w-10 h-10 object-contain"
                   />
@@ -637,30 +498,240 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
               ))}
             </div>
           </div>
-        )}
-
-        {/* Кнопки действий - только для кормления */}
-        {actionType === 'feeding' && (
-          <div className="flex gap-2 sm:gap-3">
-            <Button
-              variant="secondary"
-              onClick={onClose}
-              className="flex-1"
-              disabled={loading}
-            >
-              Отмена
-            </Button>
-            <Button
-              variant={config.buttonVariant}
-              onClick={handleSubmit}
-              className="flex-1"
-              disabled={loading}
-            >
-              {loading ? 'Сохранение...' : config.buttonText}
-            </Button>
           </div>
-        )}
-      </div>
+      ) : (
+        <div className="quick-action-modal quick-action-layout gap-3 sm:gap-4">
+          <div className="quick-action-visual space-y-3 sm:space-y-4">
+            <img
+              src={
+                actionType === 'diaper' ? '/icons/poo.png' :
+                actionType === 'bath' ? '/icons/alarm.png' :
+                '/icons/eat.png'
+              }
+              alt={config.title}
+              className="w-24 h-24 object-contain mx-auto"
+            />
+
+            {actionType === 'feeding' && (
+              <div className="space-y-2">
+                <span className="text-lg font-semibold text-blue-600 text-center block">
+                  {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
+                </span>
+                  <div className="slider-track-container">
+                    <div className="slider-track">
+                      <div
+                        className="slider-progress feeding-progress"
+                        style={{ width: `${(feedingOunces / 8) * 100}%` }}
+                      ></div>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="8"
+                      step="0.5"
+                      value={feedingOunces}
+                      onChange={(e) => handleFeedingOuncesChange(parseFloat(e.target.value))}
+                      className="modern-slider feeding-slider"
+                    />
+                  </div>
+              </div>
+            )}
+
+            {/* Кнопки выбора типа подгузника */}
+            {actionType === 'diaper' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setDiaperType('Покакал')
+                      await handleDiaperSubmit('Покакал')
+                    }}
+                    disabled={loading}
+                    className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                      loading
+                        ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'border-orange-500 bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-lg'
+                    }`}
+                  >
+                    <img
+                      src="/icons/poor.png"
+                      alt="Покакал"
+                      className="w-10 h-10 object-contain"
+                    />
+                    <span className="text-sm font-semibold">Покакал</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setDiaperType('Просто')
+                      await handleDiaperSubmit('Просто')
+                    }}
+                    disabled={loading}
+                    className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                      loading
+                        ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'border-green-500 bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-lg'
+                    }`}
+                  >
+                    <img
+                      src="/icons/common.png"
+                      alt="Просто"
+                      className="w-10 h-10 object-contain"
+                    />
+                    <span className="text-sm font-semibold">Просто</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Кнопки выбора настроения купания */}
+            {actionType === 'bath' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setBathMood('Беспокоился')
+                      await handleBathSubmit('Беспокоился')
+                    }}
+                    disabled={loading}
+                    className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                      loading
+                        ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'border-orange-500 bg-gradient-to-br from-orange-400 to-yellow-500 text-white shadow-lg'
+                    }`}
+                  >
+                    <img
+                      src="/icons/angry.png"
+                      alt="Беспокоился"
+                      className="w-10 h-10 object-contain"
+                    />
+                    <span className="text-sm font-semibold">Беспокоился</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setBathMood('Спокойное')
+                      await handleBathSubmit('Спокойное')
+                    }}
+                    disabled={loading}
+                    className={`p-4 rounded-3xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                      loading
+                        ? 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'border-blue-500 bg-gradient-to-br from-blue-400 to-cyan-500 text-white shadow-lg'
+                    }`}
+                  >
+                    <img
+                      src="/icons/still.png"
+                      alt="Спокойное"
+                      className="w-10 h-10 object-contain"
+                    />
+                    <span className="text-sm font-semibold">Спокойное</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="quick-action-main space-y-3 sm:space-y-4">
+            <div className="text-center space-y-0.5">
+              <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                {config.title}
+              </h2>
+              {actionType !== 'feeding' && (
+                <p className="text-xs text-gray-500 sm:text-sm">
+                  {config.description}
+                </p>
+              )}
+            </div>
+
+            {/* Раздел для даты и времени */}
+            <div className="space-y-3">
+              {/* Поле даты - компактное оформление */}
+              <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
+                <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
+                <input
+                  type="date"
+                  value={datePart}
+                  onChange={(event) => handleDateChange(event.target.value)}
+                  className="flex-1 bg-transparent text-[9px] font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
+                  style={{
+                    colorScheme: 'light',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'textfield'
+                  }}
+                />
+              </div>
+
+              {/* Поле времени - акцентное оформление */}
+              <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
+                <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
+                  <input
+                    type="time"
+                    step={300}
+                    value={timePart}
+                    onChange={(event) => handleTimeChange(event.target.value)}
+                    className="w-full text-center text-gray-800"
+                    style={{
+                      colorScheme: 'light',
+                      WebkitAppearance: 'none',
+                      MozAppearance: 'textfield'
+                    }}
+                  />
+              </div>
+            </div>
+
+            {/* Быстрые кнопки временных смещений */}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {QUICK_OFFSETS.map(option => {
+                const active = isQuickOptionActive(option.minutes)
+                return (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => applyQuickOffset(option.minutes)}
+                    className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
+                      active
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-gray-600'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
+              <span className="font-medium text-gray-900">{formattedPreview}</span>
+            </div>
+
+            {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
+
+            {/* Кнопки действий - только для кормления */}
+            {actionType === 'feeding' && (
+              <div className="flex gap-2 sm:gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={onClose}
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  variant={config.buttonVariant}
+                  onClick={handleSubmit}
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  {loading ? 'Сохранение...' : config.buttonText}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </Modal>
   )
 }
