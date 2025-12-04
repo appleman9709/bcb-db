@@ -1276,10 +1276,10 @@ useEffect(() => {
                       setGrowthChartType('weight')
                       setGrowthChartModalOpen(true)
                     }}
-                    className={`${isLandscape ? 'w-24 h-24' : 'w-32 h-32'} object-contain transition-all duration-200 active:scale-95 cursor-pointer`}
+                    className="w-16 h-16"
                     title="График веса"
                   >
-                    <img src="/icons/wight.png" alt="График веса" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95" />
+                    <img src="/icons/wight.png" alt="График веса" className="w-16 h-16" />
                   </button>
                   
                   {/* Основное изображение малыша */}
@@ -1292,7 +1292,7 @@ useEffect(() => {
                       ref={clockRef}
                       src="/icons/clock.png"
                       alt="Часы"
-                      className="w-32 h-32 object-contain transition-all duration-200 active:scale-95 cursor-pointer"
+                      className="w-32 h-32 object-contain"
                       onClick={handleRecentEventsClick}
                     />
                   </div>
@@ -1303,7 +1303,7 @@ useEffect(() => {
                       setGrowthChartType('height')
                       setGrowthChartModalOpen(true)
                     }}
-                    className="w-16 h-16 flex items-center justify-center transition-all duration-200 active:scale-95"
+                    className="w-16 h-16"
                     title="График роста"
                   >
                     <img src="/icons/height.png" alt="График роста" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95" />
