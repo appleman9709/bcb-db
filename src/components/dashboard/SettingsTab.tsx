@@ -77,13 +77,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             </div>
        </div>
       {/* Дата рождения */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
+      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 date-input-container">
           <h2 className="text-base font-semibold text-gray-900 text-center mb-2">Дата рождения</h2>
               <input
                 type="date"
                 value={settings.birthDate}
                 onChange={(event) => onSettingChange('birthDate', event.target.value)}
-                className="w-full text-center text-gray-800 date-input-container"
+                className="w-full text-center text-gray-800"
                 inputMode="numeric"
                 autoComplete="bday"
                 placeholder=""
