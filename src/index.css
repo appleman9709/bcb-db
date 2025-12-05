@@ -898,7 +898,7 @@ canvas {
   /* Apple Liquid Glass Tab Bar Styles - оптимизированная версия */
   .liquid-glass-tab-bar {
     position: var(--tab-bar-position);
-    bottom: max(var(--tab-bar-bottom), env(safe-area-inset-bottom, 0px));
+    bottom: 0px;
     left: max(var(--tab-bar-left), env(safe-area-inset-left, 0px));
     right: max(var(--tab-bar-right), env(safe-area-inset-right, 0px));
     z-index: var(--tab-bar-z-index);
