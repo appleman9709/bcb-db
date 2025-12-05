@@ -83,7 +83,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 type="date"
                 value={settings.birthDate}
                 onChange={(event) => onSettingChange('birthDate', event.target.value)}
-                className="w-full text-center text-gray-800"
+                className="w-full text-center text-gray-800 date-input-container"
                 inputMode="numeric"
                 autoComplete="bday"
                 placeholder=""
