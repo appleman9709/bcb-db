@@ -47,8 +47,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     wakeOnActivityEnabled: true
   })
   const [loading, setLoading] = useState(true)
-  // backgroundLoading больше не используется - убрано для улучшения UX
-  // const [backgroundLoading, setBackgroundLoading] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState<string>('')
   const [babyState, setBabyState] = useState<BabyState>('ok')
   const [justWokeUp, setJustWokeUp] = useState(false)
@@ -269,7 +267,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   }, [data?.inventory, portionSizeOunces])
 
   // Размер порции теперь сохраняется в БД через updatePortionSize
-
   const lowOnDiapers = inventoryTotals.diapers <= DIAPER_ALERT_LEVEL
   const lowOnFormula = inventoryTotals.portions <= FORMULA_ALERT_LEVEL
 
@@ -541,13 +538,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
 
     try {
-      // Устанавливаем соответствующее состояние загрузки
-      // Для фонового обновления не показываем индикатор
-      // if (isBackgroundUpdate) {
-      //   setBackgroundLoading(true)
-      // } else {
-      //   setLoading(true)
-      // }
       if (!isBackgroundUpdate) {
         setLoading(true)
       }
@@ -602,12 +592,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     } catch (error) {
       console.error('Error fetching tamagotchi data:', error)
     } finally {
-      // Сбрасываем соответствующее состояние загрузки
-      // if (isBackgroundUpdate) {
-      //   setBackgroundLoading(false)
-      // } else {
-      //   setLoading(false)
-      // }
       if (!isBackgroundUpdate) {
         setLoading(false)
       }
@@ -819,12 +803,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         coinIcon = getCoinIcon(babyState, false)
         // console.log('🌙 Normal mode - using state-based coins:', { babyState, coinType, coinIcon }) // Отключено для экономии ресурсов
       }
-      
-      // Отладочная информация отключена для экономии ресурсов
-      // console.log('🌙 Final coin data:', { coinType, coinIcon, isSleepMode })
-      // console.log('🌙 Expected: sleep_coins + sleep.png when sleep mode is ON')
-      // console.log('🌙 getCoinType result:', getCoinType(babyState, false))
-      // console.log('🌙 getCoinIcon result:', getCoinIcon(babyState, false))
       
       const newCoin = {
         id: Date.now() + Math.random(),
@@ -1123,12 +1101,10 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }
 
-
   // Функция для сбора монетки
   const collectCoin = async (coinId: number) => {
     const coin = coins.find(c => c.id === coinId)
     if (!coin || coin.collected) return
-
 
     // Помечаем монетку как собранную
     setCoins(prev => prev.map(c => 
@@ -1199,8 +1175,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     coinTimeoutRefs.current.add(removeTimeoutId)
   }
 
-
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -1213,7 +1187,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   }
 
   return (
-    <div className="tamagotchi-container relative">
+    <div className="tamagotchi-container">
 
       {/* Монетки для сбора - позиционированы относительно всего контейнера */}
       {coins.map(coin => (
@@ -1238,7 +1212,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       ))}
 
       {/* Стопки монеток - компактные */}
-      <div className="tamagotchi-coins text-center">
+      <div className="tamagotchi-coins">
         <div className="flex justify-center gap-1 flex-wrap items-center">
           {coinDisplayItems.map(item => (
             <div
@@ -1269,13 +1243,13 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         )}
       </div>
 
-      {/* GIF/Video малыша - адаптивное */}
+      {/* GIF/Video малыша */}
       <div className="tamagotchi-video-container">
         <p className="text-xs font-medium text-gray-700 mt-2 mb-2">
           {getStateDescription(babyState)}
         </p>
         
-          <div className="absolute top-20 left-4 z-30 flex flex-col items-start gap-3">
+        <div className="absolute top-20 left-4 z-30 flex flex-col items-start gap-3">
           <div
             className="flex flex-wrap justify-end gap-1 overflow-visible"
             style={
@@ -1298,9 +1272,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             ))}
           </div>
 
-            <div className="flex w-full max-w-[240px] items-center gap-2">
-              <img src="/icons/common.png" alt="Подгузник" className="h-[30px] w-[30px] object-contain drop-shadow-sm" />
-              <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200/80" title={
+          <div className="flex w-full max-w-[240px] items-center gap-2">
+            <img src="/icons/common.png" alt="Подгузник" className="h-[30px] w-[30px] object-contain drop-shadow-sm" />
+            <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200/80" title={
                 diaperStatus.hours !== null
                   ? `Прошло ${diaperStatus.hours.toFixed(1)} ч с последней смены подгузника`
                   : 'Нет данных о последней смене подгузника'
@@ -1311,42 +1285,42 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                   }`}
                   style={{ width: `${diaperStatus.percent}%` }}
                 />
-              </div>
             </div>
-              {/* Кнопка проигрывателя Колыбельной */}
-              <button
-                onClick={toggleMusic}
-                aria-label={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
-                title={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
-              >
-                <div className="flex items-center justify-center">
-                  {isMusicPlaying ? (
-                    <div className="flex items-center gap-2">
-                      <img
-                        src="icons/melody.png"
-                        alt="Иконка мелодии"
-                        className="w-7 h-7"
-                        style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
-                      />
-                      <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <img
-                        src="icons/melody.png"
-                        alt="Иконка мелодии"
-                        className="w-7 h-7"
-                        style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
-                      />
-                      <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
+          </div>
+          {/* Кнопка проигрывателя Колыбельной */}
+          <button
+            onClick={toggleMusic}
+            aria-label={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
+            title={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
+          >
+            <div className="flex items-center justify-center">
+              {isMusicPlaying ? (
+                <div className="flex items-center gap-2">
+                  <img
+                    src="icons/melody.png"
+                    alt="Иконка мелодии"
+                    className="w-7 h-7"
+                    style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
+                  />
+                  <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
                 </div>
-              </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <img
+                    src="icons/melody.png"
+                    alt="Иконка мелодии"
+                    className="w-7 h-7"
+                    style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
+                  />
+                  <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          </button>
           </div>
 
           {isSleepMode && getGifSource(babyState).endsWith('.MP4') ? (
@@ -1369,7 +1343,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
               decoding="async"
             />
           )}
-          
 
           {/* Кнопка режима сна: солнце (не спит) / луна (спит) */}
             <button
@@ -1434,8 +1407,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           </div>
       </div>
 
-
-      {/* Лоток с предметами - в стиле liquid glass */}
+      {/* Лоток с предметами */}
         <div className="tamagotchi-inventory-container">
           {/* Подгузник */}
           <div 
@@ -1511,7 +1483,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             </div>
           </div>
         </div>
-      
 
       {/* Модальное окно рюкзака через портал */}
       {backpackOpen && createPortal(

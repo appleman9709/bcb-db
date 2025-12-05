@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { pushService } from '../services/pushService'
 import { dataService } from '../services/dataService'
-import Button from './Button'
-
 
 export default function NotificationSender() {
   const { family, member } = useAuth()
@@ -105,10 +103,7 @@ export default function NotificationSender() {
           {success}
         </div>
       )}
-      
-      <div className="space-y-3">
-        <div>
-          <div className="space-y-2 bg-gray-50 p-3 rounded-2xl">
+          <div className="space-y-2 p-3">
             <label className="flex items-center text-sm text-gray-600">
               <input
                 type="checkbox"
@@ -132,10 +127,6 @@ export default function NotificationSender() {
                 </label>
               ))}
           </div>
-        </div>
-        
-        <div>
-          
           <input
             type="text"
             value={title}
@@ -144,9 +135,6 @@ export default function NotificationSender() {
             className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500"
             style={{ fontSize: '16px' }}
           />
-        </div>
-        
-        <div>
           
           <textarea
             value={body}
@@ -156,17 +144,14 @@ export default function NotificationSender() {
             className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500"
             style={{ fontSize: '16px' }}
           />
-        </div>
         
-        <Button
+        <button
           onClick={handleSend}
           disabled={isLoading || !title.trim() || !body.trim()}
-          className="w-full text-sm"
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 px-4 rounded-3xl shadow-lg text-sm"
         >
           {isLoading ? 'Отправка...' : '📤 Отправить уведомление'}
-        </Button>
-      </div>
+        </button>
     </div>
   )
 }
-

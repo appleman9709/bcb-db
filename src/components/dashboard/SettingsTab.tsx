@@ -102,19 +102,15 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       {/* Интервалы */}
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
           <h2 className="text-base font-semibold text-gray-900 text-center mb-2">Интервалы</h2>
-          <div className="modern-slider-card">
             <div className="slider-header">
               <div className="slider-icon-emoji">🍼</div>
-              <div className="slider-info">
-                <h3 className="slider-title">Кормление</h3>
-              </div>
+              <h3 className="slider-info">Кормление</h3>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.feedingInterval}</span>
                 <span className="value-unit">ч</span>
               </div>
             </div>
 
-            <div className="slider-wrapper">
               <div className="slider-track-container">
                 <div className="slider-track">
                   <div
@@ -131,22 +127,16 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   className="modern-slider"
                 />
               </div>
-            </div>
-          </div>
 
-          <div className="modern-slider-card">
             <div className="slider-header">
               <div className="slider-icon-emoji">👶</div>
-              <div className="slider-info">
-                <h3 className="slider-title">Подгузники</h3>
-              </div>
+              <h3 className="slider-info">Подгузники</h3>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.diaperInterval}</span>
                 <span className="value-unit">ч</span>
               </div>
             </div>
 
-            <div className="slider-wrapper">
               <div className="slider-track-container">
                 <div className="slider-track">
                   <div
@@ -163,22 +153,16 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   className="modern-slider"
                 />
               </div>
-            </div>
-          </div>
 
-          <div className="modern-slider-card">
             <div className="slider-header">
               <div className="slider-icon-emoji">🛁</div>
-              <div className="slider-info">
-                <h3 className="slider-title">Купание</h3>
-              </div>
+              <h3 className="slider-info">Купание</h3>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.bathInterval}</span>
                 <span className="value-unit">дн</span>
               </div>
             </div>
 
-            <div className="slider-wrapper">
               <div className="slider-track-container">
                 <div className="slider-track">
                   <div
@@ -195,8 +179,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   className="modern-slider"
                 />
               </div>
-            </div>
-          </div>
       </div>
 
       {/* Push уведомления */}
@@ -213,31 +195,21 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
       {/* Семья и профиль */}
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
-        <div className="flex gap-2">
           <h2 className="text-base font-semibold text-gray-900 text-center mb-2">Семья и профиль</h2>
-        </div>
-        <div className="space-y-2">
           <div className="flex justify-between items-center p-2">
-            <div>
-              <p className="text-xs font-medium text-gray-900">Семья</p>
-              <p className="text-xs text-gray-500">Название вашей семьи</p>
-            </div>
+            <p className="text-xs font-medium text-gray-900">Семья</p>
             <span className="text-xs font-medium text-gray-700">{familyName ?? 'Family'}</span>
           </div>
           <div className="flex justify-between items-center p-2">
-            <div>
-              <p className="text-xs font-medium text-gray-900">Ваше имя</p>
-              <p className="text-xs text-gray-500">Имя участника в семье</p>
-            </div>
+            <p className="text-xs font-medium text-gray-900">Ваше имя</p>
             <span className="text-xs font-medium text-gray-700">{memberDisplayName}</span>
           </div>
           <button
             onClick={onSignOut}
             className="w-full mt-2 px-3 py-2 bg-red-500 text-white rounded-3xl font-medium text-xs"
           >
-          Выйти из аккаунта
+          Выйти из семьи
           </button>
-        </div>
       </div>
 
       {/* Сохранить настройки */}
@@ -249,7 +221,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       </button>
 
       {/* Отступ для нижней навигации */}
-      <div className="h-32"></div>
+      <div className="h-20"></div>
     </div>
   )
 }
