@@ -397,42 +397,33 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
       {isActivityAction ? (
-        <div className="quick-action-modal space-y-3 sm:space-y-3">
-          <div className="space-y-2 sm:space-y-3">
-            <div className="text-center space-y-0.5">
-              <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-                {config.title}
-              </h2>
-            </div>
-
-          
-
-        {/* Быстрые кнопки временных смещений */}
-        <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {QUICK_OFFSETS.map(option => {
-                const active = isQuickOptionActive(option.minutes)
-                return (
-                  <button
-                    key={option.label}
-                    type="button"
-                    onClick={() => applyQuickOffset(option.minutes)}
-                    className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
-                      active
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-gray-600'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
-            <span className="font-medium text-gray-900">{formattedPreview}</span>
-            </div>
+        <div className="quick-action-modal space-y-3">
+          <div className="space-y-2">
+            {/* Быстрые кнопки временных смещений */}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                  {QUICK_OFFSETS.map(option => {
+                    const active = isQuickOptionActive(option.minutes)
+                    return (
+                      <button
+                        key={option.label}
+                        type="button"
+                        onClick={() => applyQuickOffset(option.minutes)}
+                        className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
+                          active
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'text-gray-600'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
+              </div>
+              <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
+                <span className="font-medium text-gray-900">{formattedPreview}</span>
+              </div>
             {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
-          </div>
+           </div>
 
         
           <div className="space-y-3">
@@ -500,8 +491,8 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                       className="modern-slider feeding-slider"
                     />
                   </div>
-                {/* Раздел для даты и времени */}
-          <div className="space-y-3">
+            {/* Раздел для даты и времени */}
+            <div className="space-y-3">
               {/* Поле даты - компактное оформление */}
               <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
                 <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
@@ -516,26 +507,26 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     MozAppearance: 'textfield'
                   }}
                 />
-             </div>
+              </div>
 
-          {/* Поле времени - акцентное оформление */}
-          <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
-                <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
-                  <input
-                    type="time"
-                    step={300}
-                    value={timePart}
-                    onChange={(event) => handleTimeChange(event.target.value)}
-                    className="w-full text-center text-gray-800"
-                    style={{
-                      colorScheme: 'light',
-                      WebkitAppearance: 'none',
-                      MozAppearance: 'textfield'
-                    }}
-                  />
-              </div>
+              {/* Поле времени - акцентное оформление */}
+              <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
+                    <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
+                      <input
+                        type="time"
+                        step={300}
+                        value={timePart}
+                        onChange={(event) => handleTimeChange(event.target.value)}
+                        className="w-full text-center text-gray-800"
+                        style={{
+                          colorScheme: 'light',
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'textfield'
+                        }}
+                      />
+                </div>
             </div>
-              </div>
+          </div>
             )}
 
             {/* Кнопки выбора типа подгузника */}
