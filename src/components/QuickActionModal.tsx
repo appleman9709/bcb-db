@@ -539,6 +539,57 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
               </div>
             </div>
 
+            <div className="quick-action-main flex">
+            {/* Быстрые кнопки временных смещений */}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {QUICK_OFFSETS.map(option => {
+                const active = isQuickOptionActive(option.minutes)
+                return (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => applyQuickOffset(option.minutes)}
+                    className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
+                      active
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-gray-600'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
+              <span className="font-medium text-gray-900">{formattedPreview}</span>
+            </div>
+
+            {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
+
+            {/* Кнопки действий - только для кормления */}
+            {actionType === 'feeding' && (
+              <div className="flex gap-2 sm:gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={onClose}
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  variant={config.buttonVariant}
+                  onClick={handleSubmit}
+                  className="flex-1"
+                  disabled={loading}
+                >
+                  {loading ? 'Сохранение...' : config.buttonText}
+                </Button>
+              </div>
+            )}
+          </div>
+
             {/* Кнопки выбора типа подгузника */}
             {actionType === 'diaper' && (
               <div className="space-y-3">
@@ -632,56 +683,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     <span className="text-sm font-semibold">Спокойное</span>
                   </button>
                 </div>
-              </div>
-            )}
-          </div>
-          <div className="quick-action-main flex">
-            {/* Быстрые кнопки временных смещений */}
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {QUICK_OFFSETS.map(option => {
-                const active = isQuickOptionActive(option.minutes)
-                return (
-                  <button
-                    key={option.label}
-                    type="button"
-                    onClick={() => applyQuickOffset(option.minutes)}
-                    className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
-                      active
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-gray-600'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
-              <span className="font-medium text-gray-900">{formattedPreview}</span>
-            </div>
-
-            {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
-
-            {/* Кнопки действий - только для кормления */}
-            {actionType === 'feeding' && (
-              <div className="flex gap-2 sm:gap-3">
-                <Button
-                  variant="secondary"
-                  onClick={onClose}
-                  className="flex-1"
-                  disabled={loading}
-                >
-                  Отмена
-                </Button>
-                <Button
-                  variant={config.buttonVariant}
-                  onClick={handleSubmit}
-                  className="flex-1"
-                  disabled={loading}
-                >
-                  {loading ? 'Сохранение...' : config.buttonText}
-                </Button>
               </div>
             )}
           </div>

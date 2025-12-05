@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react'
 import type { FamilyMember } from '../services/dataService'
 import Modal from './Modal'
-import Button from './Button'
 import {
   ALLOWED_BLOCK_DURATIONS,
   buildDisplayName,
@@ -190,13 +189,13 @@ export default function DutyScheduleModal({
           })}
         </div>
 
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center justify-between pt-1 pr-3">
           <p className="text-[10px] text-gray-400">
             Обновлено {new Date(schedule.updatedAt).toLocaleString('ru-RU')}
           </p>
-          <Button variant="secondary" size="sm" onClick={onClose}>
+          <button onClick={onClose}>
             Закрыть
-          </Button>
+          </button>
         </div>
       </div>
     </Modal>
