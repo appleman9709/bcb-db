@@ -101,10 +101,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
       {/* Интервалы */}
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
-        <div className="text-center mb-2">
-          <h2 className="text-base font-semibold text-gray-900">Интервалы</h2>
-        </div>
-        <div className="space-y-3">
+          <h2 className="text-base font-semibold text-gray-900 text-center mb-2">Интервалы</h2>
           <div className="modern-slider-card">
             <div className="slider-header">
               <div className="slider-icon-emoji">🍼</div>
@@ -200,7 +197,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
             </div>
           </div>
-        </div>
       </div>
 
       {/* Push уведомления */}
