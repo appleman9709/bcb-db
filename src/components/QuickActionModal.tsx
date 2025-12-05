@@ -457,7 +457,17 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           </div>
           </div>
       ) : (
-        <div className="quick-action-modal quick-action-layout gap-3 sm:gap-4">
+        <div className="quick-action-modal quick-action-layout gap-3">
+          <div className="text-center space-y-0.5">
+              <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                {config.title}
+              </h2>
+              {actionType !== 'feeding' && (
+                <p className="text-xs text-gray-500 sm:text-sm">
+                  {config.description}
+                </p>
+              )}
+            </div>
           <div className="quick-action-visual">
             <img
               src={
@@ -470,27 +480,29 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             />
 
             {actionType === 'feeding' && (
-              <div className="">
+              <div className="space-y-3">
                 <span className="text-lg font-semibold text-blue-600 text-center block">
                   {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
                 </span>
-                  <div className="slider-track-container">
-                    <div className="slider-track">
-                      <div
-                        className="slider-progress feeding-progress"
-                        style={{ width: `${(feedingOunces / 8) * 100}%` }}
-                      ></div>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="8"
-                      step="0.5"
-                      value={feedingOunces}
-                      onChange={(e) => handleFeedingOuncesChange(parseFloat(e.target.value))}
-                      className="modern-slider feeding-slider"
-                    />
+                <div className="slider-track-container">
+                  <div className="slider-track">
+                    <div
+                      className="slider-progress feeding-progress"
+                      style={{ width: `${(feedingOunces / 8) * 100}%` }}
+                    ></div>
                   </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="8"
+                    step="0.5"
+                    value={feedingOunces}
+                    onChange={(e) => handleFeedingOuncesChange(parseFloat(e.target.value))}
+                    className="modern-slider feeding-slider"
+                  />
+                </div>
+              </div>
+            )}
             {/* Раздел для даты и времени */}
             <div className="space-y-3">
               {/* Поле даты - компактное оформление */}
@@ -511,23 +523,21 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
               {/* Поле времени - акцентное оформление */}
               <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
-                    <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
-                      <input
-                        type="time"
-                        step={300}
-                        value={timePart}
-                        onChange={(event) => handleTimeChange(event.target.value)}
-                        className="w-full text-center text-gray-800"
-                        style={{
-                          colorScheme: 'light',
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'textfield'
-                        }}
-                      />
-                </div>
+              <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
+                <input
+                  type="time"
+                  step={300}
+                  value={timePart}
+                  onChange={(event) => handleTimeChange(event.target.value)}
+                  className="w-full text-center text-gray-800"
+                  style={{
+                    colorScheme: 'light',
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'textfield'
+                  }}
+                />
+              </div>
             </div>
-          </div>
-            )}
 
             {/* Кнопки выбора типа подгузника */}
             {actionType === 'diaper' && (
@@ -626,17 +636,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             )}
           </div>
           <div className="quick-action-main flex">
-            <div className="text-center space-y-0.5">
-              <h2 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-                {config.title}
-              </h2>
-              {actionType !== 'feeding' && (
-                <p className="text-xs text-gray-500 sm:text-sm">
-                  {config.description}
-                </p>
-              )}
-            </div>
-
             {/* Быстрые кнопки временных смещений */}
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {QUICK_OFFSETS.map(option => {

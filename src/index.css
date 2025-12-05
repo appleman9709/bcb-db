@@ -746,14 +746,12 @@
 }
 /* Специальные стили для очень маленьких экранов */
 .quick-action-modal {
-  max-height: 98vh !important;
-  max-height: 98dvh !important;
+  max-height: 98dvh;
 }
 
 /* Убираем прокрутку для QuickActionModal на мобильных устройствах */
 .quick-action-modal .modal-content > div {
   overflow-y: visible !important;
-  height: auto !important;
 }
 
 .modal-content > * {
