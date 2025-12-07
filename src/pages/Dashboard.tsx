@@ -1044,10 +1044,6 @@ useEffect(() => {
     }
   }, [handleRefresh, updatePullDistance, activeSection, activeTab, recentEventsExpanded, modalOpen, tamagotchiModalOpen, recordDetailModalOpen, dutyModalOpen, growthChartModalOpen, weeklyStatsChartOpen])
 
-
-
-
-
   const handleTabChange = (tab: 'home' | 'settings' | 'tamagotchi' | 'tetris') => {
     console.log('Tab changed to:', tab) // Отладочная информация
     setActiveTab(tab)
@@ -1093,11 +1089,8 @@ useEffect(() => {
   }
 
   return (
-    <div className="h-screen h-dvh bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden pwa-container">
+    <div className="h-screen h-dvh bg-gradient-to-br from-blue-50 to-blue-100 relative overflow-hidden">
       <BackgroundElements />
-      
-      {/* Предзагрузка изображений для действий */}
-      <CategoryPreloader category="actions" priority="high" delay={500} />
       
       {/* Pull-to-refresh индикатор */}
       <div 
@@ -1131,13 +1124,13 @@ useEffect(() => {
             </div>
           )}
         </div>
-        <div className="ml-2 text-sm text-gray-600 font-medium">
+        <p className="ml-2 text-sm text-gray-600 font-medium">
           {isRefreshing ? 'Обновляем...' : pullDistance >= PULL_REFRESH_THRESHOLD ? 'Отпустите для обновления' : 'Потяните для обновления'}
-        </div>
+        </p>
       </div>
       
-      <div className="relative z-10 flex flex-col h-full">
-        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-4 pb-16 pwa-content'} ${
+      <div className="relative flex flex-col h-full">
+        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-4 pb-16'} ${
           // Оставляем прокрутку только для settings или когда открыты недавние события на home
           activeTab === 'settings' ? 'overflow-y-auto overflow-x-hidden' : 
           (activeTab === 'home' && recentEventsExpanded) ? 'overflow-y-auto overflow-x-hidden' : 
@@ -1161,7 +1154,6 @@ useEffect(() => {
             />
           ) : activeTab === 'home' && (
             <div className={`${isLandscape ? 'dashboard-landscape-grid pl-[128px]' : ''}`}>
-              <div className={isLandscape ? 'space-y-3' : 'space-y-2'}>
                 {/* Дежурство */}
                 <div
                   className=""
@@ -1176,34 +1168,33 @@ useEffect(() => {
                   }}
                 >
                   <div className="text-center space-y-0.5">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-sky-500">Сейчас на подхвате</p>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-sky-500">Сейчас на подхвате</p>
+                    <p className="font-semibold text-gray-900">
                       {currentDutyName || 'Добавьте расписание'}
                     </p>
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-sm text-gray-500">
                       {currentDutyBlock
                         ? `Смена ${currentDutyBlock.label}`
                         : 'Расскажите приложению, кто помогает семье и когда'}
                     </p>
                   </div>
                   {familyMembers.length === 0 && (
-                    <p className="mt-1 text-[9px] text-gray-500 text-center">
+                    <p className="mt-1 text-sm text-gray-500 text-center">
                       Добавьте родных и друзей, чтобы распределять заботу по очереди.
                     </p>
                   )}
                 </div>
               {/* Иллюстрация младенца */}
-              <div className="text-center">
+              <div className="text-center font-semibold text-lg">
                   <BabyIllustration
                     state={getBabyImageState()}
                     onClick={handleBabyImageClick}
                     customImage={customBabyImage}
                     dutyProgress={currentDutyProgressDisplay}
                   />
-                  <p className="font-semibold text-gray-900 text-lg">
+                  <p>
                     Неделя {babyWeeks}
                   </p>
-                </div>
                </div>
               {/* Блок истории событий */}
               <div className={isLandscape ? 'dashboard-landscape-scroll' : ''}>
@@ -1213,11 +1204,9 @@ useEffect(() => {
                     onClick={() => handleQuickAction('feeding')}
                     className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
                     >
-                      <div className="mt-2">
-                        {renderQuickActionRing('feeding', '/icons/feeding.png', 'Кормление', feedingProgress)}
-                      </div>
-                      <span className="mt-2 font-semibold text-gray-900 text-sm">Кормление</span>
-                      <span className="mt-2 text-sm font-medium text-gray-700">
+                      {renderQuickActionRing('feeding', '/icons/feeding.png', 'Кормление', feedingProgress)}
+                      <span className="mt-2 font-semibold text-gray-900">Кормление</span>
+                      <span className="text-sm font-medium text-gray-700">
                         {data?.lastFeeding
                           ? formatDuration(
                               Math.floor(
@@ -1233,11 +1222,9 @@ useEffect(() => {
                     onClick={() => handleQuickAction('diaper')}
                     className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
                     >
-                      <div className="mt-2">
-                        {renderQuickActionRing('diaper', '/icons/diaper.png', 'Смена подгузника', diaperProgress)}
-                      </div>
-                      <span className="mt-2 font-semibold text-gray-900 text-sm">Подгузник</span>
-                      <span className="mt-2 text-sm font-medium text-gray-700">
+                      {renderQuickActionRing('diaper', '/icons/diaper.png', 'Смена подгузника', diaperProgress)}
+                      <span className="mt-2 font-semibold text-gray-900">Подгузник</span>
+                      <span className="text-sm text-gray-700">
                         {data?.lastDiaper
                           ? formatDuration(
                               Math.floor(
@@ -1253,11 +1240,9 @@ useEffect(() => {
                     onClick={() => handleQuickAction('bath')}
                     className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200"
                     >
-                      <div className="mt-2">
-                        {renderQuickActionRing('bath', '/icons/bath.png', 'Купание', bathProgress)}
-                      </div>
-                      <span className="mt-2 font-semibold text-gray-900 text-sm">Купание</span>
-                      <span className="mt-2 text-sm font-medium text-gray-700">
+                      {renderQuickActionRing('bath', '/icons/bath.png', 'Купание', bathProgress)}
+                      <span className="mt-2 font-semibold text-gray-900">Купание</span>
+                      <span className="text-sm font-medium text-gray-700">
                         {data?.lastBath
                           ? formatDuration(
                               Math.floor(
@@ -1269,7 +1254,7 @@ useEffect(() => {
                       </span>
                     </button>
                   </div>
-                <div className="flex items-center justify-center mb-0.5 px-0.125 gap-2">
+                <div className="flex items-center justify-center px-0.125 gap-2">
                   {/* Кнопка графика веса слева */}
                   <button
                     onClick={() => {
@@ -1279,7 +1264,7 @@ useEffect(() => {
                     className="w-16 h-16"
                     title="График веса"
                   >
-                    <img src="/icons/wight.png" alt="График веса" className="w-16 h-16" />
+                    <img src="/icons/wight.png" alt="График веса" />
                   </button>
                   
                   {/* Основное изображение малыша */}
@@ -1306,7 +1291,7 @@ useEffect(() => {
                     className="w-16 h-16"
                     title="График роста"
                   >
-                    <img src="/icons/height.png" alt="График роста" className="w-16 h-16 object-contain cursor-pointer transition-all duration-200 active:scale-95" />
+                    <img src="/icons/height.png" alt="График роста" />
                   </button>
                 </div>
                 

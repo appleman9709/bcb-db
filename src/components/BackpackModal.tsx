@@ -57,7 +57,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
   restockPortionsPreviewText,
   restockLoading,
   restockFeedback,
-  restockFeedbackClass
+  restockFeedbackClass,
 }) => {
   if (!isOpen) {
     return null
@@ -89,11 +89,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
           <div className="px-3 pt-3 pb-1.5">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center">
-                <img
-                  src="/icons/bag.png"
-                  alt="Рюкзак"
-                  className="h-10 w-10"
-                />
+                <img src="/icons/bag.png" alt="Рюкзак" className="h-10 w-10" />
               </div>
               <div className="flex-1">
                 <h3>Рюкзак семьи</h3>
@@ -104,7 +100,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
 
           <div className="flex flex-1 flex-col gap-2.5 px-3 pb-2 pt-2.5 overflow-y-auto sm:gap-3 sm:px-4 sm:pb-3 sm:pt-3">
             <div className="grid grid-cols-2 gap-2">
-              <div className={`rounded-xl border p-2.5 ${lowOnDiapers ? "border-amber-200 bg-amber-50/70" : "border-emerald-100 bg-emerald-50/60"}`}>
+              <div className={`rounded-xl border p-2.5 ${lowOnDiapers ? 'border-amber-200 bg-amber-50/70' : 'border-emerald-100 bg-emerald-50/60'}`}>
                 <div className="text-[9px] font-semibold uppercase tracking-wide">Подгузники</div>
                 <div className="mt-1 flex items-baseline gap-1">
                   <span className="text-lg font-bold">{inventoryTotals.diapers}</span>
@@ -112,7 +108,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                 </div>
               </div>
 
-              <div className={`rounded-xl border p-2.5 ${lowOnFormula ? "border-amber-200 bg-amber-50/70" : "border-indigo-100 bg-indigo-50/60"}`}>
+              <div className={`rounded-xl border p-2.5 ${lowOnFormula ? 'border-amber-200 bg-amber-50/70' : 'border-indigo-100 bg-indigo-50/60'}`}>
                 <div className="text-[9px] font-semibold uppercase tracking-wide">Смесь</div>
                 <div className="mt-1 flex items-baseline gap-1">
                   <span className="text-lg font-bold">{displayPortionsText}</span>
@@ -143,9 +139,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                   >
                     -
                   </button>
-                  <span className="text-lg font-semibold">
-                    {portionSizeOuncesInput}
-                  </span>
+                  <span className="text-lg font-semibold">{portionSizeOuncesInput}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -159,9 +153,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                     +
                   </button>
                 </div>
-                <p className="mt-1.5 text-center text-[9px]">
-                  Выбранное значение указано в унциях.
-                </p>
+                <p className="mt-1.5 text-center text-[9px]">Выбранное значение указано в унциях.</p>
               </div>
 
               <button
@@ -178,10 +170,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
               )}
             </div>
 
-            <form
-              className="grid grid-cols-1 gap-2 rounded-xl sm:grid-cols-2 sm:gap-3"
-              onSubmit={handleRestockSubmit}
-            >
+            <form className="grid grid-cols-1 gap-2 rounded-xl sm:grid-cols-2 sm:gap-3" onSubmit={handleRestockSubmit}>
               <div className="rounded-xl border border-slate-200 bg-white p-2.5">
                 <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide">
                   <span>Подгузники</span>
@@ -200,9 +189,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                   >
                     -
                   </button>
-                  <span className="text-lg font-semibold">
-                    {restockDiapersInput || "0"}
-                  </span>
+                  <span className="text-lg font-semibold">{restockDiapersInput || '0'}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -236,9 +223,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                   >
                     -
                   </button>
-                  <span className="text-lg font-semibold">
-                    {restockGramsInput || "0"}
-                  </span>
+                  <span className="text-lg font-semibold">{restockGramsInput || '0'}</span>
                   <button
                     type="button"
                     onClick={() => {
@@ -265,7 +250,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                   disabled={restockLoading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-500 py-3 text-sm font-semibold text-white shadow transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-6"
                 >
-                  {restockLoading ? "Обработка..." : "Добавить в запасы"}
+                  {restockLoading ? 'Обработка...' : 'Добавить в запасы'}
                 </button>
 
                 {restockFeedback && (
@@ -283,12 +268,12 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
             >
               Закрыть
             </button>
-
           </div>
         </div>
-      </div>,
-      document.body
-    )
+      </div>
+    </div>,
+    document.body
+  )
 }
 
 export default BackpackModal

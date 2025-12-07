@@ -1273,7 +1273,7 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
           </div>
 
           <div className="flex w-full max-w-[240px] items-center gap-2">
-            <img src="/icons/common.png" alt="Подгузник" className="h-[30px] w-[30px] object-contain drop-shadow-sm" />
+            <img src="/icons/common.png" alt="Подгузник" className="h-[30px] w-[30px] object-contain" />
             <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-slate-200/80" title={
                 diaperStatus.hours !== null
                   ? `Прошло ${diaperStatus.hours.toFixed(1)} ч с последней смены подгузника`

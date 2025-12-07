@@ -43,7 +43,7 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
   }
 
   return (
-    <div className={`relative ${className}`}>
+    <div className="pb-4">
       {/* Полоса дежурства вокруг изображения */}
       <div className="relative w-64 h-64 mx-auto">
         {/* SVG для круговой полосы дежурства */}
