@@ -1520,7 +1520,7 @@ useEffect(() => {
             <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden animate-bounce-in">
               <div className="sticky top-0 bg-white border-b border-gray-200 px-3 py-2 rounded-t-3xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold text-gray-900">
+                  <h2 className="font-bold text-gray-900">
                     {growthChartType === 'height' ? 'График роста малыша' : 'График веса малыша'}
                   </h2>
                   <button
