@@ -49,11 +49,6 @@ export default function LoadingScreen() {
             className="w-32 h-32 object-contain animate-pulse relative z-10"
           />
         </div>
-
-        {/* Текст загрузки */}
-        <p className="text-sm text-gray-600">
-          Загружаем данные...
-        </p>
       </div>
     </div>
   )

@@ -308,7 +308,7 @@ export default function GrowthChartCard({
   const formatValue = (value: number) => value.toFixed(valuePrecision)
 
   return (
-    <div className={compact ? "space-y-2 overflow-x-hidden" : "bg-white/80 rounded-3xl p-3 shadow-sm border border-gray-100 space-y-3 iphone14-card"}>
+    <div className={compact ? "space-y-2 overflow-x-hidden" : "bg-white/80 rounded-3xl p-3 shadow-sm border border-gray-100 space-y-3"}>
       {!compact && (
         <div className="space-y-1">
           <div className="flex items-center justify-between gap-2">
@@ -499,19 +499,19 @@ export default function GrowthChartCard({
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-2xl bg-slate-50 p-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-          <label className="flex w-full flex-col text-xs font-medium text-slate-600 sm:w-auto">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3 rounded-2xl">
+        <div className="flex flex-col gap-3">
+          <label className="flex w-full flex-col text-xs font-medium text-gray-600 sm:w-auto">
             Месяц
             {babyAgeMonths !== undefined && (
-              <span className="text-[10px] text-slate-500 mb-1">
+              <span className="text-[10px] text-gray-500 mb-1">
                 Текущий возраст: {babyAgeMonths} мес
               </span>
             )}
             <select
               value={selectedMonth}
               onChange={event => setSelectedMonth(Number.parseInt(event.target.value, 10))}
-              className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:w-36 sm:text-base"
+              className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:w-36 sm:text-base"
             >
               {MONTH_OPTIONS.map(option => (
                 <option key={option.value} value={option.value}>
@@ -521,7 +521,7 @@ export default function GrowthChartCard({
             </select>
           </label>
 
-          <label className="flex w-full flex-col text-xs font-medium text-slate-600 sm:w-auto">
+          <label className="flex w-full flex-col text-xs font-medium text-gray-600 sm:w-auto">
             Значение ({unit})
             <input
               type="number"
@@ -530,13 +530,13 @@ export default function GrowthChartCard({
               value={inputValue}
               onChange={event => setInputValue(event.target.value)}
               placeholder="Введите число"
-              className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-base text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:w-40"
+              className="mt-1 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-base text-gray-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 sm:w-40"
             />
           </label>
 
           <button
             type="submit"
-            className="inline-flex w-full items-center justify-center rounded-3xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:ring-offset-1 sm:ml-auto sm:w-auto sm:text-base"
+            className="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white transition"
           >
             Сохранить
           </button>
@@ -546,7 +546,7 @@ export default function GrowthChartCard({
 
       {sortedMeasurements.length > 0 ? (
         <div className="space-y-2 text-xs">
-          <p className="font-semibold text-slate-700">Ваши отметки:</p>
+          <p className="font-semibold text-gray-700">Ваши отметки:</p>
           <ul className="space-y-1">
             {sortedMeasurements.map(measurement => (
               <li
@@ -568,7 +568,7 @@ export default function GrowthChartCard({
           </ul>
         </div>
       ) : (
-        <p className="text-xs leading-relaxed text-slate-500">
+        <p className="text-xs leading-relaxed text-gray-500">
           Добавляйте отметки раз в месяц, чтобы отслеживать развитие малыша и сравнивать его с рекомендованной шкалой
           ВОЗ.
         </p>

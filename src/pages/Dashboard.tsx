@@ -1,6 +1,7 @@
 ﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import QuickActionModal from '../components/QuickActionModal'
 import LoadingScreen from '../components/LoadingScreen'
+import Modal from '../components/Modal'
 import BabyIllustration from '../components/BabyIllustration'
 import BottomNavigation from '../components/BottomNavigation'
 import BackgroundElements from '../components/BackgroundElements'
@@ -1154,6 +1155,7 @@ useEffect(() => {
             />
           ) : activeTab === 'home' && (
             <div className={`${isLandscape ? 'dashboard-landscape-grid pl-[128px]' : ''}`}>
+              <div className={isLandscape ? 'space-y-3' : 'space-y-2'}>
                 {/* Дежурство */}
                 <div
                   className=""
@@ -1167,7 +1169,7 @@ useEffect(() => {
                     }
                   }}
                 >
-                  <div className="text-center space-y-0.5">
+                  <div className="text-center">
                     <p className="text-sm font-semibold uppercase tracking-wide text-sky-500">Сейчас на подхвате</p>
                     <p className="font-semibold text-gray-900">
                       {currentDutyName || 'Добавьте расписание'}
@@ -1196,6 +1198,7 @@ useEffect(() => {
                     Неделя {babyWeeks}
                   </p>
                </div>
+              </div>
               {/* Блок истории событий */}
               <div className={isLandscape ? 'dashboard-landscape-scroll' : ''}>
                 {/* Карточки активности */}
@@ -1308,7 +1311,7 @@ useEffect(() => {
                           setWeeklyStatsChartType('feedings')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-blue-50 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
+                        className="flex items-center justify-center gap-3 flex-1 bg-blue-50 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-xs font-semibold">Кормление</span>
@@ -1320,7 +1323,7 @@ useEffect(() => {
                           setWeeklyStatsChartType('diapers')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-green-50 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
+                        className="flex items-center justify-center gap-3 flex-1 bg-green-50 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-xs font-semibold">Подгузник</span>
@@ -1332,7 +1335,7 @@ useEffect(() => {
                           setWeeklyStatsChartType('poo')
                           setWeeklyStatsChartOpen(true)
                         }}
-                        className="flex items-center justify-center gap-3 mb-4 flex-1 bg-amber-50 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
+                        className="flex items-center justify-center gap-3 flex-1 bg-amber-50 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
                       >
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-xs font-semibold">Покакал</span>
@@ -1340,16 +1343,13 @@ useEffect(() => {
                       </button>
                     </div>
                     
-                    <div className="text-center mb-3">
-                      <h3 className="text-lg font-bold text-gray-900">
-                        Недавние события
-                      </h3>
-                    </div>
+                    <h3 className="text-center text-lg font-bold text-gray-900">
+                      Недавние события
+                    </h3>
                     
                     {/* Статистика за день */}
                     {!recentEventsLoading && recentEvents.length > 0 && (
-                      <div className="mb-4 px-2">
-                        <div className="flex items-center justify-center gap-2 flex-wrap text-xs text-gray-600">
+                        <div className="m-4 flex items-center justify-center gap-2 flex-wrap text-xs text-gray-600">
                           {(() => {
                             const today = new Date().toDateString()
                             const todaysEvents = recentEvents.filter(event => {
@@ -1402,7 +1402,6 @@ useEffect(() => {
                             )
                           })()}
                         </div>
-                      </div>
                     )}
                     
                     {recentEventsLoading ? (
@@ -1515,55 +1514,47 @@ useEffect(() => {
         />
 
         {/* Модальное окно графика роста и веса */}
-        {growthChartModalOpen && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 px-1 py-2">
-            <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto overflow-x-hidden animate-bounce-in">
-              <div className="sticky top-0 bg-white border-b border-gray-200 px-3 py-2 rounded-t-3xl">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-bold text-gray-900">
-                    {growthChartType === 'height' ? 'График роста малыша' : 'График веса малыша'}
-                  </h2>
-                  <button
-                    onClick={() => setGrowthChartModalOpen(false)}
-                    className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              
-              <div className="px-2 py-3">
-                {growthChartType === 'height' ? (
-                  <GrowthChartCard
-                    measurementType="height"
-                    title="Рост малыша"
-                    unit="см"
-                    description="Отслеживайте рост малыша и сравнивайте с нормативами ВОЗ"
-                    whoCurves={WHO_HEIGHT_CURVES}
-                    yAxisLabel="Рост"
-                    valuePrecision={1}
-                    babyAgeMonths={data ? Math.floor((Date.now() - new Date(settings.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30.44)) : 0}
-                    compact={true}
-                  />
-                ) : (
-                  <GrowthChartCard
-                    measurementType="weight"
-                    title="Вес малыша"
-                    unit="кг"
-                    description="Отслеживайте вес малыша и сравнивайте с нормативами ВОЗ"
-                    whoCurves={WHO_WEIGHT_CURVES}
-                    yAxisLabel="Вес"
-                    valuePrecision={2}
-                    babyAgeMonths={data ? Math.floor((Date.now() - new Date(settings.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30.44)) : 0}
-                    compact={true}
-                  />
-                )}
-              </div>
+        <Modal
+          isOpen={growthChartModalOpen}
+          onClose={() => setGrowthChartModalOpen(false)}
+          size="lg"
+        >
+          <div className="rounded-3xl max-h-[80vh] overflow-y-auto">
+            <div className="sticky top-0 border-b border-gray-200 px-3 py-2 rounded-t-3xl">
+              <h2 className="font-bold text-gray-900">
+                {growthChartType === 'height' ? 'График роста малыша' : 'График веса малыша'}
+              </h2>
+            </div>
+
+            <div className="py-3">
+              {growthChartType === 'height' ? (
+                <GrowthChartCard
+                  measurementType="height"
+                  title="Рост малыша"
+                  unit="см"
+                  description="Отслеживайте рост малыша и сравнивайте с нормативами ВОЗ"
+                  whoCurves={WHO_HEIGHT_CURVES}
+                  yAxisLabel="Рост"
+                  valuePrecision={1}
+                  babyAgeMonths={data ? Math.floor((Date.now() - new Date(settings.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30.44)) : 0}
+                  compact={true}
+                />
+              ) : (
+                <GrowthChartCard
+                  measurementType="weight"
+                  title="Вес малыша"
+                  unit="кг"
+                  description="Отслеживайте вес малыша и сравнивайте с нормативами ВОЗ"
+                  whoCurves={WHO_WEIGHT_CURVES}
+                  yAxisLabel="Вес"
+                  valuePrecision={2}
+                  babyAgeMonths={data ? Math.floor((Date.now() - new Date(settings.birthDate).getTime()) / (1000 * 60 * 60 * 24 * 30.44)) : 0}
+                  compact={true}
+                />
+              )}
             </div>
           </div>
-        )}
+          </Modal>
 
         {/* Модальное окно графика статистики по неделям */}
         {weeklyStatsChartOpen && (
