@@ -1,5 +1,4 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
-
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
@@ -118,31 +117,7 @@
 }
 
 @layer components {
-  /* Mobile emoji and icon improvements */
-  .mobile-emoji {
-    font-size: 1.2rem;
-    line-height: 1;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
-  }
-  
-  .modern-slider-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, 
-      rgba(59, 130, 246, 0.8) 0%, 
-      rgba(16, 185, 129, 0.8) 50%, 
-      rgba(249, 115, 22, 0.8) 100%);
-    opacity: 0;
-    transition: none;
-  }
-  
+   
   /* Горизонтальная компоновка дашборда */
   .dashboard-landscape-grid {
     display: grid;
@@ -201,7 +176,7 @@
     top: 57%;
     left: 0;
     right: 0;
-    height: 8px;
+    height: 16px;
     background: linear-gradient(90deg, #e5e7eb 0%, #f3f4f6 100%);
     border-radius: 24px;
     transform: translateY(-50%);
@@ -215,20 +190,7 @@
     position: relative;
     overflow: hidden;
   }
-  
-  .slider-progress::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, 
-      rgba(255, 255, 255, 0.3) 0%, 
-      rgba(255, 255, 255, 0.1) 50%, 
-      rgba(255, 255, 255, 0.3) 100%);
-  }
-    
+      
   .feeding-progress {
     background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
   }
@@ -243,13 +205,15 @@
   
   /* Современный слайдер */
   .modern-slider {
-    appearance: none !important;
-    background: transparent !important;
-    margin: 0 !important;
-    width: 100% !important;
+    appearance: none;
+    background: transparent;
+    margin: 0;
+    width: 100%;
     cursor: pointer;
     position: relative;
     z-index: 2;
+    height: 64px;
+    padding: 28px 0;
   }
   
   .modern-slider::-webkit-slider-track {
@@ -275,32 +239,7 @@
     transform: translateY(25%) !important;
     position: relative;
   }
-  
-  /* Специальные стили для разных типов слайдеров */
-  .feeding-slider::-webkit-slider-thumb {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
-    box-shadow: 
-      0 4px 12px rgba(59, 130, 246, 0.3),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(59, 130, 246, 0.2) !important;
-  }
-  
-  .diaper-slider::-webkit-slider-thumb {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-    box-shadow: 
-      0 4px 12px rgba(16, 185, 129, 0.3),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(16, 185, 129, 0.2) !important;
-  }
-  
-  .bath-slider::-webkit-slider-thumb {
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-    box-shadow: 
-      0 4px 12px rgba(249, 115, 22, 0.3),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 0 2px rgba(249, 115, 22, 0.2) !important;
-  }
-  
+    
   .label-value {
     font-size: 12px;
     font-weight: 600;
@@ -332,52 +271,7 @@
   .value-unit {
     font-size: 10px;
   }
-
-  .slider-labels {
-    margin-top: 4px;
-    gap: 2px;
-  }
-
-  .slider-label {
-    padding: 4px;
-    min-width: 28px;
-    min-height: 28px;
-  }
-
-  .label-value {
-    font-size: 10px;
-  }
-
-  .label-text {
-    font-size: 8px;
-  }
-
-  /* Улучшенная обратная связь для touch */
-  .modern-slider:active::-webkit-slider-thumb {
-    transform: scale(1.2) !important;
-  }
-
-
-  .slider-label:active {
-    background: rgba(59, 130, 246, 0.1);
-    transform: scale(0.95);
-  }
-
-  /* Увеличенные области касания */
-  .modern-slider {
-    height: 64px !important;
-    padding: 28px 0 !important;
-  }
-
-  .slider-track {
-    height: 12px;
-  }
-  
-  /* Анимация пульсации для активных значений */
-  .value-number {
-    transition: none;
-  }
-      
+        
   .animate-bounce-in {
     animation: bounceIn 0.6s ease-out;
   }
@@ -406,20 +300,7 @@
   filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.8)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
 }
 
-/* Оптимизация поля ввода даты рождения для iPhone */
-.date-input-container {
-  position: relative;
-  width: 100%;
-}
-
 .date-input-container input[type="date"] {
-  /* iOS оптимизации */
-  -webkit-appearance: none;
-  appearance: none;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  touch-action: manipulation;
-  
   /* Улучшенная область касания */
   min-height: 60px;
   padding: 18px 16px;
@@ -472,7 +353,6 @@
 
 /* CSS-переменные для оптимизации модальных окон */
 :root {
-
   --modal-content-max-height: 90vh;
   --modal-content-max-height-dvh: 90dvh;
   --modal-overlay-position: fixed;
@@ -489,13 +369,6 @@
   bottom: var(--modal-overlay-inset);
 }
 
-
-.modal-overlay {
-  width: 100vw;
-  height: 100dvh;
-}
-
-
 /* Стили для всех модальных окон - оптимизированная версия */
 [role="dialog"],
 .modal-overlay,
@@ -509,26 +382,6 @@
 .modal-overlay {
   padding: 1rem !important;
   padding-bottom: 2rem !important; /* Дополнительный отступ снизу */
-}
-
-.modal-content {
-  max-height: 85dvh !important;
-  margin-bottom: 1rem !important;
-  z-index: 40;
-}
-/* Специальные стили для очень маленьких экранов */
-.quick-action-modal {
-  max-height: 98dvh;
-}
-
-/* Убираем прокрутку для QuickActionModal на мобильных устройствах */
-.quick-action-modal .modal-content > div {
-  overflow-y: visible !important;
-}
-
-.modal-content > * {
-  max-width: 100% !important;
-  overflow-x: hidden !important;
 }
 
 /* Горизонтальная адаптивность для быстрых действий */
@@ -704,8 +557,6 @@ canvas {
     background-image: none;
     backdrop-filter: blur(32px) saturate(1.1);
     -webkit-backdrop-filter: blur(32px) saturate(1.1);
-      
-    animation: liquidGlassBreathingSmall 6s ease-in-out infinite;
   }
 
   .liquid-glass-tab-button {
@@ -741,8 +592,6 @@ canvas {
     background-image: none;
     box-shadow: none;
     border: none;
-    
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .liquid-glass-tab-icon {
@@ -756,11 +605,6 @@ canvas {
     font-size: 32px;
   }
   
-  .liquid-glass-tab-icon img {
-    transform: none;
-    transition: transform 0.2s ease;
-  }
-
   @media (orientation: landscape) {
     .liquid-glass-tab-bar {
       top: 50%;
@@ -847,37 +691,6 @@ canvas {
     font-weight: 600;
   }
 
-
-  /* Press эффекты */
-  .liquid-glass-tab-button:active::before {
-    /* Убираем подложку у press для неактивных кнопок */
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: none;
-    border: none;
-    transform: scale(0.92);
-  }
-
-  /* Активная вкладка в состоянии :active - сохраняем фон */
-  .liquid-glass-tab-button.liquid-glass-tab-active:active::before {
-    background: rgba(59, 130, 246, 0.15) !important;
-    backdrop-filter: blur(32px) !important;
-    -webkit-backdrop-filter: blur(32px) !important;
-    box-shadow: 
-      0 14px 28px rgba(59, 130, 246, 0.30),
-      0 40px 80px rgba(59, 130, 246, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.18),
-      0 0 0 1px rgba(59, 130, 246, 0.35) !important;
-    border: none !important;
-    transform: scale(0.95);
-  }
-
-    .liquid-glass-tab-button:active .liquid-glass-tab-label {
-      transform: scale(0.95);
-    }
-    
     /* Активная вкладка в состоянии :active на touch - сохраняем фон */
     .liquid-glass-tab-button.liquid-glass-tab-active:active::before {
       background: rgba(59, 130, 246, 0.15) !important;
@@ -986,7 +799,6 @@ canvas {
   inset: 0;
   border-radius: 50px;
   pointer-events: none;
-
   background: linear-gradient(
     180deg,
     rgba(255,255,255,0.55) 0%,
@@ -1030,24 +842,12 @@ canvas {
   bottom: 9rem;
   left: 50%;
   transform: translateX(-50%);
-
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 18px;
   max-width: 360px;
 }
-
-  .tamagotchi-inventory-icon {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(0, 0, 0, 0.6);
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-  }
 
   .tamagotchi-inventory-icon img {
     width: 46px;
@@ -1109,6 +909,7 @@ canvas {
       transform: translateY(-1px) rotate(-0.2deg);
     }
   }
+
   /* Упрощенный псевдоэлемент для дополнительного блеска (без анимации) */
   .liquid-glass-tab-container::before {
     content: '';

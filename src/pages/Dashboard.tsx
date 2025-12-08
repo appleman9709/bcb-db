@@ -103,8 +103,8 @@ export default function Dashboard() {
   const triggeredRef = useRef(false)
   const SWIPE_THRESHOLD = 70
 
-  const handleSwipeStart = (e) => {
-    if (clockRef.current && clockRef.current.contains(e.target)) {
+  const handleSwipeStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (clockRef.current && e.target instanceof Node && clockRef.current.contains(e.target)) {
       swipeActiveRef.current = true
       startYRef.current = e.touches[0].clientY
       triggeredRef.current = false
@@ -113,7 +113,7 @@ export default function Dashboard() {
     }
   }
 
-  const handleSwipeMove = (e) => {
+  const handleSwipeMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (!swipeActiveRef.current || triggeredRef.current) return
 
     const currentY = e.touches[0].clientY
@@ -201,6 +201,33 @@ export default function Dashboard() {
     () => calculateAgeInWeeks(settings.birthDate, currentTime),
     [settings.birthDate, currentTime]
   )
+
+// Возраст малыша и его текущее состояние для иллюстрации
+const babyAgeMonths = useMemo(() => calculateAgeInMonths(settings.birthDate), [settings.birthDate])
+
+const babyImageState = useMemo(() => {
+  if (!data) return 'normal'
+
+  const now = Date.now()
+
+  const feedingOverdue =
+    !!data.lastFeeding &&
+    now - new Date(data.lastFeeding.timestamp).getTime() > settings.feedingInterval * 60 * 60 * 1000
+
+  const diaperOverdue =
+    !!data.lastDiaper &&
+    now - new Date(data.lastDiaper.timestamp).getTime() > settings.diaperInterval * 60 * 60 * 1000
+
+  const bathOverdue =
+    !!data.lastBath &&
+    now - new Date(data.lastBath.timestamp).getTime() > settings.bathInterval * 24 * 60 * 60 * 1000
+
+  if (feedingOverdue) return 'hungry'
+  if (diaperOverdue) return 'diaper'
+  if (bathOverdue) return 'bath'
+
+  return 'normal'
+}, [data, settings.bathInterval, settings.diaperInterval, settings.feedingInterval])
 
 // Отслеживаем горизонтальную ориентацию, чтобы перестраивать макет
 useEffect(() => {
@@ -509,9 +536,7 @@ useEffect(() => {
 
   // Функция для определения действия при клике на изображение малыша
   const handleBabyImageClick = () => {
-    const babyState = getBabyImageState()
-    
-    switch (babyState) {
+    switch (babyImageState) {
       case 'hungry':
         handleQuickAction('feeding')
         break
@@ -522,14 +547,11 @@ useEffect(() => {
         handleQuickAction('bath')
         break
       default:
-        // Если все в порядке (normal), предлагаем загрузить изображение или сбросить его
         if (customBabyImage) {
-          // Если есть пользовательское изображение, предлагаем сбросить его
           if (confirm('Сбросить пользовательское изображение малыша?')) {
             handleImageReset()
           }
         } else {
-          // Если нет пользовательского изображения, предлагаем загрузить его
           handleImageUpload()
         }
         break
@@ -828,7 +850,7 @@ useEffect(() => {
     } finally {
       setIsRefreshing(false)
     }
-  }, [fetchData, activeTab])
+  }, [fetchData])
 
   const handleSettingChange = <K extends keyof SettingsState>(key: K, value: SettingsState[K]) => {
     setSettings(prev => ({ ...prev, [key]: value }))
@@ -845,7 +867,7 @@ useEffect(() => {
         diaper_interval: settings.diaperInterval,
         bath_reminder_period: settings.bathInterval,
         baby_birth_date: settings.birthDate,
-        baby_age_months: calculateAgeInMonths(settings.birthDate),
+        baby_age_months: babyAgeMonths,
         wake_on_activity_enabled: settings.wakeOnActivityEnabled
       })
 
@@ -880,32 +902,6 @@ useEffect(() => {
 
   const greetingName = memberDisplayName?.split(' ')[0] || memberDisplayName || 'родитель'
 
-  // Функция для определения состояния малыша на основе времени последних действий
-  const getBabyImageState = () => {
-    if (!data) return 'normal'
-
-    const now = Date.now()
-    
-    // Проверяем кормление
-    const feedingOverdue = data.lastFeeding && 
-      (now - new Date(data.lastFeeding.timestamp).getTime()) > (settings.feedingInterval * 60 * 60 * 1000)
-    
-    // Проверяем подгузник
-    const diaperOverdue = data.lastDiaper && 
-      (now - new Date(data.lastDiaper.timestamp).getTime()) > (settings.diaperInterval * 60 * 60 * 1000)
-    
-    // Проверяем купание
-    const bathOverdue = data.lastBath && 
-      (now - new Date(data.lastBath.timestamp).getTime()) > (settings.bathInterval * 24 * 60 * 60 * 1000)
-
-    // Приоритет: кормление > подгузник > купание
-    if (feedingOverdue) return 'hungry'
-    if (diaperOverdue) return 'diaper'
-    if (bathOverdue) return 'bath'
-    
-    return 'normal'
-  }
-
   useEffect(() => {
     if (!member || !family) {
       return
@@ -913,9 +909,6 @@ useEffect(() => {
 
     fetchData()
   }, [member, family, fetchData])
-
-  useEffect(() => {
-  }, [activeTab, member, family])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -1189,7 +1182,7 @@ useEffect(() => {
               {/* Иллюстрация младенца */}
               <div className="text-center font-semibold text-lg">
                   <BabyIllustration
-                    state={getBabyImageState()}
+                    state={babyImageState}
                     onClick={handleBabyImageClick}
                     customImage={customBabyImage}
                     dutyProgress={currentDutyProgressDisplay}
