@@ -183,13 +183,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
       {/* Push уведомления */}
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
-        <h2 className="text-base font-semibold text-gray-900 text-center mb-2">🔔 Push-уведомления</h2>
+        <h2 className="text-base font-semibold text-gray-900 text-center">🔔 Push-уведомления</h2>
         <PushNotificationManager />
       </div>
 
       {/* Отправить уведомление */}
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
-        <h2 className="text-base font-semibold text-gray-900 text-center mb-2">📤 Отправить уведомление</h2>
+        <h2 className="font-semibold text-gray-900 text-center">📤 Отправить уведомление</h2>
         <NotificationSender />
       </div>
 
@@ -206,7 +206,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
           </div>
           <button
             onClick={onSignOut}
-            className="w-full mt-2 px-3 py-2 bg-red-500 text-white rounded-3xl font-medium text-xs"
+            className="w-full mt-2 px-3 py-2 bg-red-500 text-white rounded-xl font-medium text-xs"
           >
           Выйти из семьи
           </button>
@@ -215,13 +215,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       {/* Сохранить настройки */}
       <button
         onClick={onSaveSettings}
-        className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 px-4 rounded-3xl shadow-lg text-sm"
+        className="w-full text-white font-semibold bg-green-500 py-4 px-4 rounded-2xl text-sm"
       >
-        💾 Сохранить настройки
+        Сохранить настройки
       </button>
 
       {/* Отступ для нижней навигации */}
-      <div className="h-20"></div>
+      <div className="h-28"></div>
     </div>
   )
 }

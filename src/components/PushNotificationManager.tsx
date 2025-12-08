@@ -111,7 +111,7 @@ export default function PushNotificationManager() {
           <button
             onClick={handleSubscribe}
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 px-4 rounded-3xl shadow-lg text-sm"
+            className="w-full bg-blue-500 text-white font-semibold py-4 px-4 rounded-2xl shadow-lg text-sm"
           >
             {isLoading ? 'Подписка...' : '🔔 Подписаться на уведомления'}
           </button>
@@ -119,7 +119,7 @@ export default function PushNotificationManager() {
           <button
             onClick={handleUnsubscribe}
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 px-4 rounded-3xl shadow-lg text-sm"
+            className="w-full bg-purple-600 text-white font-semibold py-4 px-4 rounded-2xl shadow-lg text-sm"
           >
             {isLoading ? 'Отписка...' : '🔕 Отписаться от уведомлений'}
           </button>

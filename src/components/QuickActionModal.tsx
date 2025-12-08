@@ -408,7 +408,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                         key={option.label}
                         type="button"
                         onClick={() => applyQuickOffset(option.minutes)}
-                        className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
+                        className={`rounded-3xl px-2.5 py-1 text-[14px] font-medium transition-colors ${
                           active
                             ? 'bg-blue-600 text-white shadow-sm'
                             : 'text-gray-600'
@@ -425,7 +425,6 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
            </div>
 
-        
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               {activityTypes.map((activity) => (
@@ -549,7 +548,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                     key={option.label}
                     type="button"
                     onClick={() => applyQuickOffset(option.minutes)}
-                    className={`rounded-3xl px-2.5 py-1 text-[11px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-xs ${
+                    className={`rounded-3xl px-2.5 py-1 text-[14px] font-medium transition-colors ${
                       active
                         ? 'bg-blue-600 text-white shadow-sm'
                         : 'text-gray-600'

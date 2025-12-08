@@ -1205,7 +1205,7 @@ useEffect(() => {
                     className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
                     >
                       {renderQuickActionRing('feeding', '/icons/feeding.png', 'Кормление', feedingProgress)}
-                      <span className="mt-2 font-semibold text-gray-900">Кормление</span>
+                      <p className="mt-2 font-semibold text-gray-900">Кормление</p>
                       <span className="text-sm font-medium text-gray-700">
                         {data?.lastFeeding
                           ? formatDuration(
@@ -1216,6 +1216,7 @@ useEffect(() => {
                             )
                           : 'Нет данных'}
                       </span>
+                      <p className="text-sm font-medium text-gray-700">назад</p>
                     </button>
   
                     <button
@@ -1223,7 +1224,7 @@ useEffect(() => {
                     className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
                     >
                       {renderQuickActionRing('diaper', '/icons/diaper.png', 'Смена подгузника', diaperProgress)}
-                      <span className="mt-2 font-semibold text-gray-900">Подгузник</span>
+                      <p className="mt-2 font-semibold text-gray-900">Подгузник</p>
                       <span className="text-sm text-gray-700">
                         {data?.lastDiaper
                           ? formatDuration(
@@ -1234,6 +1235,7 @@ useEffect(() => {
                             )
                           : 'Нет данных'}
                       </span>
+                      <p className="text-sm font-medium text-gray-700">назад</p>
                     </button>
   
                     <button
@@ -1241,7 +1243,7 @@ useEffect(() => {
                     className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200"
                     >
                       {renderQuickActionRing('bath', '/icons/bath.png', 'Купание', bathProgress)}
-                      <span className="mt-2 font-semibold text-gray-900">Купание</span>
+                      <p className="mt-2 font-semibold text-gray-900">Купание</p>
                       <span className="text-sm font-medium text-gray-700">
                         {data?.lastBath
                           ? formatDuration(
@@ -1252,9 +1254,10 @@ useEffect(() => {
                             )
                           : 'Нет данных'}
                       </span>
+                      <p className="text-sm font-medium text-gray-700">назад</p>
                     </button>
                   </div>
-                <div className="flex items-center justify-center px-0.125 gap-2">
+                <div className="flex items-center justify-center gap-2">
                   {/* Кнопка графика веса слева */}
                   <button
                     onClick={() => {

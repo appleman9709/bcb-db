@@ -148,7 +148,7 @@ export default function NotificationSender() {
         <button
           onClick={handleSend}
           disabled={isLoading || !title.trim() || !body.trim()}
-          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-4 px-4 rounded-3xl shadow-lg text-sm"
+          className="w-full bg-blue-500 text-white font-semibold py-4 px-4 rounded-2xl shadow-lg text-sm"
         >
           {isLoading ? 'Отправка...' : '📤 Отправить уведомление'}
         </button>
