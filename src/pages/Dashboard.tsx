@@ -599,7 +599,7 @@ useEffect(() => {
 
     return (
       <div className="relative w-[98px] h-[98px]">
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+        <svg className="absolute inset-0 w-full" viewBox="0 0 100 100">
           <defs>
             <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor={start} />
@@ -1131,7 +1131,7 @@ useEffect(() => {
       </div>
       
       <div className="relative flex flex-col h-full z-10">
-        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-4 pb-16'} ${
+        <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-1 pb-16'} ${
           // Оставляем прокрутку только для settings или когда открыты недавние события на home
           activeTab === 'settings' ? 'overflow-y-auto overflow-x-hidden' : 
           (activeTab === 'home' && recentEventsExpanded) ? 'overflow-y-auto overflow-x-hidden' : 
@@ -1205,7 +1205,7 @@ useEffect(() => {
               <div className="flex flex-wrap gap-2 py-4">
                   <button
                     onClick={() => handleQuickAction('feeding')}
-                    className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
+                    className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all"
                     >
                       {renderQuickActionRing('feeding', '/icons/feeding.png', 'Кормление', feedingProgress)}
                       <p className="mt-2 font-semibold text-gray-900">Кормление</p>
@@ -1224,7 +1224,7 @@ useEffect(() => {
   
                     <button
                     onClick={() => handleQuickAction('diaper')}
-                    className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all duration-200"
+                    className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all"
                     >
                       {renderQuickActionRing('diaper', '/icons/diaper.png', 'Смена подгузника', diaperProgress)}
                       <p className="mt-2 font-semibold text-gray-900">Подгузник</p>

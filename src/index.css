@@ -243,11 +243,8 @@
   
   /* Современный слайдер */
   .modern-slider {
-    -webkit-appearance: none !important;
     appearance: none !important;
     background: transparent !important;
-    height: 48px !important;
-    padding: 20px 0 !important;
     margin: 0 !important;
     width: 100% !important;
     cursor: pointer;
@@ -264,7 +261,6 @@
   }
   
   .modern-slider::-webkit-slider-thumb {
-    -webkit-appearance: none !important;
     appearance: none !important;
     height: 32px !important;
     width: 32px !important;
@@ -316,10 +312,6 @@
     gap: 8px;
     margin-bottom: 12px;
     display: flex;
-  }
-
-  .slider-description {
-    font-size: 10px;
   }
 
   .slider-value-badge {
@@ -379,70 +371,6 @@
 
   .slider-track {
     height: 12px;
-  }
-  
-  .slider-label::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(59, 130, 246, 0.2);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.3s ease, height 0.3s ease;
-  }
-  
-  .slider-label:active::before {
-    width: 100px;
-    height: 100px;
-  }
-  
-  /* Эффект свечения для активных слайдеров */
-  .modern-slider-card:focus-within {
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-  }
-  
-  .modern-slider-card:focus-within::before {
-    opacity: 1;
-  }
-  
-  
-  .modern-slider-card:focus-within {
-    transform: none;
-  }
-      
-  /* Анимация появления карточек с задержкой */
-  .modern-slider-card:nth-child(1) {
-    animation-delay: 0.1s;
-  }
-  
-  .modern-slider-card:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-  
-  .modern-slider-card:nth-child(3) {
-    animation-delay: 0.3s;
-  }
-  
-  /* Эффект параллакса для фона */
-  .modern-slider-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-    
-  /* Эффект магнитного притяжения для меток */
-  .slider-label {
-    transition: none;
   }
   
   /* Анимация пульсации для активных значений */

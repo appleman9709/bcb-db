@@ -62,7 +62,7 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
             r="88"
             fill="none"
             stroke="#e5e7eb"
-            strokeWidth="6"
+            strokeWidth="1"
           />
           {/* Прогресс полосы */}
           <circle
@@ -71,7 +71,7 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
             r="88"
             fill="none"
             stroke="url(#dutyGradient)"
-            strokeWidth="6"
+            strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={`${2 * Math.PI * 88}`}
             strokeDashoffset={`${2 * Math.PI * 88 * (1 - dutyProgress / 100)}`}
