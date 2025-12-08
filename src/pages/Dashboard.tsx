@@ -1129,7 +1129,7 @@ useEffect(() => {
         </p>
       </div>
       
-      <div className="relative flex flex-col h-full">
+      <div className="relative flex flex-col h-full z-10">
         <div className={`flex-1 ${activeTab === 'tetris' ? '' : 'px-4 py-4 pb-16'} ${
           // Оставляем прокрутку только для settings или когда открыты недавние события на home
           activeTab === 'settings' ? 'overflow-y-auto overflow-x-hidden' : 
