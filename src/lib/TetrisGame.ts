@@ -130,7 +130,7 @@ export class MobileSudokuTetris {
                     [0, 1, 1],
                     [1, 1, 0]
                 ],
-                color: '#22C55E', // Зелёный (классический цвет S)
+                color: '#6D28D9', // Зелёный (классический цвет S)
                 size: 3
             },
             {
@@ -266,13 +266,6 @@ export class MobileSudokuTetris {
                 ],
                 color: '#14B8A6', // Бирюзовый
                 size: 3
-            },
-            {
-                id: 'LONG4',
-                name: 'Длинная 4',
-                shape: [[1, 1, 1, 1]],
-                color: '#F59E0B', // Янтарный (темнее)
-                size: 4
             }
         ];
         
