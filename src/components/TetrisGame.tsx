@@ -60,12 +60,13 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
   return (
     <div className="game-container">
       <header className="game-header">
+          <div className="grid grid-cols-2 items-center">
           <div className="flex items-center gap-2">
             <img
               src="/new.png"
               id="newGameBtn"
               className="game-control-btn"
-              style={{ width: 34, height: 34, marginLeft: 8, cursor: 'pointer' }}
+              style={{ width: 48, height: 48, marginLeft: 8, cursor: 'pointer' }}
               title="Новая игра"
               alt="Новая игра"
             />
@@ -73,17 +74,20 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
               src="/update.png"
               id="undoBtn"
               className="game-control-btn"
-              style={{ width: 34, height: 34, marginLeft: 8, cursor: 'pointer' }}
+              style={{ width: 48, height: 48, marginLeft: 8, cursor: 'pointer' }}
               title="Отменить ход"
               alt="Отменить ход"
             />
-            <div className="level-display text-[#f5865e] font-bold text-sm" title="Уровень">
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="level-display text-[#f5865e] font-bold" title="Уровень">
               Ур. <span id="levelDisplay">1</span>
             </div>
             
-            <div className="record-display text-[#f5865e] font-bold text-sm" title="Рекорд">
+            <div className="record-display text-[#f5865e] font-bold" title="Рекорд">
               Рекорд: <span id="record">0</span>
             </div>
+          </div>
           </div>
           <div className="score-section">
           <div className="current-score" id="currentScore">

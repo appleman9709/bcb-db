@@ -60,7 +60,6 @@ export default function TetrisPage() {
 
   return (
     <div className="h-full w-full flex flex-col">
-      
       {/* Игра Тетрис */}
       <div className="flex-1 relative pb-20">
         <TetrisGame
