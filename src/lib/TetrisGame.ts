@@ -29,7 +29,7 @@ export class MobileSudokuTetris {
         console.log('Контейнер фигур найден:', this.piecesContainer);
         
         this.BOARD_SIZE = 9;
-        this.CELL_SIZE = 38; // Адаптивный размер для мобильных устройств
+        this.CELL_SIZE = 40; // Адаптивный размер для мобильных устройств
         
         // Устанавливаем размер canvas
         this.canvas.width = this.BOARD_SIZE * this.CELL_SIZE;
@@ -639,8 +639,8 @@ export class MobileSudokuTetris {
             const maxDimension = Math.max(pieceWidth, pieceHeight);
             
             // Размер клетки 75% от размера на игровом поле (27px)
-            const cellSize = this.CELL_SIZE * 0.65;
-            const gap = 2; // Зазор между клетками
+            const cellSize = this.CELL_SIZE * 0.6;
+            const gap = 1; // Зазор между клетками
             
             // Рассчитываем размер canvas с учетом зазоров
             const canvasWidth = pieceWidth * cellSize + (pieceWidth - 1) * gap;
@@ -802,7 +802,7 @@ export class MobileSudokuTetris {
         const baseColor = piece.color || '#3BA3FF';
         
         // Межблочный зазор 2px согласно спецификации
-        const gap = 2;
+        const gap = 1;
         
         for (let y = 0; y < piece.shape.length; y++) {
             for (let x = 0; x < piece.shape[y].length; x++) {
@@ -817,7 +817,7 @@ export class MobileSudokuTetris {
     
     // Новый метод для отрисовки современной клетки согласно спецификации
     drawModernCell(ctx, x, y, size, baseColor) {
-        const radius = 6; // Скругление 8px согласно спецификации
+        const radius = 2; // Скругление 8px согласно спецификации
         const padding = 1;
         
         ctx.save();
@@ -858,7 +858,7 @@ export class MobileSudokuTetris {
     
     // Метод для отрисовки клеток фигур в лотке с плоским дизайном + "soft 3D" эффектом
     drawPieceCell(ctx, x, y, size, baseColor) {
-        const radius = 6; // Скругление 8px согласно спецификации
+        const radius = 2; // Скругление 8px согласно спецификации
         const padding = 1;
         
         ctx.save();
@@ -945,7 +945,7 @@ export class MobileSudokuTetris {
     
     // Метод для отрисовки предварительного просмотра согласно спецификации
     drawModernCellPreview(ctx, x, y, size, baseColor) {
-        const radius = 6; // Скругление 8px согласно спецификации
+        const radius = 4; // Скругление 8px согласно спецификации
         const padding = 1;
         
         ctx.save();
@@ -1079,7 +1079,7 @@ export class MobileSudokuTetris {
         const pieceWidth = piece.shape[0].length;
         const pieceHeight = piece.shape.length;
         const cellSize = Math.max(20, Math.min(44, this.CELL_SIZE));
-        const gap = 2;
+        const gap = 1;
         const padding = 4;
         const canvasWidth = pieceWidth * cellSize + (pieceWidth - 1) * gap + padding * 2;
         const canvasHeight = pieceHeight * cellSize + (pieceHeight - 1) * gap + padding * 2;
@@ -1874,7 +1874,7 @@ export class MobileSudokuTetris {
 
         // Утолщённые 2px для границ блоков 3×3
         this.ctx.lineWidth = 2;
-        this.ctx.strokeStyle = '#CFC6B8';
+        this.ctx.strokeStyle = 'rgba(120, 120, 120, 0.3)';
 
         for (let i = 0; i <= this.BOARD_SIZE; i += 3) {
             const pos = i * this.CELL_SIZE + 0.5;
@@ -1896,9 +1896,18 @@ export class MobileSudokuTetris {
     drawRegionBackgrounds() {
         this.ctx.save();
 
-        // Фон поля: тёплый светлый (#FAF6EF)
-        this.ctx.fillStyle = '#FAF6EF';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        // Полупрозрачные серые полосы для колонок и строк 4–6, создающие мягкий крест
+        const bandStart = 3 * this.CELL_SIZE; // Индекс 3 соответствует 4-й колонке/строке (1-based)
+        const bandSize = 3 * this.CELL_SIZE;
+        const bandColor = 'rgba(120, 120, 120, 0.25)';
+
+        this.ctx.fillStyle = bandColor;
+
+        // Вертикальная полоса: колонки 4–6 на всю высоту
+        this.ctx.fillRect(bandStart, 0, bandSize, this.canvas.height);
+
+        // Горизонтальная полоса: строки 4–6 на всю ширину
+        this.ctx.fillRect(0, bandStart, this.canvas.width, bandSize);
 
         this.ctx.restore();
     }

@@ -5,7 +5,6 @@ import { dataService } from '../services/dataService'
 
 export default function NotificationSender() {
   const { family, member } = useAuth()
-  const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [targetUsers, setTargetUsers] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -27,8 +26,8 @@ export default function NotificationSender() {
 
   const handleSend = async () => {
     if (!family || !member) return
-    if (!title.trim() || !body.trim()) {
-      setError('Заполните заголовок и текст уведомления')
+    if (!body.trim()) {
+      setError('Заполните текст уведомления')
       return
     }
 
@@ -43,7 +42,7 @@ export default function NotificationSender() {
         // Send to all family members
         sentCount = await pushService.sendNotificationToFamily(
           family.id,
-          title,
+          'Уведомление',
           body
         )
       } else {
@@ -51,13 +50,12 @@ export default function NotificationSender() {
         sentCount = await pushService.sendNotificationToUsers(
           family.id,
           targetUsers,
-          title,
+          'Уведомление',
           body
         )
       }
       
       setSuccess(`Уведомление отправлено ${sentCount} ${sentCount === 1 ? 'получателю' : 'получателям'}`)
-      setTitle('')
       setBody('')
       setTargetUsers([])
     } catch (err) {
@@ -91,7 +89,7 @@ export default function NotificationSender() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="mt-3">
       {error && (
         <div className="p-3 bg-red-50 text-red-700 rounded-3xl text-sm border border-red-200 whitespace-pre-line">
           {error}
@@ -103,7 +101,6 @@ export default function NotificationSender() {
           {success}
         </div>
       )}
-          <div className="space-y-2 p-3">
             <label className="flex items-center text-sm text-gray-600">
               <input
                 type="checkbox"
@@ -111,7 +108,7 @@ export default function NotificationSender() {
                 onChange={() => setTargetUsers([])}
                 className="mr-2 rounded"
               />
-              Всем членам семьи (включая меня)
+              Всем членам семьи
             </label>
             {familyMembers
               .filter(m => m.user_id !== member?.user_id)
@@ -126,29 +123,20 @@ export default function NotificationSender() {
                   {m.name || m.role || m.user_id}
                 </label>
               ))}
-          </div>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Заголовок уведомления"
-            className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500"
-            style={{ fontSize: '16px' }}
-          />
           
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Текст уведомления"
             rows={3}
-            className="w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500"
+            className="mt-3 w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500"
             style={{ fontSize: '16px' }}
           />
         
         <button
           onClick={handleSend}
-          disabled={isLoading || !title.trim() || !body.trim()}
-          className="w-full bg-blue-500 text-white font-semibold py-4 px-4 rounded-2xl shadow-lg text-sm"
+          disabled={isLoading || !body.trim()}
+          className="w-full bg-blue-500 text-white font-semibold py-3 px-3 rounded-2xl shadow-lg text-sm"
         >
           {isLoading ? 'Отправка...' : '📤 Отправить уведомление'}
         </button>
