@@ -143,7 +143,7 @@ export default function DutyScheduleModal({
         </div>
 
 
-        <div className="space-y-1">
+        <div className="space-y-1 overflow-y-auto max-h-80">
           {dutyBlocks.map(block => {
             const assignment = findAssignmentByBlockId(schedule, block.id)
             const selectedParent = assignment?.parentId
