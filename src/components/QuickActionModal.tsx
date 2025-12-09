@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Modal from './Modal'
 import Button from './Button'
 import { dataService } from '../services/dataService'
-import React from 'react';
 
 type QuickActionType = 'feeding' | 'diaper' | 'bath' | 'activity'
 
@@ -217,63 +216,41 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     })
   }, [selectedDateTime])
 
-  const handleSubmit = async () => {
+  const getValidatedTimestamp = () => {
     if (!selectedDateTime) {
       setError('Выберите дату и время события')
-      return
+      return null
     }
 
     const eventDate = new Date(selectedDateTime)
     if (Number.isNaN(eventDate.getTime())) {
       setError('Не удалось распознать дату')
+      return null
+    }
+
+    return eventDate.toISOString()
+  }
+
+  const submitWithTimestamp = async <T,>(
+    performer: (timestamp: string) => Promise<T>,
+    successPayload?: any
+  ) => {
+    const timestamp = getValidatedTimestamp()
+
+    if (!timestamp) {
       return
     }
 
     setLoading(true)
     setError(null)
 
-    const timestamp = eventDate.toISOString()
-
     try {
-      let result: any = null
-      let shouldCloseImmediately = false
-      
-      switch (actionType) {
-        case 'feeding':
-          result = await dataService.addFeeding(timestamp, feedingOunces)
-          shouldCloseImmediately = true
-          break
-        case 'diaper':
-          result = await dataService.addDiaper(timestamp, diaperType)
-          shouldCloseImmediately = true
-          break
-        case 'bath':
-          result = await dataService.addBath(timestamp, bathMood)
-          shouldCloseImmediately = true
-          break
-        case 'activity':
-          result = await dataService.addActivity(selectedActivity, timestamp)
-          break
-      }
+      const result = await performer(timestamp)
 
-      // ✅ Для feeding, diaper, bath - закрываем окно сразу после получения результата
-      // (побочные эффекты выполняются в фоне)
-      if (shouldCloseImmediately && result) {
-        setLoading(false)
-        onClose()
-        // Вызываем onSuccess в следующем тике, чтобы дать время окну закрыться
-        setTimeout(() => {
-          onSuccess?.(result)
-        }, 10)
-        return // Выходим, чтобы не выполнять код ниже
-      }
-
-      // Для activity - стандартное поведение
       setLoading(false)
       onClose()
-
       setTimeout(() => {
-        onSuccess?.(result)
+        onSuccess?.(successPayload ?? result)
       }, 10)
     } catch (submitError) {
       console.error('Error adding record:', submitError)
@@ -282,115 +259,17 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     }
   }
 
-  const handleDiaperSubmit = async (diaperTypeValue: string) => {
-    if (!selectedDateTime) {
-      setError('Выберите дату и время события')
-      return
-    }
+  const handleFeedingSubmit = () =>
+    submitWithTimestamp((timestamp) => dataService.addFeeding(timestamp, feedingOunces))
 
-    const eventDate = new Date(selectedDateTime)
-    if (Number.isNaN(eventDate.getTime())) {
-      setError('Не удалось распознать дату')
-      return
-    }
+  const handleDiaperSubmit = (diaperTypeValue: string) =>
+    submitWithTimestamp((timestamp) => dataService.addDiaper(timestamp, diaperTypeValue))
 
-    setLoading(true)
-    setError(null)
+  const handleBathSubmit = (bathMoodValue: string) =>
+    submitWithTimestamp((timestamp) => dataService.addBath(timestamp, bathMoodValue))
 
-    const timestamp = eventDate.toISOString()
-
-    try {
-      const result = await dataService.addDiaper(timestamp, diaperTypeValue)
-
-      // ✅ Закрываем окно сразу после получения результата
-      // (побочные эффекты выполняются в фоне)
-      if (result) {
-        setLoading(false)
-        onClose()
-        setTimeout(() => {
-          onSuccess?.(result)
-        }, 10)
-      } else {
-        setError('Не удалось сохранить запись, попробуйте позже')
-        setLoading(false)
-      }
-    } catch (submitError) {
-      console.error('Error adding diaper record:', submitError)
-      setError('Не удалось сохранить запись, попробуйте позже')
-      setLoading(false)
-    }
-  }
-
-  const handleBathSubmit = async (bathMoodValue: string) => {
-    if (!selectedDateTime) {
-      setError('Выберите дату и время события')
-      return
-    }
-
-    const eventDate = new Date(selectedDateTime)
-    if (Number.isNaN(eventDate.getTime())) {
-      setError('Не удалось распознать дату')
-      return
-    }
-
-    setLoading(true)
-    setError(null)
-
-    const timestamp = eventDate.toISOString()
-
-    try {
-      const result = await dataService.addBath(timestamp, bathMoodValue)
-
-      // ✅ Закрываем окно сразу после получения результата
-      // (побочные эффекты выполняются в фоне)
-      if (result) {
-        setLoading(false)
-        onClose()
-        setTimeout(() => {
-          onSuccess?.(result)
-        }, 10)
-      } else {
-        setError('Не удалось сохранить запись, попробуйте позже')
-        setLoading(false)
-      }
-    } catch (submitError) {
-      console.error('Error adding bath record:', submitError)
-      setError('Не удалось сохранить запись, попробуйте позже')
-      setLoading(false)
-    }
-  }
-
-  const handleActivitySubmit = async (activityTypeValue: string) => {
-    if (!selectedDateTime) {
-      setError('Выберите дату и время события')
-      return
-    }
-
-    const eventDate = new Date(selectedDateTime)
-    if (Number.isNaN(eventDate.getTime())) {
-      setError('Не удалось распознать дату')
-      return
-    }
-
-    setLoading(true)
-    setError(null)
-
-    const timestamp = eventDate.toISOString()
-
-    try {
-      const result = await dataService.addActivity(activityTypeValue, timestamp)
-
-      setLoading(false)
-      onClose()
-      setTimeout(() => {
-        onSuccess?.({})
-      }, 10)
-    } catch (submitError) {
-      console.error('Error adding activity record:', submitError)
-      setError('Не удалось сохранить запись, попробуйте позже')
-      setLoading(false)
-    }
-  }
+  const handleActivitySubmit = (activityTypeValue: string) =>
+    submitWithTimestamp((timestamp) => dataService.addActivity(activityTypeValue, timestamp), {})
 
   const isActivityAction = actionType === 'activity'
 
@@ -401,29 +280,29 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
           <div className="space-y-2">
             {/* Быстрые кнопки временных смещений */}
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                  {QUICK_OFFSETS.map(option => {
-                    const active = isQuickOptionActive(option.minutes)
-                    return (
-                      <button
-                        key={option.label}
-                        type="button"
-                        onClick={() => applyQuickOffset(option.minutes)}
-                        className={`rounded-3xl px-2.5 py-1 text-[14px] font-medium transition-colors ${
-                          active
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'text-gray-600'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    )
-                  })}
-              </div>
-              <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
-                <span className="font-medium text-gray-900">{formattedPreview}</span>
-              </div>
+              {QUICK_OFFSETS.map((option) => {
+                const active = isQuickOptionActive(option.minutes)
+                return (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => applyQuickOffset(option.minutes)}
+                    className={`rounded-3xl px-2.5 py-1 text-[14px] font-medium transition-colors ${
+                      active
+                        ? 'bg-blue-600 text-white shadow-sm'
+                        : 'text-gray-600'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="rounded-3xl bg-gray-50 px-3 py-2 text-[11px] text-gray-600 sm:text-xs">
+              <span className="font-medium text-gray-900">{formattedPreview}</span>
+            </div>
             {error && <p className="text-xs text-red-500 sm:text-sm">{error}</p>}
-           </div>
+          </div>
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
@@ -577,12 +456,12 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                 >
                   Отмена
                 </Button>
-                <Button
-                  variant={config.buttonVariant}
-                  onClick={handleSubmit}
-                  className="flex-1"
-                  disabled={loading}
-                >
+                  <Button
+                    variant={config.buttonVariant}
+                    onClick={handleFeedingSubmit}
+                    className="flex-1"
+                    disabled={loading}
+                  >
                   {loading ? 'Сохранение...' : config.buttonText}
                 </Button>
               </div>
