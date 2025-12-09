@@ -43,10 +43,8 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
   }
 
   return (
-    <div className="pb-4">
+    <div className="relative w-64 h-64 mx-auto">
       {/* Полоса дежурства вокруг изображения */}
-      <div className="relative w-64 h-64 mx-auto">
-        {/* SVG для круговой полосы дежурства */}
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 192 192">
           <defs>
             <linearGradient id="dutyGradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -102,7 +100,6 @@ export default function BabyIllustration({ className = '', state = 'normal', onC
             }}
           />
         </div>
-      </div>
     </div>
   )
 }
