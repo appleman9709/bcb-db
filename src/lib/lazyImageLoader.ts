@@ -14,6 +14,7 @@ class LazyImageLoader {
   private cache: ImageCache = {}
   private loadingQueue: string[] = []
   private maxConcurrent = 3 // Ограничиваем количество одновременных загрузок
+  private iconCacheName = 'icons-cache'
 
   // Загружает изображение ленивым способом
   async loadImage(url: string): Promise<void> {
@@ -40,10 +41,9 @@ class LazyImageLoader {
 
   // Внутренний метод загрузки изображения
   private async loadImageInternal(url: string): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const img = new Image()
-      
-      // Устанавливаем таймаут
+
       const timeout = setTimeout(() => {
         this.cache[url] = {
           loaded: false,
@@ -54,28 +54,63 @@ class LazyImageLoader {
         resolve() // Продолжаем даже при таймауте
       }, 10000)
 
-      img.onload = () => {
+      const finalize = (status: 'loaded' | 'error') => {
         clearTimeout(timeout)
         this.cache[url] = {
-          loaded: true,
-          loading: false
+          loaded: status === 'loaded',
+          loading: false,
+          error: status === 'error'
         }
         resolve()
       }
 
+      img.onload = () => finalize('loaded')
+
       img.onerror = () => {
-        clearTimeout(timeout)
-        this.cache[url] = {
-          loaded: false,
-          loading: false,
-          error: true
-        }
         console.warn(`Failed to load image: ${url}`)
-        resolve() // Продолжаем даже при ошибке
+        finalize('error')
       }
 
-      img.src = url
+      this.setImageSource(img, url).catch(() => {
+        img.src = url
+      })
     })
+  }
+
+  private async setImageSource(img: HTMLImageElement, url: string): Promise<void> {
+    if (typeof caches === 'undefined') {
+      img.src = url
+      return
+    }
+
+    const cachedResponse = await caches.match(url)
+    if (cachedResponse) {
+      const blob = await cachedResponse.blob()
+      img.src = URL.createObjectURL(blob)
+      return
+    }
+
+    try {
+      const response = await fetch(url, { cache: 'no-cache' })
+      if (response.ok) {
+        const [cacheClone, blobClone] = [response.clone(), response.clone()]
+
+        try {
+          const cache = await caches.open(this.iconCacheName)
+          await cache.put(url, cacheClone)
+        } catch (error) {
+          console.warn('Unable to write to service worker cache', error)
+        }
+
+        const blob = await blobClone.blob()
+        img.src = URL.createObjectURL(blob)
+        return
+      }
+    } catch (error) {
+      console.warn('Failed to fetch image via cache-aware loader', error)
+    }
+
+    img.src = url
   }
 
   // Предзагружает изображения по приоритету

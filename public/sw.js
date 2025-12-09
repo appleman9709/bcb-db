@@ -1,6 +1,12 @@
-import { precacheAndRoute } from 'workbox-precaching';
+import { precacheAndRoute, matchPrecache } from 'workbox-precaching';
+import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 
-precacheAndRoute(self.__WB_MANIFEST);
+const OFFLINE_PAGE = '/offline.html';
+
+precacheAndRoute([...self.__WB_MANIFEST, { url: OFFLINE_PAGE, revision: null }]);
 
 const CACHE_NAME = 'babycare-dashboard-v1';
 const DEFAULT_ICON = '/icons/icon-192x192.png';
@@ -12,7 +18,6 @@ self.addEventListener('notificationclick', handleNotificationClick);
 self.addEventListener('notificationclose', handleNotificationClose);
 self.addEventListener('install', handleInstall);
 self.addEventListener('activate', handleActivate);
-self.addEventListener('fetch', handleFetch);
 self.addEventListener('sync', handleSync);
 self.addEventListener('periodicsync', handlePeriodicSync);
 
@@ -175,18 +180,10 @@ function handleActivate(event) {
       )
     )
   );
+  if (self.registration.navigationPreload) {
+    event.waitUntil(self.registration.navigationPreload.enable());
+  }
   self.clients.claim();
-}
-
-function handleFetch(event) {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request);
-    })
-  );
 }
 
 function handleSync(event) {
@@ -244,3 +241,60 @@ async function processRemindersInBackground() {
     console.error('[sw] Error processing reminders in background:', error);
   }
 }
+
+// === Кэширование навигации, API и иконок ===
+const pageNetworkFirst = new NetworkFirst({
+  cacheName: 'pages-cache',
+  networkTimeoutSeconds: 10,
+  plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })]
+});
+
+const apiNetworkFirst = new NetworkFirst({
+  cacheName: 'api-cache',
+  networkTimeoutSeconds: 10,
+  plugins: [
+    new CacheableResponsePlugin({ statuses: [0, 200] }),
+    new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 60 * 5 })
+  ]
+});
+
+const iconsCacheFirst = new CacheFirst({
+  cacheName: 'icons-cache',
+  plugins: [
+    new CacheableResponsePlugin({ statuses: [0, 200] }),
+    new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 })
+  ]
+});
+
+registerRoute(
+  ({ request }) => request.mode === 'navigate',
+  new NavigationRoute(async ({ event }) => {
+    try {
+      const preloadResponse = await event.preloadResponse;
+      if (preloadResponse) return preloadResponse;
+
+      const networkResponse = await pageNetworkFirst.handle({ event });
+      if (networkResponse) return networkResponse;
+    } catch (error) {
+      console.warn('[sw] navigation fallback to offline page', error);
+    }
+
+    const offline = await matchPrecache(OFFLINE_PAGE);
+    return offline || Response.error();
+  })
+);
+
+registerRoute(({ url }) => url.pathname.startsWith('/api/'), apiNetworkFirst);
+
+registerRoute(
+  ({ request, url }) => request.destination === 'image' && url.pathname.startsWith('/icons/'),
+  iconsCacheFirst
+);
+
+registerRoute(
+  ({ request }) => request.destination === 'script' || request.destination === 'style',
+  new StaleWhileRevalidate({
+    cacheName: 'static-assets',
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })]
+  })
+);
