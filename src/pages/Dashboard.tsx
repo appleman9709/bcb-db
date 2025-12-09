@@ -5,7 +5,6 @@ import Modal from '../components/Modal'
 import BabyIllustration from '../components/BabyIllustration'
 import BottomNavigation from '../components/BottomNavigation'
 import BackgroundElements from '../components/BackgroundElements'
-import CategoryPreloader from '../components/CategoryPreloader'
 import TamagotchiPage from './TamagotchiPage'
 import TetrisPage from './TetrisPage'
 import GrowthChartCard, { WHO_HEIGHT_CURVES, WHO_WEIGHT_CURVES } from '../components/GrowthChartCard'
@@ -43,7 +42,7 @@ interface DashboardData {
 const PULL_REFRESH_THRESHOLD = 90
 const MAX_PULL_DISTANCE = 140
 export default function Dashboard() {
-  const [activeSection, setActiveSection] = useState<DashboardSection>('dashboard')
+  
   const [data, setData] = useState<DashboardData | null>(null)
   const [settings, setSettings] = useState<SettingsState>({
     birthDate: '2024-01-01',
@@ -328,30 +327,11 @@ useEffect(() => {
       const babyAgeMonths = dashboardData.settings?.baby_age_months || 0
       const dailyTip = await dataService.getRandomTip(babyAgeMonths)
 
-      const formatSleepDuration = (minutes: number): string => {
-        if (minutes === 0) return '0м'
-        const hours = Math.floor(minutes / 60)
-        const remainingMinutes = minutes % 60
-        if (hours > 0) {
-          return `${hours}ч ${remainingMinutes}м`
-        }
-        return `${remainingMinutes}м`
-      }
-
       setData({
         lastFeeding: dashboardData.lastFeeding,
         lastDiaper: dashboardData.lastDiaper,
         lastBath: dashboardData.lastBath,
         dailyTip
-      })
-
-      // Обновляем статистику за день
-      setTodayStats({
-        feedings: dashboardData.todayStats.feedings,
-        diapers: dashboardData.todayStats.diapers,
-        baths: dashboardData.todayStats.baths,
-        activities: dashboardData.todayStats.activities,
-        sleep: formatSleepDuration(dashboardData.todaySleepMinutes)
       })
 
       if (dashboardData.settings) {
@@ -498,10 +478,6 @@ useEffect(() => {
     return `${formatDuration(diffInMinutes)} назад`
   }
 
-  // Функция для расчета статистики за день
-  const getTodayStats = () => {
-    return todayStats
-  }
 
   const handleQuickAction = (action: QuickActionType) => {
     setModalAction(action)
@@ -879,8 +855,6 @@ useEffect(() => {
     }
   }
 
-
-
   const latestActivityTimestamp = useMemo(() => {
     const timestamps = [
       data?.lastFeeding?.timestamp,
@@ -1036,20 +1010,11 @@ useEffect(() => {
       window.removeEventListener('touchend', handleTouchEnd)
       window.removeEventListener('touchcancel', handleTouchCancel)
     }
-  }, [handleRefresh, updatePullDistance, activeSection, activeTab, recentEventsExpanded, modalOpen, tamagotchiModalOpen, recordDetailModalOpen, dutyModalOpen, growthChartModalOpen, weeklyStatsChartOpen])
+  }, [handleRefresh, updatePullDistance, activeTab, recentEventsExpanded, modalOpen, tamagotchiModalOpen, recordDetailModalOpen, dutyModalOpen, growthChartModalOpen, weeklyStatsChartOpen])
 
   const handleTabChange = (tab: 'home' | 'settings' | 'tamagotchi' | 'tetris') => {
     console.log('Tab changed to:', tab) // Отладочная информация
     setActiveTab(tab)
-    if (tab === 'settings') {
-      setActiveSection('settings')
-    } else if (tab === 'tamagotchi') {
-      setActiveSection('dashboard') // Используем dashboard для тамагочи
-    } else if (tab === 'tetris') {
-      setActiveSection('dashboard') // Используем dashboard для тетриса
-    } else {
-      setActiveSection('dashboard')
-    }
   }
 
   // Обработчик сообщений от игры Tetris

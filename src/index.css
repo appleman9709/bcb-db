@@ -301,6 +301,12 @@
 }
 
 .date-input-container input[type="date"] {
+  /* iOS оптимизации */
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
   /* Улучшенная область касания */
   min-height: 60px;
   padding: 18px 16px;
@@ -521,11 +527,7 @@ canvas {
     min-height: 44px; /* Минимальный размер для удобного тапа */
   }
 
-  /* Оптимизация поля ввода даты рождения для iPhone */
-  .date-input-container {
-    position: relative;
-    width: 100%;
-  }
+
   /* Apple Liquid Glass Tab Bar Styles - оптимизированная версия */
   .liquid-glass-tab-bar {
     position: var(--tab-bar-position);
