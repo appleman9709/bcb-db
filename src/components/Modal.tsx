@@ -71,4 +71,3 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
     </div>
   )
 }
-

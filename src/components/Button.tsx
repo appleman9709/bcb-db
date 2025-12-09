@@ -33,9 +33,6 @@ export default function Button({
     lg: 'px-6 py-4 text-lg'
   }
   
-  // Специальные стили для мобильных устройств
-  const mobileIconClasses = 'text-lg sm:text-base'
-  
   return (
     <button
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}

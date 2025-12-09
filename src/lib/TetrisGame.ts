@@ -278,7 +278,7 @@ export class MobileSudokuTetris {
         
         this.tetrisPieces = this.tetrisPieces.filter(piece => this.countCubes(piece.shape) <= this.MAX_BLOCKS_PER_PIECE);
         
-        this.availablePieces = [];
+        this.availablePieces = Array(3).fill(null);
         
         // Комплименты для жены
         this.compliments = [
@@ -434,7 +434,7 @@ export class MobileSudokuTetris {
                 this.score = gameState.score;
                 this.level = gameState.level;
                 this.lines = gameState.lines;
-                this.availablePieces = gameState.availablePieces;
+                this.availablePieces = this.normalizeAvailablePieces(gameState.availablePieces);
                 this.gameRunning = gameState.gameRunning;
                 this.piecesPlaced = gameState.piecesPlaced || 0;
                 this.gameStartTime = gameState.gameStartTime || Date.now();
@@ -448,6 +448,35 @@ export class MobileSudokuTetris {
         return false;
     }
     
+    normalizeAvailablePieces(pieces) {
+        const normalized = Array(3).fill(null);
+
+        if (!Array.isArray(pieces)) {
+            return normalized;
+        }
+
+        for (let i = 0; i < 3; i++) {
+            const piece = pieces[i];
+            if (piece) {
+                this.ensurePieceColor(piece);
+                normalized[i] = piece;
+            }
+        }
+
+        return normalized;
+    }
+
+    getActivePieces() {
+        if (!Array.isArray(this.availablePieces)) {
+            return [];
+        }
+        return this.availablePieces.filter(piece => piece);
+    }
+
+    areAllSlotsEmpty() {
+        return this.getActivePieces().length === 0;
+    }
+
     clearGameState() {
         try {
             localStorage.removeItem('sudokuTetrisGameState');
@@ -526,8 +555,21 @@ export class MobileSudokuTetris {
     }
     
     generatePieces() {
-        this.availablePieces = [];
-        const piecesToGenerate = 3; // Показываем только 3 фигуры как на картинке
+        if (!Array.isArray(this.availablePieces) || this.availablePieces.length !== 3) {
+            this.availablePieces = Array(3).fill(null);
+        }
+
+        const emptySlots = [];
+        for (let i = 0; i < 3; i++) {
+            if (!this.availablePieces[i]) {
+                emptySlots.push(i);
+            }
+        }
+
+        if (emptySlots.length === 0) {
+            this.renderPieces(false);
+            return;
+        }
         
         const allVariants = [];
         this.tetrisPieces.forEach(piece => {
@@ -535,19 +577,19 @@ export class MobileSudokuTetris {
             allVariants.push(...variants);
         });
         
-        for (let i = 0; i < piecesToGenerate; i++) {
+        emptySlots.forEach((slotIndex, order) => {
             if (allVariants.length === 0) {
-                break;
+                return;
             }
             const randomIndex = Math.floor(Math.random() * allVariants.length);
             const piece = JSON.parse(JSON.stringify(allVariants[randomIndex]));
-            piece.uniqueId = `piece_${i}_${Date.now()}`;
+            piece.uniqueId = `piece_${slotIndex}_${Date.now()}_${order}`;
             
             // Убеждаемся, что цвет фигуры сохранен правильно
             this.ensurePieceColor(piece);
             
-            this.availablePieces.push(piece);
-        }
+            this.availablePieces[slotIndex] = piece;
+        });
 
         this.renderPieces(true); // С анимацией для новых фигур
         
@@ -563,12 +605,21 @@ export class MobileSudokuTetris {
             slot.classList.remove('active', 'empty');
         });
         
-        this.availablePieces.forEach((piece, index) => {
+        for (let i = 0; i < 3; i++) {
+            const piece = this.availablePieces[i];
             // Убеждаемся, что цвет фигуры правильный перед отрисовкой
+            const slot = this.root.getElementById(`slot${i + 1}`);
+            if (!slot) continue;
+
+            slot.innerHTML = '';
+            slot.classList.remove('active', 'empty');
+
+            if (!piece) {
+                slot.classList.add('empty');
+                continue;
+            }
+
             this.ensurePieceColor(piece);
-            
-            const slot = this.root.getElementById(`slot${index + 1}`);
-            if (!slot) return;
             
             const pieceElement = this.document.createElement('div');
             pieceElement.className = 'piece-item';
@@ -620,15 +671,7 @@ export class MobileSudokuTetris {
                     setTimeout(() => {
                         pieceElement.classList.remove('appearing');
                     }, 120); // Длительность анимации согласно спецификации
-                }, index * 100); // Задержка между фигурами
-            }
-        });
-        
-        // Помечаем пустые слоты
-        for (let i = this.availablePieces.length; i < 3; i++) {
-            const slot = this.root.getElementById(`slot${i + 1}`);
-            if (slot) {
-                slot.classList.add('empty');
+                }, i * 100); // Задержка между фигурами по позициям слотов
             }
         }
     }
@@ -1075,7 +1118,7 @@ export class MobileSudokuTetris {
         if (!pieceElement) return;
         
         const pieceId = pieceElement.dataset.pieceId;
-        const piece = this.availablePieces.find(p => p.uniqueId === pieceId);
+        const piece = this.availablePieces.find(p => p && p.uniqueId === pieceId);
         
         if (piece) {
             this.selectPiece(piece, pieceElement);
@@ -1219,7 +1262,7 @@ export class MobileSudokuTetris {
         if (!pieceElement) return;
         
         const pieceId = pieceElement.dataset.pieceId;
-        const piece = this.availablePieces.find(p => p.uniqueId === pieceId);
+        const piece = this.availablePieces.find(p => p && p.uniqueId === pieceId);
         
         if (piece) {
             // Выбираем фигуру при клике
@@ -1370,9 +1413,14 @@ export class MobileSudokuTetris {
 
         this.piecesPlaced += 1;
         
-        // Удаляем использованную фигуру
-        this.availablePieces = this.availablePieces.filter(p => p.uniqueId !== piece.uniqueId);
-        
+        // Удаляем использованную фигуру из своего слота
+        const slotIndex = this.availablePieces.findIndex(p => p && p.uniqueId === piece.uniqueId);
+        if (slotIndex !== -1) {
+            this.availablePieces[slotIndex] = null;
+        } else {
+            this.availablePieces = Array(3).fill(null);
+        }
+
         // Убираем выделение с размещенной фигуры
         this.clearSelection();
         
@@ -1383,7 +1431,7 @@ export class MobileSudokuTetris {
         this.checkLines();
         
         // Если фигуры закончились, генерируем новые
-        if (this.availablePieces.length === 0) {
+        if (this.areAllSlotsEmpty()) {
             this.generatePieces();
         } else {
             this.renderPieces(false); // Без анимации при обновлении панели
@@ -1567,8 +1615,10 @@ export class MobileSudokuTetris {
     
     // Очищает 3x3 регион
     hasAvailableMoves() {
+        const activePieces = this.getActivePieces();
+
         // Если нет фигур, игра не окончена (будут сгенерированы новые)
-        if (this.availablePieces.length === 0) {
+        if (activePieces.length === 0) {
             return true;
         }
         
@@ -1576,7 +1626,7 @@ export class MobileSudokuTetris {
         const freeCells = this.getFreeCells();
         
         // Проверяем каждую доступную фигуру
-        for (let piece of this.availablePieces) {
+        for (let piece of activePieces) {
             // Проверяем только свободные клетки как потенциальные позиции
             for (let cell of freeCells) {
                 if (this.canPlacePiece(piece, cell.x, cell.y)) {
@@ -1615,14 +1665,16 @@ export class MobileSudokuTetris {
     
     // Подсчитывает количество доступных ходов
     countAvailableMoves() {
-        if (this.availablePieces.length === 0) {
+        const activePieces = this.getActivePieces();
+
+        if (activePieces.length === 0) {
             return 0;
         }
         
         let moveCount = 0;
         const freeCells = this.getFreeCells();
         
-        for (let piece of this.availablePieces) {
+        for (let piece of activePieces) {
             for (let cell of freeCells) {
                 if (this.canPlacePiece(piece, cell.x, cell.y)) {
                     moveCount++;
@@ -1635,8 +1687,9 @@ export class MobileSudokuTetris {
     
     getCurrentColor() {
         // Возвращаем цвет первой доступной фигуры или синий по умолчанию
-        if (this.availablePieces && this.availablePieces.length > 0) {
-            return this.availablePieces[0].color;
+        const activePieces = this.getActivePieces();
+        if (activePieces.length > 0) {
+            return activePieces[0].color;
         }
         return '#3BA3FF'; // Синий цвет по умолчанию
     }
@@ -2543,6 +2596,7 @@ export class MobileSudokuTetris {
         if (gameOverElement) {
             gameOverElement.style.display = 'none';
         }
+        this.availablePieces = Array(3).fill(null);
         this.updateUI();
         this.generatePieces();
         this.draw();
@@ -2582,7 +2636,10 @@ export class MobileSudokuTetris {
         
         this.board = previousState.board.map(row => [...row]);
         this.boardColors = previousState.boardColors.map(row => row.map(color => color ? color : null));
-        this.availablePieces = previousState.availablePieces.map(piece => JSON.parse(JSON.stringify(piece)));
+        const restoredPieces = Array.isArray(previousState.availablePieces)
+            ? previousState.availablePieces.map(piece => JSON.parse(JSON.stringify(piece)))
+            : [];
+        this.availablePieces = this.normalizeAvailablePieces(restoredPieces);
         this.score = previousState.score;
         this.level = previousState.level;
         this.lines = previousState.lines;
@@ -2609,6 +2666,7 @@ export class MobileSudokuTetris {
             return;
         }
         
+        this.availablePieces = Array(3).fill(null);
         // Генерируем новые фигуры
         this.generatePieces();
 

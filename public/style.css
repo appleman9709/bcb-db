@@ -177,7 +177,6 @@ body {
     touch-action: none;
     user-select: none;
     border: 2px solid transparent;
-    box-shadow: none;
 }
 
 /* Пустой слот (фигура уже размещена) */
@@ -204,7 +203,6 @@ body {
     justify-content: center;
     position: relative;
     background: transparent;
-    box-shadow: none;
 }
 
 .piece-item:active {

@@ -99,7 +99,7 @@ export default function DutyScheduleModal({
           <img 
             src="/icons/profile.png" 
             alt="Настройка графика дежурств" 
-            className="w-16 h-16 mx-auto"
+            className="w-24 h-24 mx-auto"
           />
         </div>
 

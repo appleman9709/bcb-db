@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext'
 import { dataService, type TetrisRecord } from '../services/dataService'
 import BottomNavigation from '../components/BottomNavigation'
 import { useTetrisRecordCache } from '../hooks/useTetrisRecordCache'
-import CategoryPreloader from '../components/CategoryPreloader'
 import TetrisGame, { type GameOverStats } from '../components/TetrisGame'
 
 export default function TetrisPage() {
@@ -61,8 +60,6 @@ export default function TetrisPage() {
 
   return (
     <div className="h-full w-full flex flex-col">
-      {/* Предзагрузка изображений для навигации */}
-      <CategoryPreloader category="navigation" priority="medium" delay={200} />
       
       {/* Игра Тетрис */}
       <div className="flex-1 relative pb-20">
