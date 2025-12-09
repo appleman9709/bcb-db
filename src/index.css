@@ -372,8 +372,6 @@
   left: var(--modal-overlay-inset);
   right: var(--modal-overlay-inset);
   bottom: var(--modal-overlay-inset);
-  margin: calc(env(safe-area-inset-top, 0px) * -1) calc(env(safe-area-inset-right, 0px) * -1)
-    calc(env(safe-area-inset-bottom, 0px) * -1) calc(env(safe-area-inset-left, 0px) * -1);
 }
 
 /* Стили для всех модальных окон - оптимизированная версия */

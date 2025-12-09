@@ -48,9 +48,8 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
   return (
     <div className="modal-overlay">
       {/* Background overlay */}
-      <div
-        className="fixed left-0 right-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
-        style={{ inset: 'calc(env(safe-area-inset-top) * -1) 0 calc(env(safe-area-inset-bottom) * -1) 0' }}
+      <div 
+        className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" 
         onClick={onClose}>
       </div>
       {/* Modal - объединяем контейнер и содержимое */}
