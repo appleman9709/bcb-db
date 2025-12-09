@@ -479,7 +479,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             />
 
             {actionType === 'feeding' && (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 <span className="text-lg font-semibold text-blue-600 text-center block">
                   {feedingOunces > 0 ? `${feedingOunces} унций` : 'Не указано'}
                 </span>
@@ -505,13 +505,13 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
             {/* Раздел для даты и времени */}
             <div className="space-y-3">
               {/* Поле даты - компактное оформление */}
-              <div className="rounded border border-gray-200 bg-gray-50 px-2 py-1 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-1">
-                <label className="text-[10px] font-medium uppercase tracking-wide text-gray-500 whitespace-nowrap">Дата</label>
+              <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
+                <label className="text-[9px] font-medium uppercase tracking-wide block">Дата</label>
                 <input
                   type="date"
                   value={datePart}
                   onChange={(event) => handleDateChange(event.target.value)}
-                  className="flex-1 bg-transparent text-[9px] font-medium text-gray-700 focus:outline-none focus:ring-0 cursor-pointer"
+                  className="w-full text-center text-gray-800"
                   style={{
                     colorScheme: 'light',
                     WebkitAppearance: 'none',
@@ -522,7 +522,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
 
               {/* Поле времени - акцентное оформление */}
               <div className="rounded-2xl border-2 border-blue-200 p-2 shadow-sm transition-all duration-200 cursor-pointer">
-              <label className="text-[9px] font-medium uppercase tracking-wide block mb-0.5">Время</label>
+              <label className="text-[9px] font-medium uppercase tracking-wide block">Время</label>
                 <input
                   type="time"
                   step={300}
