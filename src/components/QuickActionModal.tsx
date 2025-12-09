@@ -511,7 +511,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                   type="date"
                   value={datePart}
                   onChange={(event) => handleDateChange(event.target.value)}
-                  className="w-full text-center text-gray-800"
+                  className="w-full text-center text-gray-800 bg-transparent"
                   style={{
                     colorScheme: 'light',
                     WebkitAppearance: 'none',
@@ -528,7 +528,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
                   step={300}
                   value={timePart}
                   onChange={(event) => handleTimeChange(event.target.value)}
-                  className="w-full text-center text-gray-800"
+                  className="w-full text-center text-gray-800 bg-transparent"
                   style={{
                     colorScheme: 'light',
                     WebkitAppearance: 'none',
