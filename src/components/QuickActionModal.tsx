@@ -690,4 +690,3 @@ export default function QuickActionModal({ isOpen, onClose, actionType, onSucces
     </Modal>
   )
 }
-
