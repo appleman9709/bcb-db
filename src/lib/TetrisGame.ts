@@ -27,6 +27,8 @@ export class MobileSudokuTetris {
             throw new Error('Контейнер фигур с id="piecesContainer" не найден!');
         }
         console.log('Контейнер фигур найден:', this.piecesContainer);
+
+        this.inventoryPiecesTray = this.root.getElementById('inventoryPiecesTray');
         
         this.BOARD_SIZE = 9;
         this.CELL_SIZE = 40; // Адаптивный размер для мобильных устройств
@@ -1152,11 +1154,31 @@ export class MobileSudokuTetris {
         this.addEventListenerWithCleanup(this.piecesContainer, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
         this.addEventListenerWithCleanup(this.piecesContainer, 'touchmove', (e) => this.handlePieceTouchMove(e), { passive: false });
         this.addEventListenerWithCleanup(this.piecesContainer, 'touchend', (e) => this.handlePieceTouchEnd(e), { passive: false });
-        
+
+        if (this.inventoryPiecesTray) {
+            this.addEventListenerWithCleanup(this.inventoryPiecesTray, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
+            this.addEventListenerWithCleanup(this.inventoryPiecesTray, 'touchmove', (e) => this.handlePieceTouchMove(e), { passive: false });
+            this.addEventListenerWithCleanup(this.inventoryPiecesTray, 'touchend', (e) => this.handlePieceTouchEnd(e), { passive: false });
+        }
+
         // События для фигур - mouse события (для тестирования на ПК)
         this.addEventListenerWithCleanup(this.piecesContainer, 'mousedown', (e) => this.handlePieceMouseStart(e));
         this.addEventListenerWithCleanup(this.piecesContainer, 'mousemove', (e) => this.handlePieceMouseMove(e));
         this.addEventListenerWithCleanup(this.piecesContainer, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+
+        if (this.inventoryPiecesTray) {
+            this.addEventListenerWithCleanup(this.inventoryPiecesTray, 'mousedown', (e) => this.handlePieceMouseStart(e));
+            this.addEventListenerWithCleanup(this.inventoryPiecesTray, 'mousemove', (e) => this.handlePieceMouseMove(e));
+            this.addEventListenerWithCleanup(this.inventoryPiecesTray, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+
+            this.addEventListenerWithCleanup(this.inventoryPiecesTray, 'dragstart', (e) => this.handleInventoryDragStart(e));
+            this.addEventListenerWithCleanup(this.inventoryPiecesTray, 'dragend', (e) => this.handleInventoryDragEnd(e));
+        }
+
+        this.addEventListenerWithCleanup(this.canvas, 'dragover', (e) => this.handleInventoryDragOver(e));
+        this.addEventListenerWithCleanup(this.canvas, 'drop', (e) => this.handleInventoryDrop(e));
+        this.addEventListenerWithCleanup(this.canvas, 'dragleave', (e) => this.handleInventoryDragLeave(e));
+        this.addEventListenerWithCleanup(this.canvas, 'dragenter', (e) => this.handleInventoryDragEnter(e));
         
         // Кнопки управления
         const newGameBtn = this.root.getElementById('newGameBtn');
@@ -1541,6 +1563,99 @@ export class MobileSudokuTetris {
 
         this.draw();
         e.preventDefault();
+    }
+
+    handleInventoryDragStart(e) {
+        const pieceElement = e.target.closest('.inventory-piece');
+        if (!pieceElement) return;
+
+        const pieceId = pieceElement.dataset.pieceId;
+        const piece = this.findPieceById(pieceId);
+        if (!piece || !piece.isInventory) return;
+        if (this.isDragging && this.draggedPiece?.uniqueId === piece.uniqueId) return;
+
+        this.draggedPiece = piece;
+        this.isDragging = true;
+        pieceElement.classList.add('dragging');
+
+        this.showDragPreview(piece);
+        this.moveDragPreview(e.clientX || 0, e.clientY || 0);
+
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'copy';
+            try {
+                e.dataTransfer.setDragImage(this.dragCanvas, this.dragCanvas.width / 2, this.dragCanvas.height / 2);
+            } catch (err) {
+                // ignore drag image errors in some browsers
+            }
+        }
+    }
+
+    handleInventoryDragEnter(e) {
+        if (!this.draggedPiece?.isInventory) return;
+        e.preventDefault();
+    }
+
+    handleInventoryDragOver(e) {
+        if (!this.draggedPiece?.isInventory) return;
+
+        e.preventDefault();
+
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const pieceWidth = this.draggedPiece.shape[0].length;
+        const pieceHeight = this.draggedPiece.shape.length;
+        const previewCanvasX = e.clientX - canvasRect.left;
+        const previewCanvasY = e.clientY - canvasRect.top;
+        let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+        let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+        gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
+        gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
+
+        const canPlace = this.canPlacePiece(this.draggedPiece, gridX, gridY);
+        this.drawWithPreview(gridX, gridY, canPlace);
+    }
+
+    handleInventoryDrop(e) {
+        if (!this.draggedPiece?.isInventory) return;
+
+        e.preventDefault();
+
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const pieceWidth = this.draggedPiece.shape[0].length;
+        const pieceHeight = this.draggedPiece.shape.length;
+        const previewCanvasX = e.clientX - canvasRect.left;
+        const previewCanvasY = e.clientY - canvasRect.top;
+        let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+        let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+        gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
+        gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
+
+        const piecePlaced = this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
+        if (!piecePlaced) {
+            this.draw();
+        }
+    }
+
+    handleInventoryDragLeave(e) {
+        if (!this.draggedPiece?.isInventory) return;
+        e.preventDefault();
+        this.draw();
+    }
+
+    handleInventoryDragEnd(e) {
+        if (this.draggedPiece?.isInventory) {
+            const pieceElement = this.root.querySelector(`[data-piece-id="${this.draggedPiece.uniqueId}"]`);
+            if (pieceElement) {
+                pieceElement.classList.remove('dragging');
+                pieceElement.style.opacity = '1';
+                pieceElement.style.pointerEvents = 'auto';
+            }
+        }
+
+        this.isDragging = false;
+        this.draggedPiece = null;
+        this.hideDragPreview();
+        this.draw();
     }
 
     handleInventoryClick(e) {
@@ -2031,11 +2146,11 @@ export class MobileSudokuTetris {
 
     drawInventoryPreview(previewX, previewY, canPlace = true) {
         this.draw();
-        if (!this.draggedPiece?.inventoryType || !canPlace) return;
+        if (!this.draggedPiece?.inventoryType) return;
 
         const type = this.draggedPiece.inventoryType;
-        const highlightColor = 'rgba(34, 197, 94, 0.32)';
-        const borderColor = 'rgba(34, 197, 94, 0.85)';
+        const highlightColor = canPlace ? 'rgba(34, 197, 94, 0.32)' : 'rgba(239, 68, 68, 0.28)';
+        const borderColor = canPlace ? 'rgba(34, 197, 94, 0.85)' : 'rgba(248, 113, 113, 0.85)';
 
         this.ctx.save();
         this.ctx.fillStyle = highlightColor;
