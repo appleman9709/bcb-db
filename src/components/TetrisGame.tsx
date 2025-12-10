@@ -92,7 +92,7 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
           <div className="inventory-panel">
             <div className="inventory-header">
               <span className="inventory-title">Инвентарь</span>
-              <span className="inventory-hint">Коснитесь, затем выберите клетку на поле</span>
+              <span className="inventory-hint">Удерживайте бонус и перетащите его на поле</span>
             </div>
             <div className="inventory-actions">
               <button className="inventory-item" id="feedingInventoryBtn" type="button">
