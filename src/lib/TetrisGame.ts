@@ -21,13 +21,15 @@ export class MobileSudokuTetris {
             throw new Error('Не удалось получить контекст canvas!');
         }
         console.log('Контекст canvas получен');
-        
+
         this.piecesContainer = this.root.getElementById('piecesContainer');
         if (!this.piecesContainer) {
             throw new Error('Контейнер фигур с id="piecesContainer" не найден!');
         }
         console.log('Контейнер фигур найден:', this.piecesContainer);
-        
+
+        this.inventoryPiecesTray = this.root.getElementById('inventoryPiecesTray');
+
         this.BOARD_SIZE = 9;
         this.CELL_SIZE = 40; // Адаптивный размер для мобильных устройств
         
@@ -1148,15 +1150,21 @@ export class MobileSudokuTetris {
         this.addEventListenerWithCleanup(this.canvas, 'touchend', (e) => this.handleTouchEnd(e), { passive: true });
         this.addEventListenerWithCleanup(this.canvas, 'click', (e) => this.handleInventoryClick(e));
         
+        const pieceContainers = [this.piecesContainer, this.inventoryPiecesTray].filter(Boolean);
+
         // События для фигур - touch события
-        this.addEventListenerWithCleanup(this.piecesContainer, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
-        this.addEventListenerWithCleanup(this.piecesContainer, 'touchmove', (e) => this.handlePieceTouchMove(e), { passive: false });
-        this.addEventListenerWithCleanup(this.piecesContainer, 'touchend', (e) => this.handlePieceTouchEnd(e), { passive: false });
-        
+        pieceContainers.forEach((container) => {
+            this.addEventListenerWithCleanup(container, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
+            this.addEventListenerWithCleanup(container, 'touchmove', (e) => this.handlePieceTouchMove(e), { passive: false });
+            this.addEventListenerWithCleanup(container, 'touchend', (e) => this.handlePieceTouchEnd(e), { passive: false });
+        });
+
         // События для фигур - mouse события (для тестирования на ПК)
-        this.addEventListenerWithCleanup(this.piecesContainer, 'mousedown', (e) => this.handlePieceMouseStart(e));
-        this.addEventListenerWithCleanup(this.piecesContainer, 'mousemove', (e) => this.handlePieceMouseMove(e));
-        this.addEventListenerWithCleanup(this.piecesContainer, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+        pieceContainers.forEach((container) => {
+            this.addEventListenerWithCleanup(container, 'mousedown', (e) => this.handlePieceMouseStart(e));
+            this.addEventListenerWithCleanup(container, 'mousemove', (e) => this.handlePieceMouseMove(e));
+            this.addEventListenerWithCleanup(container, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+        });
         
         // Кнопки управления
         const newGameBtn = this.root.getElementById('newGameBtn');
@@ -1183,7 +1191,9 @@ export class MobileSudokuTetris {
         }, { passive: false });
         
         // Предотвращаем контекстное меню
-        this.addEventListenerWithCleanup(this.piecesContainer, 'contextmenu', (e) => e.preventDefault());
+        pieceContainers.forEach((container) => {
+            this.addEventListenerWithCleanup(container, 'contextmenu', (e) => e.preventDefault());
+        });
         
         // Глобальные mouse события для перетаскивания
         this.addEventListenerWithCleanup(this.document, 'mousemove', (e) => this.handlePieceMouseMove(e));
