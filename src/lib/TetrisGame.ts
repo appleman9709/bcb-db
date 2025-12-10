@@ -34,10 +34,26 @@ export class MobileSudokuTetris {
         // Устанавливаем размер canvas
         this.canvas.width = this.BOARD_SIZE * this.CELL_SIZE;
         this.canvas.height = this.BOARD_SIZE * this.CELL_SIZE;
-        
+
         this.board = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(0));
         this.boardColors = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
-        
+        this.coinMap = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
+        this.inventory = { feeding: 0, diaper: 0 };
+        this.activeInventoryItem = null;
+        this.coinSpawnChance = 0.35;
+        this.coinSpawnInterval = 2;
+        this.movesSinceLastCoin = 0;
+        this.maxCoinsOnBoard = 4;
+        this.coinImages = {
+            feeding: new Image(),
+            diaper: new Image()
+        };
+        this.coinImages.feeding.src = '/icons/feeding.png';
+        this.coinImages.diaper.src = '/icons/diaper.png';
+        Object.values(this.coinImages).forEach((img) => {
+            img.onload = () => this.draw();
+        });
+
         this.MAX_BLOCKS_PER_PIECE = 6;
         this.CLEAR_ANIMATION_DURATION = 520;
         this.clearAnimations = [];
@@ -397,7 +413,11 @@ export class MobileSudokuTetris {
             gameRunning: this.gameRunning,
             timestamp: Date.now(),
             piecesPlaced: this.piecesPlaced,
-            gameStartTime: this.gameStartTime
+            gameStartTime: this.gameStartTime,
+            coinMap: this.coinMap,
+            inventory: this.inventory,
+            activeInventoryItem: this.activeInventoryItem,
+            movesSinceLastCoin: this.movesSinceLastCoin
         };
         
         try {
@@ -431,6 +451,10 @@ export class MobileSudokuTetris {
                 this.gameRunning = gameState.gameRunning;
                 this.piecesPlaced = gameState.piecesPlaced || 0;
                 this.gameStartTime = gameState.gameStartTime || Date.now();
+                this.coinMap = this.normalizeCoinMap(gameState.coinMap);
+                this.inventory = this.normalizeInventory(gameState.inventory);
+                this.activeInventoryItem = gameState.activeInventoryItem || null;
+                this.movesSinceLastCoin = gameState.movesSinceLastCoin || 0;
                 
                 console.log('Игра загружена');
                 return true;
@@ -457,6 +481,35 @@ export class MobileSudokuTetris {
         }
 
         return normalized;
+    }
+
+    normalizeCoinMap(map) {
+        const normalized = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
+        if (!Array.isArray(map)) {
+            return normalized;
+        }
+
+        for (let y = 0; y < this.BOARD_SIZE; y++) {
+            for (let x = 0; x < this.BOARD_SIZE; x++) {
+                const value = map[y] && map[y][x];
+                if (value === 'feeding' || value === 'diaper') {
+                    normalized[y][x] = value;
+                }
+            }
+        }
+
+        return normalized;
+    }
+
+    normalizeInventory(inventory) {
+        if (!inventory || typeof inventory !== 'object') {
+            return { feeding: 0, diaper: 0 };
+        }
+
+        return {
+            feeding: Number.isFinite(inventory.feeding) ? inventory.feeding : 0,
+            diaper: Number.isFinite(inventory.diaper) ? inventory.diaper : 0
+        };
     }
 
     getActivePieces() {
@@ -541,9 +594,10 @@ export class MobileSudokuTetris {
             // Если игра загружена, обновляем интерфейс без анимации
             this.renderPieces(false);
         }
-        
+
         this.draw();
         this.setupEventListeners();
+        this.setupInventoryControls();
         this.updateUI();
     }
     
@@ -1023,6 +1077,7 @@ export class MobileSudokuTetris {
         this.addEventListenerWithCleanup(this.canvas, 'touchstart', (e) => this.handleTouchStart(e), { passive: true });
         this.addEventListenerWithCleanup(this.canvas, 'touchmove', (e) => this.handleTouchMove(e), { passive: true });
         this.addEventListenerWithCleanup(this.canvas, 'touchend', (e) => this.handleTouchEnd(e), { passive: true });
+        this.addEventListenerWithCleanup(this.canvas, 'click', (e) => this.handleInventoryClick(e));
         
         // События для фигур - touch события
         this.addEventListenerWithCleanup(this.piecesContainer, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
@@ -1064,6 +1119,27 @@ export class MobileSudokuTetris {
         // Глобальные mouse события для перетаскивания
         this.addEventListenerWithCleanup(this.document, 'mousemove', (e) => this.handlePieceMouseMove(e));
         this.addEventListenerWithCleanup(this.document, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+    }
+
+    setupInventoryControls() {
+        const feedingBtn = this.root.getElementById('feedingInventoryBtn');
+        const diaperBtn = this.root.getElementById('diaperInventoryBtn');
+
+        const selectItem = (type) => {
+            if (!this.gameRunning) return;
+            if ((this.inventory?.[type] ?? 0) <= 0) return;
+
+            const nextType = this.activeInventoryItem === type ? null : type;
+            this.setActiveInventoryItem(nextType);
+        };
+
+        if (feedingBtn) {
+            this.addEventListenerWithCleanup(feedingBtn, 'click', () => selectItem('feeding'));
+        }
+
+        if (diaperBtn) {
+            this.addEventListenerWithCleanup(diaperBtn, 'click', () => selectItem('diaper'));
+        }
     }
 
     // Управление плавающим превью фигуры (над пальцем)
@@ -1109,7 +1185,11 @@ export class MobileSudokuTetris {
     handlePieceTouchStart(e) {
         const pieceElement = e.target.closest('.piece-item');
         if (!pieceElement) return;
-        
+
+        if (this.activeInventoryItem) {
+            this.setActiveInventoryItem(null);
+        }
+
         const pieceId = pieceElement.dataset.pieceId;
         const piece = this.availablePieces.find(p => p && p.uniqueId === pieceId);
         
@@ -1253,7 +1333,11 @@ export class MobileSudokuTetris {
     handlePieceMouseStart(e) {
         const pieceElement = e.target.closest('.piece-item');
         if (!pieceElement) return;
-        
+
+        if (this.activeInventoryItem) {
+            this.setActiveInventoryItem(null);
+        }
+
         const pieceId = pieceElement.dataset.pieceId;
         const piece = this.availablePieces.find(p => p && p.uniqueId === pieceId);
         
@@ -1361,11 +1445,25 @@ export class MobileSudokuTetris {
         
         // Убираем выделение с фигуры
         this.clearSelection();
-        
+
         this.draw();
         e.preventDefault();
     }
-    
+
+    handleInventoryClick(e) {
+        if (!this.activeInventoryItem || !this.gameRunning) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const gridX = Math.floor((e.clientX - rect.left) / this.CELL_SIZE);
+        const gridY = Math.floor((e.clientY - rect.top) / this.CELL_SIZE);
+
+        if (gridX < 0 || gridX >= this.BOARD_SIZE || gridY < 0 || gridY >= this.BOARD_SIZE) {
+            return;
+        }
+
+        this.useInventoryItem(gridX, gridY);
+    }
+
     canPlacePiece(piece, x, y) {
         for (let py = 0; py < piece.shape.length; py++) {
             for (let px = 0; px < piece.shape[py].length; px++) {
@@ -1383,7 +1481,58 @@ export class MobileSudokuTetris {
         }
         return true;
     }
-    
+
+    useInventoryItem(x, y) {
+        if (!this.activeInventoryItem || !this.gameRunning) return;
+
+        const available = this.inventory?.[this.activeInventoryItem] ?? 0;
+        if (available <= 0) {
+            this.setActiveInventoryItem(null);
+            return;
+        }
+
+        const affectedCells = [];
+
+        if (this.activeInventoryItem === 'feeding') {
+            for (let cx = 0; cx < this.BOARD_SIZE; cx++) {
+                if (this.board[y][cx] || this.coinMap[y][cx]) {
+                    affectedCells.push({ x: cx, y });
+                }
+            }
+        }
+
+        if (this.activeInventoryItem === 'diaper') {
+            for (let dy = 0; dy < 2; dy++) {
+                for (let dx = 0; dx < 2; dx++) {
+                    const targetX = x + dx;
+                    const targetY = y + dy;
+                    if (targetX >= 0 && targetX < this.BOARD_SIZE && targetY >= 0 && targetY < this.BOARD_SIZE) {
+                        if (this.board[targetY][targetX] || this.coinMap[targetY][targetX]) {
+                            affectedCells.push({ x: targetX, y: targetY });
+                        }
+                    }
+                }
+            }
+        }
+
+        if (affectedCells.length === 0) {
+            this.setActiveInventoryItem(null);
+            this.updateUI();
+            return;
+        }
+
+        this.inventory[this.activeInventoryItem] = Math.max(0, available - 1);
+        this.collectCoinsFromCells(affectedCells);
+        this.clearCells(affectedCells);
+        this.triggerClearAnimation(affectedCells);
+        this.handleClearedCells(affectedCells, 1);
+        this.setActiveInventoryItem(null);
+        this.renderPieces(false);
+        this.draw();
+        this.saveGameState();
+        this.checkGameOver();
+    }
+
     placePiece(piece, x, y) {
         if (!this.canPlacePiece(piece, x, y)) {
             return false;
@@ -1422,14 +1571,16 @@ export class MobileSudokuTetris {
         
         // Проверяем заполненные линии
         this.checkLines();
-        
+
         // Если фигуры закончились, генерируем новые
         if (this.areAllSlotsEmpty()) {
             this.generatePieces();
         } else {
             this.renderPieces(false); // Без анимации при обновлении панели
         }
-        
+
+        this.maybeSpawnCoin();
+
         this.isDragging = false;
         this.draggedPiece = null;
         this.touchMoved = false;
@@ -1522,76 +1673,123 @@ export class MobileSudokuTetris {
         });
 
         const clearedCells = Array.from(cellsMap.values());
-        clearedCells.forEach(({ x, y }) => {
-            this.board[y][x] = 0;
-            this.boardColors[y][x] = null;
-        });
+
+        this.collectCoinsFromCells(clearedCells);
+        this.clearCells(clearedCells);
 
         if (clearedCells.length) {
             this.triggerClearAnimation(clearedCells);
         }
 
-        // Новая система подсчета очков
+        this.handleClearedCells(clearedCells, linesCleared);
+    }
+
+    clearCells(cells) {
+        if (!cells || cells.length === 0) return;
+
+        cells.forEach(({ x, y }) => {
+            this.board[y][x] = 0;
+            this.boardColors[y][x] = null;
+            this.coinMap[y][x] = null;
+        });
+    }
+
+    collectCoinsFromCells(clearedCells) {
+        if (!clearedCells || clearedCells.length === 0) {
+            return;
+        }
+
+        let feeding = 0;
+        let diaper = 0;
+
+        clearedCells.forEach(({ x, y }) => {
+            const coin = this.coinMap[y] && this.coinMap[y][x];
+            if (coin === 'feeding') feeding++;
+            if (coin === 'diaper') diaper++;
+            if (coin) {
+                this.coinMap[y][x] = null;
+            }
+        });
+
+        if (feeding || diaper) {
+            this.inventory.feeding = (this.inventory.feeding || 0) + feeding;
+            this.inventory.diaper = (this.inventory.diaper || 0) + diaper;
+            this.flashInventoryPanel();
+        }
+    }
+
+    handleClearedCells(clearedCells, linesCleared = 1) {
+        if (!clearedCells || clearedCells.length === 0) {
+            return;
+        }
+
+        const effectiveLines = Math.max(1, linesCleared);
         const currentTime = Date.now();
-        
-        // Проверяем, не истекло ли комбо (если прошло больше 2 секунд с последней очистки)
+
         if (currentTime - this.lastClearTime > this.COMBO_TIMEOUT) {
             this.comboCount = 0;
         }
-        
-        // Если что-то очистилось, увеличиваем комбо
-        if (clearedCells.length > 0) {
-            // Базовое увеличение комбо на 1
-            this.comboCount++;
-            
-            // Дополнительный бонус комбо за одновременное удаление нескольких линий
-            // Если удалено 2+ линии одновременно, добавляем +1 к комбо за каждую дополнительную линию
-            if (linesCleared > 1) {
-                const bonusCombo = linesCleared - 1; // Бонус = количество дополнительных линий
-                this.comboCount += bonusCombo;
-            }
-            
-            this.lastClearTime = currentTime;
-        }
-        
-        // Подсчитываем очки
-        const basePointsPerCell = 2; // Одна клетка = 2 очка
-        
-        // Подсчитываем уникальные очищенные клетки (учитывая пересечения строк, столбцов и регионов)
+
+        this.comboCount += effectiveLines;
+        this.lastClearTime = currentTime;
+
+        const basePointsPerCell = 2;
         const uniqueCells = clearedCells.length;
-        
-        // Базовые очки: каждая очищенная клетка = 2 очка
-        // Регион 3x3 = 9 клеток * 2 = 18 очков (автоматически)
         let totalPoints = uniqueCells * basePointsPerCell;
-        
-        // Вычисляем множитель комбо
-        // Комбо начинается с 1 (нет множителя), затем увеличивается
-        // 1 комбо = x1, 2 комбо = x1.5, 3 комбо = x2, 4 комбо = x2.5, 5 комбо = x3, и т.д.
+
         const comboMultiplier = this.comboCount > 1 ? 1 + (this.comboCount - 1) * 0.5 : 1;
-        
-        // Применяем множитель комбо
         totalPoints = Math.floor(totalPoints * comboMultiplier);
-        
+
         const oldLevel = this.level;
-        this.lines += linesCleared;
+        this.lines += effectiveLines;
         this.score += totalPoints;
         this.level = Math.floor(this.lines / 20) + 1;
 
         if (this.level > oldLevel) {
             this.showLevelUpCompliment();
         }
-        
-        // Показываем комбо, если оно есть
+
         if (this.comboCount > 1 && clearedCells.length > 0) {
             this.showCombo(this.comboCount, comboMultiplier, totalPoints, linesCleared);
         }
-        
-        // Показываем очки на поле
+
         if (clearedCells.length > 0 && totalPoints > 0) {
             this.showPointsOnField(clearedCells, totalPoints, comboMultiplier);
         }
 
         this.updateUI();
+        this.saveGameState();
+    }
+
+    countCoinsOnBoard() {
+        return this.coinMap.reduce((sum, row) => sum + row.filter(Boolean).length, 0);
+    }
+
+    maybeSpawnCoin() {
+        if (!this.gameRunning) return;
+        if (this.countCoinsOnBoard() >= this.maxCoinsOnBoard) return;
+
+        this.movesSinceLastCoin++;
+        if (this.movesSinceLastCoin < this.coinSpawnInterval) return;
+        this.movesSinceLastCoin = 0;
+
+        if (Math.random() > this.coinSpawnChance) return;
+
+        const freeCells = [];
+        for (let y = 0; y < this.BOARD_SIZE; y++) {
+            for (let x = 0; x < this.BOARD_SIZE; x++) {
+                if (this.board[y][x] === 0 && !this.coinMap[y][x]) {
+                    freeCells.push({ x, y });
+                }
+            }
+        }
+
+        if (freeCells.length === 0) return;
+
+        const randomCell = freeCells[Math.floor(Math.random() * freeCells.length)];
+        const coinType = Math.random() < 0.6 ? 'feeding' : 'diaper';
+        this.coinMap[randomCell.y][randomCell.x] = coinType;
+        this.draw();
         this.saveGameState();
     }
 
@@ -1614,7 +1812,11 @@ export class MobileSudokuTetris {
         if (activePieces.length === 0) {
             return true;
         }
-        
+
+        if ((this.inventory?.feeding ?? 0) > 0 || (this.inventory?.diaper ?? 0) > 0) {
+            return true;
+        }
+
         // Получаем список свободных клеток для оптимизации
         const freeCells = this.getFreeCells();
         
@@ -1908,14 +2110,39 @@ export class MobileSudokuTetris {
     drawBoard() {
         for (let y = 0; y < this.BOARD_SIZE; y++) {
             for (let x = 0; x < this.BOARD_SIZE; x++) {
+                const pixelX = x * this.CELL_SIZE;
+                const pixelY = y * this.CELL_SIZE;
+                const coinType = this.coinMap[y][x];
+
                 if (this.board[y][x]) {
-                    const pixelX = x * this.CELL_SIZE;
-                    const pixelY = y * this.CELL_SIZE;
                     const cellColor = this.boardColors[y][x] || '#3BA3FF'; // Используем сохраненный цвет или синий по умолчанию
                     this.drawModernCell(this.ctx, pixelX, pixelY, this.CELL_SIZE, cellColor);
+                    if (coinType) {
+                        this.drawCoinIcon(this.ctx, pixelX, pixelY, this.CELL_SIZE, coinType, true);
+                    }
+                } else if (coinType) {
+                    this.drawCoinIcon(this.ctx, pixelX, pixelY, this.CELL_SIZE, coinType, false);
                 }
             }
         }
+    }
+
+    drawCoinIcon(ctx, pixelX, pixelY, size, type, onBlock = false) {
+        const img = this.coinImages[type];
+        const padding = size * 0.18;
+        const iconSize = size - padding * 2;
+
+        ctx.save();
+        ctx.beginPath();
+        this.roundRectPath(ctx, pixelX + padding * 0.6, pixelY + padding * 0.6, size - padding * 1.2, size - padding * 1.2, 8);
+        ctx.fillStyle = onBlock ? 'rgba(255, 255, 255, 0.65)' : 'rgba(255, 255, 255, 0.9)';
+        ctx.fill();
+
+        if (img && img.complete) {
+            ctx.drawImage(img, pixelX + padding, pixelY + padding, iconSize, iconSize);
+        }
+
+        ctx.restore();
     }
 
     drawPlacementAnimations() {
@@ -2371,10 +2598,37 @@ export class MobileSudokuTetris {
         const levelDisplay = this.root.getElementById('levelDisplay');
         const record = this.root.getElementById('record');
         const currentScore = this.root.getElementById('currentScore');
-        
+
         if (levelDisplay) levelDisplay.textContent = this.level;
         if (record) record.textContent = this.record;
         if (currentScore) currentScore.textContent = this.score;
+
+        this.updateInventoryUI();
+    }
+
+    updateInventoryUI() {
+        const feedingCount = this.root.getElementById('feedingInventoryCount');
+        const diaperCount = this.root.getElementById('diaperInventoryCount');
+        const feedingBtn = this.root.getElementById('feedingInventoryBtn');
+        const diaperBtn = this.root.getElementById('diaperInventoryBtn');
+
+        if (feedingCount) feedingCount.textContent = (this.inventory?.feeding ?? 0).toString();
+        if (diaperCount) diaperCount.textContent = (this.inventory?.diaper ?? 0).toString();
+
+        if (feedingBtn) feedingBtn.classList.toggle('active', this.activeInventoryItem === 'feeding');
+        if (diaperBtn) diaperBtn.classList.toggle('active', this.activeInventoryItem === 'diaper');
+    }
+
+    setActiveInventoryItem(type) {
+        this.activeInventoryItem = type;
+        this.updateInventoryUI();
+    }
+
+    flashInventoryPanel() {
+        const panel = this.root.querySelector('.inventory-panel');
+        if (!panel) return;
+        panel.classList.add('gain');
+        setTimeout(() => panel.classList.remove('gain'), 350);
     }
     
     // Показывает информацию о комбо
@@ -2506,8 +2760,11 @@ export class MobileSudokuTetris {
     clearBoard() {
         this.board = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(0));
         this.boardColors = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
+        this.coinMap = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
+        this.movesSinceLastCoin = 0;
+        this.setActiveInventoryItem(null);
         this.draw();
-        
+
         // Сохраняем игру после очистки доски
         this.saveGameState();
     }
@@ -2515,7 +2772,8 @@ export class MobileSudokuTetris {
     
     gameOver() {
         this.gameRunning = false;
-        
+        this.setActiveInventoryItem(null);
+
         // Проверяем рекорд
         const isNewRecord = this.saveRecord(this.score);
         
@@ -2569,6 +2827,8 @@ export class MobileSudokuTetris {
     restart() {
         this.board = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(0));
         this.boardColors = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
+        this.coinMap = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
+        this.inventory = { feeding: 0, diaper: 0 };
         this.score = 0;
         this.level = 1;
         this.lines = 0;
@@ -2577,6 +2837,8 @@ export class MobileSudokuTetris {
         this.isDragging = false;
         this.piecesPlaced = 0;
         this.gameStartTime = Date.now();
+        this.movesSinceLastCoin = 0;
+        this.setActiveInventoryItem(null);
         
         // Сбрасываем комбо
         this.comboCount = 0;
@@ -2613,7 +2875,11 @@ export class MobileSudokuTetris {
             availablePieces: this.availablePieces.map(piece => JSON.parse(JSON.stringify(piece))),
             score: this.score,
             level: this.level,
-            lines: this.lines
+            lines: this.lines,
+            coinMap: this.coinMap.map(row => [...row]),
+            inventory: { ...this.inventory },
+            movesSinceLastCoin: this.movesSinceLastCoin,
+            activeInventoryItem: this.activeInventoryItem
         };
         
         // Очищаем историю и сохраняем только текущее состояние
@@ -2645,7 +2911,11 @@ export class MobileSudokuTetris {
         this.score = previousState.score;
         this.level = previousState.level;
         this.lines = previousState.lines;
-        
+        this.coinMap = this.normalizeCoinMap(previousState.coinMap);
+        this.inventory = this.normalizeInventory(previousState.inventory);
+        this.movesSinceLastCoin = previousState.movesSinceLastCoin || 0;
+        this.setActiveInventoryItem(null);
+
         // Очищаем историю после отмены, чтобы нельзя было отменить еще раз
         this.moveHistory = [];
         
