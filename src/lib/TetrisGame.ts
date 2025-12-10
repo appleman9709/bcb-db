@@ -66,6 +66,17 @@ export class MobileSudokuTetris {
         // Анимация очков
         this.pointsAnimations = [];
         this.POINTS_ANIMATION_DURATION = 1500; // 1.5 секунды
+
+        // Подсветка наведенной клетки
+        this.hoverCell = null;
+        this.hoverStartTime = 0;
+        this.hoverGlowConfig = {
+            validColor: 'rgba(34, 197, 94, 0.35)',
+            invalidColor: 'rgba(239, 68, 68, 0.28)',
+            borderColor: 'rgba(22, 163, 74, 0.65)',
+            animationDuration: 220,
+            maxScale: 1.08
+        };
         
         this.score = 0;
         this.level = 1;
@@ -107,6 +118,26 @@ export class MobileSudokuTetris {
         this.dragCanvas.style.display = 'none';
         this.dragCanvas.style.zIndex = '9999';
         this.document.body.appendChild(this.dragCanvas);
+
+        // Призрак иконки инвентаря
+        this.inventoryGhost = this.document.createElement('div');
+        this.inventoryGhostImg = this.document.createElement('img');
+        this.inventoryGhost.className = 'inventory-ghost';
+        Object.assign(this.inventoryGhost.style, {
+            position: 'fixed',
+            left: '0px',
+            top: '0px',
+            pointerEvents: 'none',
+            transform: 'translate(-50%, -50%)',
+            display: 'none',
+            zIndex: '10000',
+            transition: 'opacity 80ms ease'
+        });
+        this.inventoryGhostImg.style.width = '48px';
+        this.inventoryGhostImg.style.height = '48px';
+        this.inventoryGhostImg.style.filter = 'drop-shadow(0 6px 12px rgba(0,0,0,0.25))';
+        this.inventoryGhost.appendChild(this.inventoryGhostImg);
+        this.document.body.appendChild(this.inventoryGhost);
         
         // Состояние выбранной фигуры
         this.selectedPiece = null;
@@ -323,6 +354,44 @@ export class MobileSudokuTetris {
     addEventListenerWithCleanup(target, type, handler, options) {
         target.addEventListener(type, handler, options);
         this.cleanupFns.push(() => target.removeEventListener(type, handler, options));
+    }
+
+    showInventoryGhost(type) {
+        if (!type) return;
+        this.inventoryGhostImg.src = `/icons/${type}.png`;
+        this.inventoryGhost.style.display = 'block';
+        this.inventoryGhost.style.opacity = '1';
+    }
+
+    moveInventoryGhost(clientX, clientY) {
+        if (this.inventoryGhost.style.display === 'none') return;
+        this.inventoryGhost.style.left = `${clientX}px`;
+        this.inventoryGhost.style.top = `${clientY}px`;
+    }
+
+    hideInventoryGhost() {
+        this.inventoryGhost.style.opacity = '0';
+        setTimeout(() => {
+            this.inventoryGhost.style.display = 'none';
+        }, 100);
+    }
+
+    setHoverCell(cell, canPlace) {
+        if (!cell) {
+            this.hoverCell = null;
+            return;
+        }
+
+        this.hoverCell = {
+            ...cell,
+            canPlace,
+            inventoryType: this.draggedPiece?.inventoryType || null
+        };
+        this.hoverStartTime = performance.now();
+    }
+
+    clearHoverCell() {
+        this.hoverCell = null;
     }
     
     // Функция для ротации комплиментов
@@ -1163,6 +1232,17 @@ export class MobileSudokuTetris {
             this.addEventListenerWithCleanup(container, 'mousemove', (e) => this.handlePieceMouseMove(e));
             this.addEventListenerWithCleanup(container, 'mouseup', (e) => this.handlePieceMouseEnd(e));
         });
+
+        const inventoryButtons = this.root.querySelectorAll('.inventory-item');
+        inventoryButtons.forEach((button) => {
+            const type = button.id?.includes('diaper') ? 'diaper' : button.id?.includes('feeding') ? 'feeding' : null;
+            if (!type) return;
+            this.addEventListenerWithCleanup(button, 'pointerdown', (e) => this.startInventoryPointerDrag(type, e));
+            this.addEventListenerWithCleanup(button, 'dragstart', (e) => {
+                this.startInventoryPointerDrag(type, e);
+                e.preventDefault();
+            });
+        });
         
         // Кнопки управления
         const newGameBtn = this.root.getElementById('newGameBtn');
@@ -1276,23 +1356,33 @@ export class MobileSudokuTetris {
             // Включаем плавающий превью-канвас и позиционируем его
             this.showDragPreview(piece);
             this.moveDragPreview(touch.clientX, touch.clientY);
-            
+            if (piece.isInventory) {
+                this.showInventoryGhost(piece.inventoryType);
+                this.moveInventoryGhost(touch.clientX, touch.clientY);
+            }
+
             e.preventDefault();
         }
     }
     
     handlePieceTouchMove(e) {
         if (!this.isDragging || !this.draggedPiece) return;
-        
+
         const touch = e.touches[0];
         const canvasRect = this.canvas.getBoundingClientRect();
-        
+
         const deltaX = Math.abs(touch.clientX - this.touchStartX);
         const deltaY = Math.abs(touch.clientY - this.touchStartY);
         if (deltaX > 5 || deltaY > 5) {
             this.touchMoved = true;
         }
-        
+
+        if (touch.clientX < canvasRect.left || touch.clientX > canvasRect.right || touch.clientY < canvasRect.top || touch.clientY > canvasRect.bottom) {
+            this.clearHoverCell();
+            this.draw();
+            return;
+        }
+
         // Обновляем позицию плавающего превью
         this.moveDragPreview(touch.clientX, touch.clientY);
 
@@ -1306,9 +1396,11 @@ export class MobileSudokuTetris {
         let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
         gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
         gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
-        
-        this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
-        
+
+        const canPlace = this.canPlacePiece(this.draggedPiece, gridX, gridY);
+        this.setHoverCell({ x: gridX, y: gridY, width: pieceWidth, height: pieceHeight }, canPlace);
+        this.drawWithPreview(gridX, gridY, canPlace);
+
         e.preventDefault();
     }
     
@@ -1317,7 +1409,7 @@ export class MobileSudokuTetris {
         
         const touch = e.changedTouches[0];
         const canvasRect = this.canvas.getBoundingClientRect();
-        
+
         let piecePlaced = false;
         
         // Проверяем, был ли touch в области canvas
@@ -1362,9 +1454,11 @@ export class MobileSudokuTetris {
         this.touchMoved = false;
         this.isTouchDragging = false;
         this.touchLiftOffset = this.TOUCH_LIFT_BASE;
+        this.clearHoverCell();
 
         // Скрываем плавающее превью
         this.hideDragPreview();
+        this.hideInventoryGhost();
         
         this.root.querySelectorAll('.piece-item').forEach(el => {
             el.classList.remove('dragging');
@@ -1422,18 +1516,55 @@ export class MobileSudokuTetris {
             // Показать превью при перетаскивании мышью
             this.showDragPreview(piece);
             this.moveDragPreview(e.clientX, e.clientY);
-            
+            if (piece.isInventory) {
+                this.showInventoryGhost(piece.inventoryType);
+                this.moveInventoryGhost(e.clientX, e.clientY);
+            }
+
             e.preventDefault();
         }
+    }
+
+    startInventoryPointerDrag(type, event) {
+        if (!type || this.isDragging) return;
+        const available = this.inventory?.[type] ?? 0;
+        if (available <= 0) return;
+
+        const color = type === 'diaper' ? '#3B82F6' : '#F59E0B';
+        const piece = {
+            id: `inventory-${type}`,
+            uniqueId: `inventory-${type}-${Date.now()}`,
+            shape: type === 'diaper' ? [[1, 1], [1, 1]] : [[1]],
+            color,
+            inventoryType: type,
+            isInventory: true
+        };
+
+        this.draggedPiece = piece;
+        this.isDragging = true;
+        this.isTouchDragging = false;
+        this.showDragPreview(piece);
+        this.moveDragPreview(event.clientX, event.clientY);
+        this.showInventoryGhost(type);
+        this.moveInventoryGhost(event.clientX, event.clientY);
+
+        event.preventDefault();
     }
     
     handlePieceMouseMove(e) {
         if (!this.isDragging || !this.draggedPiece) return;
-        
+
         this.moveDragPreview(e.clientX, e.clientY);
+        this.moveInventoryGhost(e.clientX, e.clientY);
 
         const canvasRect = this.canvas.getBoundingClientRect();
-        
+
+        if (e.clientX < canvasRect.left || e.clientX > canvasRect.right || e.clientY < canvasRect.top || e.clientY > canvasRect.bottom) {
+            this.clearHoverCell();
+            this.draw();
+            return;
+        }
+
         // Центрируем тень под превью и удерживаем фигуру в поле
         const pieceWidth = this.draggedPiece.shape[0].length;
         const pieceHeight = this.draggedPiece.shape.length;
@@ -1444,10 +1575,12 @@ export class MobileSudokuTetris {
         let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
         gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
         gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
-        
+
         // Показываем призрак только если можно поставить
-        this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
-        
+        const canPlace = this.canPlacePiece(this.draggedPiece, gridX, gridY);
+        this.setHoverCell({ x: gridX, y: gridY, width: pieceWidth, height: pieceHeight }, canPlace);
+        this.drawWithPreview(gridX, gridY, canPlace);
+
         e.preventDefault();
     }
     
@@ -1494,14 +1627,16 @@ export class MobileSudokuTetris {
                 pieceElement.style.pointerEvents = 'auto';
             }
         }
-        
+
         // Сбрасываем состояние
         this.isDragging = false;
         this.draggedPiece = null;
+        this.clearHoverCell();
 
         // Скрыть превью
         this.hideDragPreview();
-        
+        this.hideInventoryGhost();
+
         // Убираем класс dragging со всех элементов
         this.root.querySelectorAll('.piece-item').forEach(el => {
             el.classList.remove('dragging');
@@ -1957,16 +2092,19 @@ export class MobileSudokuTetris {
         this.draw();
 
         if (!this.draggedPiece) {
+            this.drawHoverAura();
             return;
         }
 
         if (this.draggedPiece.isInventory) {
             this.drawInventoryPreview(previewX, previewY, canPlace);
+            this.drawHoverAura();
             return;
         }
 
         // Если нельзя поставить — не рисуем никакой тени
         if (!canPlace) {
+            this.drawHoverAura();
             return;
         }
 
@@ -1984,6 +2122,41 @@ export class MobileSudokuTetris {
                 }
             }
         }
+
+        this.drawHoverAura();
+    }
+
+    drawHoverAura() {
+        if (!this.hoverCell) return;
+
+        const { x, y, canPlace, width = 1, height = 1, inventoryType } = this.hoverCell;
+        const ctx = this.ctx;
+        const now = performance.now();
+        const progress = Math.min(1, (now - this.hoverStartTime) / this.hoverGlowConfig.animationDuration);
+        const scale = 1 + (this.hoverGlowConfig.maxScale - 1) * progress;
+        const color = canPlace ? this.hoverGlowConfig.validColor : this.hoverGlowConfig.invalidColor;
+        const borderColor = canPlace ? this.hoverGlowConfig.borderColor : 'rgba(239, 68, 68, 0.65)';
+
+        ctx.save();
+        ctx.translate((x + width / 2) * this.CELL_SIZE, (y + height / 2) * this.CELL_SIZE);
+        ctx.scale(scale, scale);
+        ctx.translate(-(x + width / 2) * this.CELL_SIZE, -(y + height / 2) * this.CELL_SIZE);
+
+        const renderWidth = inventoryType === 'feeding' ? this.canvas.width : width * this.CELL_SIZE;
+        const renderHeight = inventoryType === 'feeding' ? this.CELL_SIZE : height * this.CELL_SIZE;
+        const renderX = inventoryType === 'feeding' ? 0 : x * this.CELL_SIZE;
+        const renderY = y * this.CELL_SIZE;
+
+        ctx.fillStyle = color;
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        ctx.filter = 'drop-shadow(0 0 12px rgba(34,197,94,0.35))';
+
+        ctx.beginPath();
+        ctx.roundRect(renderX + 2, renderY + 2, renderWidth - 4, renderHeight - 4, 8);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
     }
 
     drawInventoryPreview(previewX, previewY, canPlace = true) {
