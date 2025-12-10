@@ -1435,7 +1435,11 @@ export class MobileSudokuTetris {
         gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
         gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
         
-        this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
+        const canPlace = this.draggedPiece.isInventory
+            ? this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY)
+            : this.canPlacePiece(this.draggedPiece, gridX, gridY);
+
+        this.drawWithPreview(gridX, gridY, canPlace);
         
         e.preventDefault();
     }
@@ -1466,13 +1470,14 @@ export class MobileSudokuTetris {
             gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
-            if (this.touchMoved && this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
-                if (this.draggedPiece.isInventory) {
-                    piecePlaced = this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
-                } else {
-                    this.placePiece(this.draggedPiece, gridX, gridY);
-                    piecePlaced = true;
-                }
+            const canPlace = this.draggedPiece.isInventory
+                ? this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY)
+                : this.canPlacePiece(this.draggedPiece, gridX, gridY);
+
+            if (this.touchMoved && canPlace) {
+                piecePlaced = this.draggedPiece.isInventory
+                    ? this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType)
+                    : (this.placePiece(this.draggedPiece, gridX, gridY), true);
             }
         }
         
@@ -1573,8 +1578,12 @@ export class MobileSudokuTetris {
         gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
         gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
         
+        const canPlace = this.draggedPiece.isInventory
+            ? this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY)
+            : this.canPlacePiece(this.draggedPiece, gridX, gridY);
+
         // Показываем призрак только если можно поставить
-        this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
+        this.drawWithPreview(gridX, gridY, canPlace);
         
         e.preventDefault();
     }
@@ -1604,13 +1613,14 @@ export class MobileSudokuTetris {
             gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
-            if (this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
-                if (this.draggedPiece.isInventory) {
-                    piecePlaced = this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
-                } else {
-                    this.placePiece(this.draggedPiece, gridX, gridY);
-                    piecePlaced = true;
-                }
+            const canPlace = this.draggedPiece.isInventory
+                ? this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY)
+                : this.canPlacePiece(this.draggedPiece, gridX, gridY);
+
+            if (canPlace) {
+                piecePlaced = this.draggedPiece.isInventory
+                    ? this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType)
+                    : (this.placePiece(this.draggedPiece, gridX, gridY), true);
             }
         }
         
