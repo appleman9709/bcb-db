@@ -732,6 +732,19 @@ export class MobileSudokuTetris {
         this.renderInventoryPieces();
     }
 
+    createInventoryPiece(type) {
+        const color = type === 'diaper' ? '#3B82F6' : '#F59E0B';
+
+        return {
+            id: `inventory-${type}`,
+            uniqueId: `inventory-${type}-${Date.now()}`,
+            shape: type === 'diaper' ? [[1, 1], [1, 1]] : [[1]],
+            color,
+            inventoryType: type,
+            isInventory: true,
+        };
+    }
+
     renderInventoryPieces() {
         const tray = this.root.getElementById('inventoryPiecesTray');
         if (!tray) return;
@@ -739,22 +752,12 @@ export class MobileSudokuTetris {
         this.inventoryTrayPieces = [];
         tray.querySelectorAll('.piece-item').forEach(el => el.remove());
 
-        const inventoryTypes = [
-            { type: 'feeding', color: '#F59E0B' },
-            { type: 'diaper', color: '#3B82F6' }
-        ];
+        const inventoryTypes = ['feeding', 'diaper'];
 
-        inventoryTypes.forEach(({ type, color }) => {
+        inventoryTypes.forEach((type) => {
             if ((this.inventory?.[type] ?? 0) <= 0) return;
 
-            const piece = {
-                id: `inventory-${type}`,
-                uniqueId: `inventory-${type}`,
-                shape: type === 'diaper' ? [[1, 1], [1, 1]] : [[1]],
-                color,
-                inventoryType: type,
-                isInventory: true,
-            };
+            const piece = this.createInventoryPiece(type);
 
             this.inventoryTrayPieces.push(piece);
 
@@ -1205,38 +1208,67 @@ export class MobileSudokuTetris {
 
     setupInventoryDragAndDrop() {
         const tray = this.root.getElementById('inventoryPiecesTray');
-        if (!tray) return;
-
-        // HTML5 drag-and-drop для бонусов
-        this.addEventListenerWithCleanup(tray, 'dragstart', (e) => {
-            const target = e.target.closest('.piece-item');
-            if (!target) return;
-
-            const pieceId = target.dataset.pieceId;
-            const piece = this.findPieceById(pieceId);
-            if (!piece?.isInventory) return;
-
-            this.draggedPiece = piece;
-            this.isDragging = true;
-            target.classList.add('dragging');
-
-            if (e.dataTransfer) {
-                e.dataTransfer.effectAllowed = 'copy';
-                e.dataTransfer.setData('text/plain', piece.uniqueId);
-                e.dataTransfer.setDragImage(target, target.clientWidth / 2, target.clientHeight / 2);
-            }
-
-            this.showDragPreview(piece);
-            this.moveDragPreview(e.clientX, e.clientY);
-        });
-
-        this.addEventListenerWithCleanup(tray, 'dragend', () => {
+        const resetInventoryDrag = () => {
             this.isDragging = false;
             this.draggedPiece = null;
             this.hideDragPreview();
-            tray.querySelectorAll('.piece-item').forEach((el) => el.classList.remove('dragging'));
+            this.root.querySelectorAll('.piece-item').forEach((el) => el.classList.remove('dragging'));
+            this.root.querySelectorAll('.inventory-item').forEach((el) => el.classList.remove('dragging'));
             this.draw();
-        });
+        };
+
+        const startInventoryDrag = (type, sourceElement, event, pieceOverride = null) => {
+            if (!type || !this.gameRunning) return;
+            if ((this.inventory?.[type] ?? 0) <= 0) return;
+
+            const piece = pieceOverride || this.createInventoryPiece(type);
+            this.draggedPiece = piece;
+            this.isDragging = true;
+            sourceElement.classList.add('dragging');
+
+            if (event?.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'copy';
+                event.dataTransfer.setData('text/plain', piece.uniqueId);
+                const icon = sourceElement.querySelector('img');
+                const dragImage = icon || sourceElement;
+                const offsetX = (dragImage?.clientWidth || sourceElement.clientWidth) / 2;
+                const offsetY = (dragImage?.clientHeight || sourceElement.clientHeight) / 2;
+                event.dataTransfer.setDragImage(dragImage, offsetX, offsetY);
+            }
+
+            this.showDragPreview(piece);
+            this.moveDragPreview(event?.clientX ?? 0, event?.clientY ?? 0);
+        };
+
+        if (tray) {
+            // HTML5 drag-and-drop для бонусов в виде фигур
+            this.addEventListenerWithCleanup(tray, 'dragstart', (e) => {
+                const target = e.target.closest('.piece-item');
+                if (!target) return;
+
+                const pieceId = target.dataset.pieceId;
+                const piece = this.findPieceById(pieceId);
+                if (!piece?.isInventory) return;
+
+                startInventoryDrag(piece.inventoryType, target, e, piece);
+            });
+
+            this.addEventListenerWithCleanup(tray, 'dragend', resetInventoryDrag);
+        }
+
+        const inventoryActions = this.root.querySelector('.inventory-actions');
+        if (inventoryActions) {
+            inventoryActions.querySelectorAll('.inventory-item').forEach((btn) => {
+                const type = btn.dataset.inventoryType;
+                btn.setAttribute('draggable', 'true');
+
+                this.addEventListenerWithCleanup(btn, 'dragstart', (e) => {
+                    startInventoryDrag(type, btn, e);
+                });
+
+                this.addEventListenerWithCleanup(btn, 'dragend', resetInventoryDrag);
+            });
+        }
 
         // Подсветка зоны действия бонуса при наведении и дропе
         this.addEventListenerWithCleanup(this.canvas, 'dragover', (e) => {
@@ -1282,10 +1314,7 @@ export class MobileSudokuTetris {
                 this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
             }
 
-            this.isDragging = false;
-            this.draggedPiece = null;
-            this.hideDragPreview();
-            this.draw();
+            resetInventoryDrag();
         });
     }
 

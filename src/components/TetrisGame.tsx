@@ -92,17 +92,26 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
           <div className="inventory-panel">
             <div className="inventory-header">
               <span className="inventory-title">Инвентарь</span>
-              <span className="inventory-hint">Перетащите бонус на поле, чтобы применить эффект</span>
             </div>
             <div className="inventory-actions">
-              <button className="inventory-item" id="feedingInventoryBtn" type="button">
+              <button
+                className="inventory-item"
+                id="feedingInventoryBtn"
+                type="button"
+                draggable
+                data-inventory-type="feeding"
+              >
                 <img src="/icons/feeding.png" alt="Кормление" className="inventory-icon" />
-                <span className="inventory-label">Кормление</span>
                 <span className="inventory-count" id="feedingInventoryCount">0</span>
               </button>
-              <button className="inventory-item" id="diaperInventoryBtn" type="button">
+              <button
+                className="inventory-item"
+                id="diaperInventoryBtn"
+                type="button"
+                draggable
+                data-inventory-type="diaper"
+              >
                 <img src="/icons/diaper.png" alt="Пеленка" className="inventory-icon" />
-                <span className="inventory-label">Бомба 2×2</span>
                 <span className="inventory-count" id="diaperInventoryCount">0</span>
               </button>
             </div>
