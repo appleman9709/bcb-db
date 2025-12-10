@@ -1276,6 +1276,9 @@ export class MobileSudokuTetris {
         // Глобальные mouse события для перетаскивания
         this.addEventListenerWithCleanup(this.document, 'mousemove', (e) => this.handlePieceMouseMove(e));
         this.addEventListenerWithCleanup(this.document, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+        this.addEventListenerWithCleanup(this.document, 'pointermove', (e) => this.handlePieceMouseMove(e));
+        this.addEventListenerWithCleanup(this.document, 'pointerup', (e) => this.handlePieceMouseEnd(e));
+        this.addEventListenerWithCleanup(this.document, 'pointercancel', (e) => this.handlePieceMouseEnd(e));
     }
 
     // Управление плавающим превью фигуры (над пальцем)
