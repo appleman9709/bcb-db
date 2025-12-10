@@ -128,6 +128,10 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
             <div id="slot2" data-slot="2" />
             <div id="slot3" data-slot="3" />
           </div>
+          <div className="inventory-pieces-tray" id="inventoryPiecesTray">
+            <div className="inventory-pieces-title">Бонусы как фигуры</div>
+            <div className="inventory-pieces-hint">Перетащите бонус на поле, чтобы увидеть зону действия</div>
+          </div>
         </section>
       </main>
 

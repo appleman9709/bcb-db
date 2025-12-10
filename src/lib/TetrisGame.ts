@@ -40,6 +40,7 @@ export class MobileSudokuTetris {
         this.coinMap = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
         this.inventory = { feeding: 0, diaper: 0 };
         this.activeInventoryItem = null;
+        this.inventoryTrayPieces = [];
         this.coinSpawnChance = 0.35;
         this.coinSpawnInterval = 2;
         this.movesSinceLastCoin = 0;
@@ -519,6 +520,12 @@ export class MobileSudokuTetris {
         return this.availablePieces.filter(piece => piece);
     }
 
+    findPieceById(id) {
+        const regular = this.availablePieces?.find(p => p && p.uniqueId === id);
+        if (regular) return regular;
+        return this.inventoryTrayPieces?.find(p => p && p.uniqueId === id) || null;
+    }
+
     areAllSlotsEmpty() {
         return this.getActivePieces().length === 0;
     }
@@ -651,7 +658,7 @@ export class MobileSudokuTetris {
             slot.innerHTML = '';
             slot.classList.remove('active', 'empty');
         });
-        
+
         for (let i = 0; i < 3; i++) {
             const piece = this.availablePieces[i];
             // Убеждаемся, что цвет фигуры правильный перед отрисовкой
@@ -713,7 +720,7 @@ export class MobileSudokuTetris {
             if (animate) {
                 setTimeout(() => {
                     pieceElement.classList.add('appearing');
-                    
+
                     // Убираем класс анимации после завершения
                     setTimeout(() => {
                         pieceElement.classList.remove('appearing');
@@ -721,6 +728,68 @@ export class MobileSudokuTetris {
                 }, i * 100); // Задержка между фигурами по позициям слотов
             }
         }
+
+        this.renderInventoryPieces();
+    }
+
+    renderInventoryPieces() {
+        const tray = this.root.getElementById('inventoryPiecesTray');
+        if (!tray) return;
+
+        this.inventoryTrayPieces = [];
+        tray.querySelectorAll('.piece-item').forEach(el => el.remove());
+
+        const inventoryTypes = [
+            { type: 'feeding', color: '#F59E0B' },
+            { type: 'diaper', color: '#3B82F6' }
+        ];
+
+        inventoryTypes.forEach(({ type, color }) => {
+            if ((this.inventory?.[type] ?? 0) <= 0) return;
+
+            const piece = {
+                id: `inventory-${type}`,
+                uniqueId: `inventory-${type}`,
+                shape: type === 'diaper' ? [[1, 1], [1, 1]] : [[1]],
+                color,
+                inventoryType: type,
+                isInventory: true,
+            };
+
+            this.inventoryTrayPieces.push(piece);
+
+            const pieceElement = this.document.createElement('div');
+            pieceElement.className = 'piece-item inventory-piece';
+            pieceElement.draggable = true;
+            pieceElement.dataset.pieceId = piece.uniqueId;
+            pieceElement.dataset.inventoryType = type;
+
+            const canvas = this.document.createElement('canvas');
+            canvas.className = 'piece-canvas';
+
+            const pieceWidth = piece.shape[0].length;
+            const pieceHeight = piece.shape.length;
+            const cellSize = this.CELL_SIZE * 0.6;
+            const gap = 1;
+            const padding = 4;
+            const canvasWidth = pieceWidth * cellSize + (pieceWidth - 1) * gap + padding * 2;
+            const canvasHeight = pieceHeight * cellSize + (pieceHeight - 1) * gap + padding * 2;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+            const ctx = canvas.getContext('2d');
+            this.drawPieceOnCanvas(ctx, piece, cellSize, padding);
+
+            // Добавляем иконку бонуса поверх фигуры
+            const icon = this.document.createElement('img');
+            icon.src = `/icons/${type}.png`;
+            icon.alt = type;
+            icon.className = 'inventory-piece-icon';
+
+            pieceElement.appendChild(canvas);
+            pieceElement.appendChild(icon);
+            tray.appendChild(pieceElement);
+        });
     }
     
     // Метод для получения имени цвета из hex значения
@@ -1191,7 +1260,7 @@ export class MobileSudokuTetris {
         }
 
         const pieceId = pieceElement.dataset.pieceId;
-        const piece = this.availablePieces.find(p => p && p.uniqueId === pieceId);
+        const piece = this.findPieceById(pieceId);
         
         if (piece) {
             this.selectPiece(piece, pieceElement);
@@ -1283,8 +1352,12 @@ export class MobileSudokuTetris {
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
             if (this.touchMoved && this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
-                this.placePiece(this.draggedPiece, gridX, gridY);
-                piecePlaced = true;
+                if (this.draggedPiece.isInventory) {
+                    piecePlaced = this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
+                } else {
+                    this.placePiece(this.draggedPiece, gridX, gridY);
+                    piecePlaced = true;
+                }
             }
         }
         
@@ -1339,7 +1412,7 @@ export class MobileSudokuTetris {
         }
 
         const pieceId = pieceElement.dataset.pieceId;
-        const piece = this.availablePieces.find(p => p && p.uniqueId === pieceId);
+        const piece = this.findPieceById(pieceId);
         
         if (piece) {
             // Выбираем фигуру при клике
@@ -1417,8 +1490,12 @@ export class MobileSudokuTetris {
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
             if (this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
-                this.placePiece(this.draggedPiece, gridX, gridY);
-                piecePlaced = true;
+                if (this.draggedPiece.isInventory) {
+                    piecePlaced = this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
+                } else {
+                    this.placePiece(this.draggedPiece, gridX, gridY);
+                    piecePlaced = true;
+                }
             }
         }
         
@@ -1465,6 +1542,10 @@ export class MobileSudokuTetris {
     }
 
     canPlacePiece(piece, x, y) {
+        if (piece?.isInventory) {
+            return this.canUseInventoryAt(piece.inventoryType, x, y);
+        }
+
         for (let py = 0; py < piece.shape.length; py++) {
             for (let px = 0; px < piece.shape[py].length; px++) {
                 if (piece.shape[py][px]) {
@@ -1482,18 +1563,27 @@ export class MobileSudokuTetris {
         return true;
     }
 
-    useInventoryItem(x, y) {
-        if (!this.activeInventoryItem || !this.gameRunning) return;
+    canUseInventoryAt(type, x, y) {
+        if (!type) return false;
+        if (type === 'diaper') {
+            return x >= 0 && y >= 0 && x <= this.BOARD_SIZE - 2 && y <= this.BOARD_SIZE - 2;
+        }
+        return x >= 0 && y >= 0 && x < this.BOARD_SIZE && y < this.BOARD_SIZE;
+    }
 
-        const available = this.inventory?.[this.activeInventoryItem] ?? 0;
+    useInventoryItem(x, y, forcedType = null) {
+        const type = forcedType || this.activeInventoryItem;
+        if (!type || !this.gameRunning) return false;
+
+        const available = this.inventory?.[type] ?? 0;
         if (available <= 0) {
             this.setActiveInventoryItem(null);
-            return;
+            return false;
         }
 
         const affectedCells = [];
 
-        if (this.activeInventoryItem === 'feeding') {
+        if (type === 'feeding') {
             for (let cx = 0; cx < this.BOARD_SIZE; cx++) {
                 if (this.board[y][cx] || this.coinMap[y][cx]) {
                     affectedCells.push({ x: cx, y });
@@ -1501,7 +1591,7 @@ export class MobileSudokuTetris {
             }
         }
 
-        if (this.activeInventoryItem === 'diaper') {
+        if (type === 'diaper') {
             for (let dy = 0; dy < 2; dy++) {
                 for (let dx = 0; dx < 2; dx++) {
                     const targetX = x + dx;
@@ -1518,10 +1608,10 @@ export class MobileSudokuTetris {
         if (affectedCells.length === 0) {
             this.setActiveInventoryItem(null);
             this.updateUI();
-            return;
+            return false;
         }
 
-        this.inventory[this.activeInventoryItem] = Math.max(0, available - 1);
+        this.inventory[type] = Math.max(0, available - 1);
         this.collectCoinsFromCells(affectedCells);
         this.clearCells(affectedCells);
         this.triggerClearAnimation(affectedCells);
@@ -1531,6 +1621,7 @@ export class MobileSudokuTetris {
         this.draw();
         this.saveGameState();
         this.checkGameOver();
+        return true;
     }
 
     placePiece(piece, x, y) {
@@ -1896,6 +1987,11 @@ export class MobileSudokuTetris {
             return;
         }
 
+        if (this.draggedPiece.isInventory) {
+            this.drawInventoryPreview(previewX, previewY, canPlace);
+            return;
+        }
+
         // Если нельзя поставить — не рисуем никакой тени
         if (!canPlace) {
             return;
@@ -1915,6 +2011,30 @@ export class MobileSudokuTetris {
                 }
             }
         }
+    }
+
+    drawInventoryPreview(previewX, previewY, canPlace = true) {
+        this.draw();
+        if (!this.draggedPiece?.inventoryType || !canPlace) return;
+
+        const type = this.draggedPiece.inventoryType;
+        const highlightColor = type === 'diaper' ? 'rgba(59, 130, 246, 0.35)' : 'rgba(245, 158, 11, 0.35)';
+        const borderColor = type === 'diaper' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(245, 158, 11, 0.8)';
+
+        this.ctx.save();
+        this.ctx.fillStyle = highlightColor;
+        this.ctx.strokeStyle = borderColor;
+        this.ctx.lineWidth = 2;
+
+        if (type === 'feeding') {
+            this.ctx.fillRect(0, previewY * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
+            this.ctx.strokeRect(0, previewY * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
+        } else if (type === 'diaper') {
+            this.ctx.fillRect(previewX * this.CELL_SIZE, previewY * this.CELL_SIZE, this.CELL_SIZE * 2, this.CELL_SIZE * 2);
+            this.ctx.strokeRect(previewX * this.CELL_SIZE, previewY * this.CELL_SIZE, this.CELL_SIZE * 2, this.CELL_SIZE * 2);
+        }
+
+        this.ctx.restore();
     }
 
     // Функция для расчета линий, которые будут очищены
@@ -2617,6 +2737,8 @@ export class MobileSudokuTetris {
 
         if (feedingBtn) feedingBtn.classList.toggle('active', this.activeInventoryItem === 'feeding');
         if (diaperBtn) diaperBtn.classList.toggle('active', this.activeInventoryItem === 'diaper');
+
+        this.renderInventoryPieces();
     }
 
     setActiveInventoryItem(type) {
