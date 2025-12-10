@@ -21,15 +21,13 @@ export class MobileSudokuTetris {
             throw new Error('Не удалось получить контекст canvas!');
         }
         console.log('Контекст canvas получен');
-
+        
         this.piecesContainer = this.root.getElementById('piecesContainer');
         if (!this.piecesContainer) {
             throw new Error('Контейнер фигур с id="piecesContainer" не найден!');
         }
         console.log('Контейнер фигур найден:', this.piecesContainer);
-
-        this.inventoryPiecesTray = this.root.getElementById('inventoryPiecesTray');
-
+        
         this.BOARD_SIZE = 9;
         this.CELL_SIZE = 40; // Адаптивный размер для мобильных устройств
         
@@ -606,6 +604,7 @@ export class MobileSudokuTetris {
 
         this.draw();
         this.setupEventListeners();
+        this.setupInventoryControls();
         this.updateUI();
     }
     
@@ -1147,22 +1146,28 @@ export class MobileSudokuTetris {
         this.addEventListenerWithCleanup(this.canvas, 'touchstart', (e) => this.handleTouchStart(e), { passive: true });
         this.addEventListenerWithCleanup(this.canvas, 'touchmove', (e) => this.handleTouchMove(e), { passive: true });
         this.addEventListenerWithCleanup(this.canvas, 'touchend', (e) => this.handleTouchEnd(e), { passive: true });
+        this.addEventListenerWithCleanup(this.canvas, 'click', (e) => this.handleInventoryClick(e));
         
-        const pieceContainers = [this.piecesContainer, this.inventoryPiecesTray].filter(Boolean);
-
         // События для фигур - touch события
-        pieceContainers.forEach((container) => {
-            this.addEventListenerWithCleanup(container, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
-            this.addEventListenerWithCleanup(container, 'touchmove', (e) => this.handlePieceTouchMove(e), { passive: false });
-            this.addEventListenerWithCleanup(container, 'touchend', (e) => this.handlePieceTouchEnd(e), { passive: false });
-        });
-
+        this.addEventListenerWithCleanup(this.piecesContainer, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
+        this.addEventListenerWithCleanup(this.piecesContainer, 'touchmove', (e) => this.handlePieceTouchMove(e), { passive: false });
+        this.addEventListenerWithCleanup(this.piecesContainer, 'touchend', (e) => this.handlePieceTouchEnd(e), { passive: false });
+        
         // События для фигур - mouse события (для тестирования на ПК)
-        pieceContainers.forEach((container) => {
-            this.addEventListenerWithCleanup(container, 'mousedown', (e) => this.handlePieceMouseStart(e));
-            this.addEventListenerWithCleanup(container, 'mousemove', (e) => this.handlePieceMouseMove(e));
-            this.addEventListenerWithCleanup(container, 'mouseup', (e) => this.handlePieceMouseEnd(e));
-        });
+        this.addEventListenerWithCleanup(this.piecesContainer, 'mousedown', (e) => this.handlePieceMouseStart(e));
+        this.addEventListenerWithCleanup(this.piecesContainer, 'mousemove', (e) => this.handlePieceMouseMove(e));
+        this.addEventListenerWithCleanup(this.piecesContainer, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+
+        const inventoryTray = this.root.getElementById('inventoryPiecesTray');
+        if (inventoryTray) {
+            this.addEventListenerWithCleanup(inventoryTray, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
+            this.addEventListenerWithCleanup(inventoryTray, 'touchmove', (e) => this.handlePieceTouchMove(e), { passive: false });
+            this.addEventListenerWithCleanup(inventoryTray, 'touchend', (e) => this.handlePieceTouchEnd(e), { passive: false });
+
+            this.addEventListenerWithCleanup(inventoryTray, 'mousedown', (e) => this.handlePieceMouseStart(e));
+            this.addEventListenerWithCleanup(inventoryTray, 'mousemove', (e) => this.handlePieceMouseMove(e));
+            this.addEventListenerWithCleanup(inventoryTray, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+        }
         
         // Кнопки управления
         const newGameBtn = this.root.getElementById('newGameBtn');
@@ -1189,13 +1194,120 @@ export class MobileSudokuTetris {
         }, { passive: false });
         
         // Предотвращаем контекстное меню
-        pieceContainers.forEach((container) => {
-            this.addEventListenerWithCleanup(container, 'contextmenu', (e) => e.preventDefault());
-        });
+        this.addEventListenerWithCleanup(this.piecesContainer, 'contextmenu', (e) => e.preventDefault());
         
         // Глобальные mouse события для перетаскивания
         this.addEventListenerWithCleanup(this.document, 'mousemove', (e) => this.handlePieceMouseMove(e));
         this.addEventListenerWithCleanup(this.document, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+
+        this.setupInventoryDragAndDrop();
+    }
+
+    setupInventoryDragAndDrop() {
+        const tray = this.root.getElementById('inventoryPiecesTray');
+        if (!tray) return;
+
+        // HTML5 drag-and-drop для бонусов
+        this.addEventListenerWithCleanup(tray, 'dragstart', (e) => {
+            const target = e.target.closest('.piece-item');
+            if (!target) return;
+
+            const pieceId = target.dataset.pieceId;
+            const piece = this.findPieceById(pieceId);
+            if (!piece?.isInventory) return;
+
+            this.draggedPiece = piece;
+            this.isDragging = true;
+            target.classList.add('dragging');
+
+            if (e.dataTransfer) {
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('text/plain', piece.uniqueId);
+                e.dataTransfer.setDragImage(target, target.clientWidth / 2, target.clientHeight / 2);
+            }
+
+            this.showDragPreview(piece);
+            this.moveDragPreview(e.clientX, e.clientY);
+        });
+
+        this.addEventListenerWithCleanup(tray, 'dragend', () => {
+            this.isDragging = false;
+            this.draggedPiece = null;
+            this.hideDragPreview();
+            tray.querySelectorAll('.piece-item').forEach((el) => el.classList.remove('dragging'));
+            this.draw();
+        });
+
+        // Подсветка зоны действия бонуса при наведении и дропе
+        this.addEventListenerWithCleanup(this.canvas, 'dragover', (e) => {
+            if (!this.draggedPiece?.isInventory) return;
+            e.preventDefault();
+
+            const canvasRect = this.canvas.getBoundingClientRect();
+            const pieceWidth = this.draggedPiece.shape[0].length;
+            const pieceHeight = this.draggedPiece.shape.length;
+            const previewCanvasX = e.clientX - canvasRect.left;
+            const previewCanvasY = Math.min(e.clientY - canvasRect.top, this.canvas.height);
+
+            let gridX = Math.floor(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+            let gridY = Math.floor(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+            gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
+            gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
+
+            const canPlace = this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY);
+            this.drawWithPreview(gridX, gridY, canPlace);
+        });
+
+        this.addEventListenerWithCleanup(this.canvas, 'dragleave', () => {
+            if (!this.draggedPiece?.isInventory) return;
+            this.draw();
+        });
+
+        this.addEventListenerWithCleanup(this.canvas, 'drop', (e) => {
+            if (!this.draggedPiece?.isInventory) return;
+            e.preventDefault();
+
+            const canvasRect = this.canvas.getBoundingClientRect();
+            const pieceWidth = this.draggedPiece.shape[0].length;
+            const pieceHeight = this.draggedPiece.shape.length;
+            const previewCanvasX = e.clientX - canvasRect.left;
+            const previewCanvasY = Math.min(e.clientY - canvasRect.top, this.canvas.height);
+            let gridX = Math.floor(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
+            let gridY = Math.floor(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
+            gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
+            gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
+
+            const canPlace = this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY);
+            if (canPlace) {
+                this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
+            }
+
+            this.isDragging = false;
+            this.draggedPiece = null;
+            this.hideDragPreview();
+            this.draw();
+        });
+    }
+
+    setupInventoryControls() {
+        const feedingBtn = this.root.getElementById('feedingInventoryBtn');
+        const diaperBtn = this.root.getElementById('diaperInventoryBtn');
+
+        const selectItem = (type) => {
+            if (!this.gameRunning) return;
+            if ((this.inventory?.[type] ?? 0) <= 0) return;
+
+            const nextType = this.activeInventoryItem === type ? null : type;
+            this.setActiveInventoryItem(nextType);
+        };
+
+        if (feedingBtn) {
+            this.addEventListenerWithCleanup(feedingBtn, 'click', () => selectItem('feeding'));
+        }
+
+        if (diaperBtn) {
+            this.addEventListenerWithCleanup(diaperBtn, 'click', () => selectItem('diaper'));
+        }
     }
 
     // Управление плавающим превью фигуры (над пальцем)
@@ -1213,6 +1325,22 @@ export class MobileSudokuTetris {
         const ctx = this.dragCanvasCtx;
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         this.drawPieceOnCanvas(ctx, piece, cellSize, padding);
+
+        // Добавляем иконку бонуса поверх превью в воздухе
+        if (piece.isInventory && piece.inventoryType && this.coinImages[piece.inventoryType]) {
+            const iconSize = Math.min(28, Math.round(cellSize * 0.9));
+            const iconPadding = 4;
+            const iconX = canvasWidth - iconSize - iconPadding;
+            const iconY = canvasHeight - iconSize - iconPadding;
+
+            const img = this.coinImages[piece.inventoryType];
+            if (img && img.complete) {
+                ctx.save();
+                ctx.globalAlpha = 0.95;
+                ctx.drawImage(img, iconX, iconY, iconSize, iconSize);
+                ctx.restore();
+            }
+        }
         this.dragCanvas.style.display = 'block';
     }
 
@@ -1307,7 +1435,11 @@ export class MobileSudokuTetris {
         gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
         gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
         
-        this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
+        const canPlace = this.draggedPiece.isInventory
+            ? this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY)
+            : this.canPlacePiece(this.draggedPiece, gridX, gridY);
+
+        this.drawWithPreview(gridX, gridY, canPlace);
         
         e.preventDefault();
     }
@@ -1338,13 +1470,14 @@ export class MobileSudokuTetris {
             gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
-            if (this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
-                if (this.draggedPiece.isInventory) {
-                    piecePlaced = this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
-                } else {
-                    this.placePiece(this.draggedPiece, gridX, gridY);
-                    piecePlaced = true;
-                }
+            const canPlace = this.draggedPiece.isInventory
+                ? this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY)
+                : this.canPlacePiece(this.draggedPiece, gridX, gridY);
+
+            if (this.touchMoved && canPlace) {
+                piecePlaced = this.draggedPiece.isInventory
+                    ? this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType)
+                    : (this.placePiece(this.draggedPiece, gridX, gridY), true);
             }
         }
         
@@ -1445,8 +1578,12 @@ export class MobileSudokuTetris {
         gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
         gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
         
+        const canPlace = this.draggedPiece.isInventory
+            ? this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY)
+            : this.canPlacePiece(this.draggedPiece, gridX, gridY);
+
         // Показываем призрак только если можно поставить
-        this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
+        this.drawWithPreview(gridX, gridY, canPlace);
         
         e.preventDefault();
     }
@@ -1476,13 +1613,14 @@ export class MobileSudokuTetris {
             gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
-            if (this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
-                if (this.draggedPiece.isInventory) {
-                    piecePlaced = this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
-                } else {
-                    this.placePiece(this.draggedPiece, gridX, gridY);
-                    piecePlaced = true;
-                }
+            const canPlace = this.draggedPiece.isInventory
+                ? this.canUseInventoryAt(this.draggedPiece.inventoryType, gridX, gridY)
+                : this.canPlacePiece(this.draggedPiece, gridX, gridY);
+
+            if (canPlace) {
+                piecePlaced = this.draggedPiece.isInventory
+                    ? this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType)
+                    : (this.placePiece(this.draggedPiece, gridX, gridY), true);
             }
         }
         
@@ -1512,6 +1650,20 @@ export class MobileSudokuTetris {
 
         this.draw();
         e.preventDefault();
+    }
+
+    handleInventoryClick(e) {
+        if (!this.activeInventoryItem || !this.gameRunning) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const gridX = Math.floor((e.clientX - rect.left) / this.CELL_SIZE);
+        const gridY = Math.floor((e.clientY - rect.top) / this.CELL_SIZE);
+
+        if (gridX < 0 || gridX >= this.BOARD_SIZE || gridY < 0 || gridY >= this.BOARD_SIZE) {
+            return;
+        }
+
+        this.useInventoryItem(gridX, gridY);
     }
 
     canPlacePiece(piece, x, y) {
@@ -1991,8 +2143,8 @@ export class MobileSudokuTetris {
         if (!this.draggedPiece?.inventoryType || !canPlace) return;
 
         const type = this.draggedPiece.inventoryType;
-        const highlightColor = type === 'diaper' ? 'rgba(59, 130, 246, 0.35)' : 'rgba(245, 158, 11, 0.35)';
-        const borderColor = type === 'diaper' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(245, 158, 11, 0.8)';
+        const highlightColor = 'rgba(34, 197, 94, 0.32)';
+        const borderColor = 'rgba(34, 197, 94, 0.85)';
 
         this.ctx.save();
         this.ctx.fillStyle = highlightColor;
@@ -2002,11 +2154,33 @@ export class MobileSudokuTetris {
         if (type === 'feeding') {
             this.ctx.fillRect(0, previewY * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
             this.ctx.strokeRect(0, previewY * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
+
+            this.drawInventoryEffectIcon(type, this.canvas.width / 2 - this.CELL_SIZE / 2, previewY * this.CELL_SIZE + 6);
         } else if (type === 'diaper') {
-            this.ctx.fillRect(previewX * this.CELL_SIZE, previewY * this.CELL_SIZE, this.CELL_SIZE * 2, this.CELL_SIZE * 2);
-            this.ctx.strokeRect(previewX * this.CELL_SIZE, previewY * this.CELL_SIZE, this.CELL_SIZE * 2, this.CELL_SIZE * 2);
+            const areaX = previewX * this.CELL_SIZE;
+            const areaY = previewY * this.CELL_SIZE;
+            const areaSize = this.CELL_SIZE * 2;
+            this.ctx.fillRect(areaX, areaY, areaSize, areaSize);
+            this.ctx.strokeRect(areaX, areaY, areaSize, areaSize);
+
+            this.drawInventoryEffectIcon(type, areaX + areaSize / 2 - this.CELL_SIZE / 2, areaY + areaSize / 2 - this.CELL_SIZE / 2);
         }
 
+        this.ctx.restore();
+    }
+
+    drawInventoryEffectIcon(type, pixelX, pixelY) {
+        const img = this.coinImages[type];
+        if (!img || !img.complete) return;
+
+        const size = Math.round(this.CELL_SIZE * 0.8);
+        const padding = Math.round(this.CELL_SIZE * 0.1);
+        this.ctx.save();
+        this.ctx.globalAlpha = 0.95;
+        this.roundRectPath(this.ctx, pixelX + padding * 0.5, pixelY + padding * 0.5, size, size, 10);
+        this.ctx.fillStyle = 'rgba(255,255,255,0.82)';
+        this.ctx.fill();
+        this.ctx.drawImage(img, pixelX + padding, pixelY + padding, size - padding * 2, size - padding * 2);
         this.ctx.restore();
     }
 
