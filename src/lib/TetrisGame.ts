@@ -1338,7 +1338,7 @@ export class MobileSudokuTetris {
             gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
             gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
             
-            if (this.touchMoved && this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
+            if (this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
                 if (this.draggedPiece.isInventory) {
                     piecePlaced = this.useInventoryItem(gridX, gridY, this.draggedPiece.inventoryType);
                 } else {
