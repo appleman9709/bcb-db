@@ -606,7 +606,6 @@ export class MobileSudokuTetris {
 
         this.draw();
         this.setupEventListeners();
-        this.setupInventoryControls();
         this.updateUI();
     }
     
@@ -1148,7 +1147,6 @@ export class MobileSudokuTetris {
         this.addEventListenerWithCleanup(this.canvas, 'touchstart', (e) => this.handleTouchStart(e), { passive: true });
         this.addEventListenerWithCleanup(this.canvas, 'touchmove', (e) => this.handleTouchMove(e), { passive: true });
         this.addEventListenerWithCleanup(this.canvas, 'touchend', (e) => this.handleTouchEnd(e), { passive: true });
-        this.addEventListenerWithCleanup(this.canvas, 'click', (e) => this.handleInventoryClick(e));
         
         const pieceContainers = [this.piecesContainer, this.inventoryPiecesTray].filter(Boolean);
 
@@ -1198,27 +1196,6 @@ export class MobileSudokuTetris {
         // Глобальные mouse события для перетаскивания
         this.addEventListenerWithCleanup(this.document, 'mousemove', (e) => this.handlePieceMouseMove(e));
         this.addEventListenerWithCleanup(this.document, 'mouseup', (e) => this.handlePieceMouseEnd(e));
-    }
-
-    setupInventoryControls() {
-        const feedingBtn = this.root.getElementById('feedingInventoryBtn');
-        const diaperBtn = this.root.getElementById('diaperInventoryBtn');
-
-        const selectItem = (type) => {
-            if (!this.gameRunning) return;
-            if ((this.inventory?.[type] ?? 0) <= 0) return;
-
-            const nextType = this.activeInventoryItem === type ? null : type;
-            this.setActiveInventoryItem(nextType);
-        };
-
-        if (feedingBtn) {
-            this.addEventListenerWithCleanup(feedingBtn, 'click', () => selectItem('feeding'));
-        }
-
-        if (diaperBtn) {
-            this.addEventListenerWithCleanup(diaperBtn, 'click', () => selectItem('diaper'));
-        }
     }
 
     // Управление плавающим превью фигуры (над пальцем)
@@ -1535,20 +1512,6 @@ export class MobileSudokuTetris {
 
         this.draw();
         e.preventDefault();
-    }
-
-    handleInventoryClick(e) {
-        if (!this.activeInventoryItem || !this.gameRunning) return;
-
-        const rect = this.canvas.getBoundingClientRect();
-        const gridX = Math.floor((e.clientX - rect.left) / this.CELL_SIZE);
-        const gridY = Math.floor((e.clientY - rect.top) / this.CELL_SIZE);
-
-        if (gridX < 0 || gridX >= this.BOARD_SIZE || gridY < 0 || gridY >= this.BOARD_SIZE) {
-            return;
-        }
-
-        this.useInventoryItem(gridX, gridY);
     }
 
     canPlacePiece(piece, x, y) {
