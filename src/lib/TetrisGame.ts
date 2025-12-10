@@ -1157,6 +1157,17 @@ export class MobileSudokuTetris {
         this.addEventListenerWithCleanup(this.piecesContainer, 'mousedown', (e) => this.handlePieceMouseStart(e));
         this.addEventListenerWithCleanup(this.piecesContainer, 'mousemove', (e) => this.handlePieceMouseMove(e));
         this.addEventListenerWithCleanup(this.piecesContainer, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+
+        const inventoryTray = this.root.getElementById('inventoryPiecesTray');
+        if (inventoryTray) {
+            this.addEventListenerWithCleanup(inventoryTray, 'touchstart', (e) => this.handlePieceTouchStart(e), { passive: false });
+            this.addEventListenerWithCleanup(inventoryTray, 'touchmove', (e) => this.handlePieceTouchMove(e), { passive: false });
+            this.addEventListenerWithCleanup(inventoryTray, 'touchend', (e) => this.handlePieceTouchEnd(e), { passive: false });
+
+            this.addEventListenerWithCleanup(inventoryTray, 'mousedown', (e) => this.handlePieceMouseStart(e));
+            this.addEventListenerWithCleanup(inventoryTray, 'mousemove', (e) => this.handlePieceMouseMove(e));
+            this.addEventListenerWithCleanup(inventoryTray, 'mouseup', (e) => this.handlePieceMouseEnd(e));
+        }
         
         // Кнопки управления
         const newGameBtn = this.root.getElementById('newGameBtn');
