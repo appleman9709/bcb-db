@@ -1226,6 +1226,22 @@ export class MobileSudokuTetris {
         const ctx = this.dragCanvasCtx;
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         this.drawPieceOnCanvas(ctx, piece, cellSize, padding);
+
+        // Добавляем иконку бонуса поверх превью в воздухе
+        if (piece.isInventory && piece.inventoryType && this.coinImages[piece.inventoryType]) {
+            const iconSize = Math.min(28, Math.round(cellSize * 0.9));
+            const iconPadding = 4;
+            const iconX = canvasWidth - iconSize - iconPadding;
+            const iconY = canvasHeight - iconSize - iconPadding;
+
+            const img = this.coinImages[piece.inventoryType];
+            if (img && img.complete) {
+                ctx.save();
+                ctx.globalAlpha = 0.95;
+                ctx.drawImage(img, iconX, iconY, iconSize, iconSize);
+                ctx.restore();
+            }
+        }
         this.dragCanvas.style.display = 'block';
     }
 
@@ -2018,8 +2034,8 @@ export class MobileSudokuTetris {
         if (!this.draggedPiece?.inventoryType || !canPlace) return;
 
         const type = this.draggedPiece.inventoryType;
-        const highlightColor = type === 'diaper' ? 'rgba(59, 130, 246, 0.35)' : 'rgba(245, 158, 11, 0.35)';
-        const borderColor = type === 'diaper' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(245, 158, 11, 0.8)';
+        const highlightColor = 'rgba(34, 197, 94, 0.32)';
+        const borderColor = 'rgba(34, 197, 94, 0.85)';
 
         this.ctx.save();
         this.ctx.fillStyle = highlightColor;
@@ -2029,11 +2045,33 @@ export class MobileSudokuTetris {
         if (type === 'feeding') {
             this.ctx.fillRect(0, previewY * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
             this.ctx.strokeRect(0, previewY * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
+
+            this.drawInventoryEffectIcon(type, this.canvas.width / 2 - this.CELL_SIZE / 2, previewY * this.CELL_SIZE + 6);
         } else if (type === 'diaper') {
-            this.ctx.fillRect(previewX * this.CELL_SIZE, previewY * this.CELL_SIZE, this.CELL_SIZE * 2, this.CELL_SIZE * 2);
-            this.ctx.strokeRect(previewX * this.CELL_SIZE, previewY * this.CELL_SIZE, this.CELL_SIZE * 2, this.CELL_SIZE * 2);
+            const areaX = previewX * this.CELL_SIZE;
+            const areaY = previewY * this.CELL_SIZE;
+            const areaSize = this.CELL_SIZE * 2;
+            this.ctx.fillRect(areaX, areaY, areaSize, areaSize);
+            this.ctx.strokeRect(areaX, areaY, areaSize, areaSize);
+
+            this.drawInventoryEffectIcon(type, areaX + areaSize / 2 - this.CELL_SIZE / 2, areaY + areaSize / 2 - this.CELL_SIZE / 2);
         }
 
+        this.ctx.restore();
+    }
+
+    drawInventoryEffectIcon(type, pixelX, pixelY) {
+        const img = this.coinImages[type];
+        if (!img || !img.complete) return;
+
+        const size = Math.round(this.CELL_SIZE * 0.8);
+        const padding = Math.round(this.CELL_SIZE * 0.1);
+        this.ctx.save();
+        this.ctx.globalAlpha = 0.95;
+        this.roundRectPath(this.ctx, pixelX + padding * 0.5, pixelY + padding * 0.5, size, size, 10);
+        this.ctx.fillStyle = 'rgba(255,255,255,0.82)';
+        this.ctx.fill();
+        this.ctx.drawImage(img, pixelX + padding, pixelY + padding, size - padding * 2, size - padding * 2);
         this.ctx.restore();
     }
 
