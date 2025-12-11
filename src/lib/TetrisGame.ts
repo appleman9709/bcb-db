@@ -1267,6 +1267,50 @@ export class MobileSudokuTetris {
                 });
 
                 this.addEventListenerWithCleanup(btn, 'dragend', resetInventoryDrag);
+
+                // Поддержка перетаскивания бонусов через touch-события
+                this.addEventListenerWithCleanup(btn, 'touchstart', (e) => {
+                    if (!type || !this.gameRunning) return;
+                    if ((this.inventory?.[type] ?? 0) <= 0) return;
+
+                    const piece = this.createInventoryPiece(type);
+                    btn.dataset.pieceId = piece.uniqueId;
+
+                    this.draggedPiece = piece;
+                    this.isDragging = true;
+                    this.isTouchDragging = true;
+                    this.touchLiftOffset = this.computeTouchLiftOffset(piece);
+                    btn.classList.add('dragging');
+
+                    const touch = e.touches[0];
+                    const rect = btn.getBoundingClientRect();
+                    this.dragOffset = {
+                        x: touch.clientX - rect.left,
+                        y: touch.clientY - rect.top
+                    };
+
+                    this.touchStartX = touch.clientX;
+                    this.touchStartY = touch.clientY;
+                    this.touchMoved = false;
+
+                    this.showDragPreview(piece);
+                    this.moveDragPreview(touch.clientX, touch.clientY);
+
+                    e.preventDefault();
+                }, { passive: false });
+
+                this.addEventListenerWithCleanup(btn, 'touchmove', (e) => {
+                    if (!this.isDragging || !this.draggedPiece?.isInventory) return;
+                    this.handlePieceTouchMove(e);
+                }, { passive: false });
+
+                const endTouchDrag = (e) => {
+                    if (!this.isDragging || !this.draggedPiece?.isInventory) return;
+                    this.handlePieceTouchEnd(e);
+                };
+
+                this.addEventListenerWithCleanup(btn, 'touchend', endTouchDrag, { passive: false });
+                this.addEventListenerWithCleanup(btn, 'touchcancel', endTouchDrag, { passive: false });
             });
         }
 
