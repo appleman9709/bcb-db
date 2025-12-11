@@ -97,7 +97,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
+    padding: 8px 8px;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(246, 246, 246, 0.9));
     border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: 12px;
