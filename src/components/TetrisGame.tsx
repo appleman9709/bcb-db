@@ -89,9 +89,9 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
             </div>
           </div>
           </div>
-          <div className="inventory-panel">
-            <div className="inventory-header">
-              <span className="inventory-title">Инвентарь</span>
+          <div className="score-section">
+          <div className="current-score" id="currentScore">
+              0
             </div>
             <div className="inventory-actions">
               <button
@@ -116,12 +116,6 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
               </button>
             </div>
           </div>
-          <div className="score-section">
-          <div className="current-score" id="currentScore">
-              0
-            </div>
-          </div>
-          
       </header>
 
       <main className="game-main">
@@ -136,10 +130,6 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
             <div id="slot1" data-slot="1" />
             <div id="slot2" data-slot="2" />
             <div id="slot3" data-slot="3" />
-          </div>
-          <div className="inventory-pieces-tray" id="inventoryPiecesTray">
-            <div className="inventory-pieces-title">Бонусы как фигуры</div>
-            <div className="inventory-pieces-hint">Перетащите бонус на поле, чтобы увидеть зону действия</div>
           </div>
         </section>
       </main>
