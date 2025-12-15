@@ -49,6 +49,9 @@ export class MobileSudokuTetris {
             feeding: new Image(),
             diaper: new Image()
         };
+        this.coinIconSizeRatio = 0.92;
+        this.inventoryEffectIconSizeRatio = 0.95;
+        this.dragPreviewIconSizeRatio = 1.05;
         this.coinImages.feeding.src = '/icons/feeding.png';
         this.coinImages.diaper.src = '/icons/diaper.png';
         Object.values(this.coinImages).forEach((img) => {
@@ -1400,7 +1403,7 @@ export class MobileSudokuTetris {
 
         // Добавляем иконку бонуса поверх превью в воздухе
         if (piece.isInventory && piece.inventoryType && this.coinImages[piece.inventoryType]) {
-            const iconSize = Math.min(28, Math.round(cellSize * 0.9));
+            const iconSize = Math.min(32, Math.round(cellSize * this.dragPreviewIconSizeRatio));
             const iconPadding = 4;
             const iconX = canvasWidth - iconSize - iconPadding;
             const iconY = canvasHeight - iconSize - iconPadding;
@@ -2245,11 +2248,11 @@ export class MobileSudokuTetris {
         const img = this.coinImages[type];
         if (!img || !img.complete) return;
 
-        const size = Math.round(this.CELL_SIZE * 0.8);
-        const padding = Math.round(this.CELL_SIZE * 0.1);
+        const size = Math.round(this.CELL_SIZE * this.inventoryEffectIconSizeRatio);
+        const padding = Math.round(size * 0.08);
         this.ctx.save();
         this.ctx.globalAlpha = 0.95;
-        this.roundRectPath(this.ctx, pixelX + padding * 0.5, pixelY + padding * 0.5, size, size, 10);
+        this.roundRectPath(this.ctx, pixelX + padding * 0.4, pixelY + padding * 0.4, size, size, 10);
         this.ctx.fillStyle = 'rgba(255,255,255,0.82)';
         this.ctx.fill();
         this.ctx.drawImage(img, pixelX + padding, pixelY + padding, size - padding * 2, size - padding * 2);
@@ -2468,13 +2471,12 @@ export class MobileSudokuTetris {
 
     drawCoinIcon(ctx, pixelX, pixelY, size, type, onBlock = false) {
         const img = this.coinImages[type];
-        const padding = size * 0.18;
-        const iconSize = size - padding * 2;
+        const iconSize = size * this.coinIconSizeRatio;
+        const padding = (size - iconSize) / 2;
 
         ctx.save();
         ctx.beginPath();
-        this.roundRectPath(ctx, pixelX + padding * 0.6, pixelY + padding * 0.6, size - padding * 1.2, size - padding * 1.2, 8);
-        ctx.fillStyle = onBlock ? 'rgba(255, 255, 255, 0.65)' : 'rgba(255, 255, 255, 0.9)';
+
         ctx.fill();
 
         if (img && img.complete) {
