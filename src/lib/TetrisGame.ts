@@ -1528,8 +1528,8 @@ export class MobileSudokuTetris {
         let piecePlaced = false;
         
         // Проверяем, был ли touch в области canvas
-        const marginX = 15; // Горизонтальный запас
-        const marginYTop = 15; // Верхний запас
+        const marginX = 10; // Горизонтальный запас
+        const marginYTop = 10; // Верхний запас
         const marginYBottom = Math.max(60, this.previewOffsetY + this.dragCanvas.height / 2); // Увеличенный нижний запас для удобного размещения на нижних строках
         if (touch.clientX >= canvasRect.left - marginX && touch.clientX <= canvasRect.right + marginX &&
             touch.clientY >= canvasRect.top - marginYTop && touch.clientY <= canvasRect.bottom + marginYBottom) {
