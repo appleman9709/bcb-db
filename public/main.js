@@ -30,14 +30,14 @@ class MobileSudokuTetris {
         this.boardColors = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
         
         this.MAX_BLOCKS_PER_PIECE = 4;
-        this.CLEAR_ANIMATION_DURATION = 360;
+        this.CLEAR_ANIMATION_DURATION = 720;
         this.clearAnimations = [];
         this.placementAnimations = [];
         this.animationFrameId = null;
-        
+
         // Анимация очков
         this.pointsAnimations = [];
-        this.POINTS_ANIMATION_DURATION = 1500; // 1.5 секунды
+        this.POINTS_ANIMATION_DURATION = 1800; // Более плавное затухание
         
         this.score = 0;
         this.level = 1;
@@ -62,14 +62,17 @@ class MobileSudokuTetris {
         this.touchStartY = 0;
         this.touchMoved = false;
         this.isTouchDragging = false;
-        this.TOUCH_LIFT_BASE = this.CELL_SIZE * 0.85;
+        this.TOUCH_LIFT_BASE = this.CELL_SIZE * 0.65;
         this.MIN_TOUCH_LIFT = this.CELL_SIZE * 0.3;
         this.touchLiftOffset = this.TOUCH_LIFT_BASE;
+
+        // Небольшое «мертвое» окно для стабильной привязки к сетке
+        this.GRID_SNAP_DEADZONE = this.CELL_SIZE * 0.15;
 
         // Плавающий canvas для превью фигуры под/над пальцем
         this.dragCanvas = document.createElement('canvas');
         this.dragCanvasCtx = this.dragCanvas.getContext('2d');
-        this.previewOffsetY = Math.max(80, Math.round(this.CELL_SIZE * 2.5));
+        this.previewOffsetY = Math.max(70, Math.round(this.CELL_SIZE * 2.2));
         this.previewCenterX = 0;
         this.previewCenterY = 0;
         this.dragCanvas.style.position = 'fixed';
@@ -810,11 +813,11 @@ class MobileSudokuTetris {
         // Запускаем анимацию
         const animate = (timestamp) => {
             let hasActiveAnimations = false;
-            
+
             this.placementAnimations = this.placementAnimations.filter(cell => {
                 const elapsed = timestamp - cell.startTime;
-                const progress = Math.min(elapsed / 120, 1); // 120ms для масштабирования
-                
+                const progress = Math.min(elapsed / 200, 1); // Более мягкое масштабирование (200ms)
+
                 if (progress < 1) {
                     hasActiveAnimations = true;
                     cell.progress = progress;
@@ -823,8 +826,8 @@ class MobileSudokuTetris {
                     cell.flashStartTime = timestamp;
                     cell.flashProgress = 0;
                 }
-                
-                return elapsed < 200; // Общая длительность анимации
+
+                return elapsed < 280; // Увеличенная общая длительность анимации
             });
             
             if (hasActiveAnimations || this.placementAnimations.length > 0) {
@@ -1116,6 +1119,12 @@ class MobileSudokuTetris {
         document.addEventListener('mouseup', (e) => this.handlePieceMouseEnd(e));
     }
 
+    snapPreviewToGrid(previewCanvasCoord, pieceSize) {
+        const deadZone = this.GRID_SNAP_DEADZONE || 0;
+        const snapped = Math.floor((previewCanvasCoord + deadZone) / this.CELL_SIZE) - Math.floor(pieceSize / 2);
+        return Math.max(0, Math.min(this.BOARD_SIZE - pieceSize, snapped));
+    }
+
     // Управление плавающим превью фигуры (над пальцем)
     showDragPreview(piece) {
         if (!piece) return;
@@ -1211,10 +1220,8 @@ class MobileSudokuTetris {
         const previewCanvasX = this.previewCenterX - canvasRect.left;
         // Ограничиваем previewCanvasY для корректного отображения превью на нижних строках
         const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
-        let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-        let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
-        gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
-        gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
+        const gridX = this.snapPreviewToGrid(previewCanvasX, pieceWidth);
+        const gridY = this.snapPreviewToGrid(previewCanvasY, pieceHeight);
         
         this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
         
@@ -1232,7 +1239,7 @@ class MobileSudokuTetris {
         // Проверяем, был ли touch в области canvas
         const marginX = 10; // Горизонтальный запас
         const marginYTop = 10; // Верхний запас
-        const marginYBottom = 60; // Увеличенный нижний запас для удобного размещения на нижних строках
+        const marginYBottom = Math.max(50, Math.round(this.previewOffsetY * 0.85)); // Подстраиваем под смещение превью
         if (touch.clientX >= canvasRect.left - marginX && touch.clientX <= canvasRect.right + marginX &&
             touch.clientY >= canvasRect.top - marginYTop && touch.clientY <= canvasRect.bottom + marginYBottom) {
             
@@ -1242,10 +1249,8 @@ class MobileSudokuTetris {
             const previewCanvasX = this.previewCenterX - canvasRect.left;
             // Ограничиваем previewCanvasY для корректного размещения на нижних строках
             const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
-            let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-            let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
-            gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
-            gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
+            const gridX = this.snapPreviewToGrid(previewCanvasX, pieceWidth);
+            const gridY = this.snapPreviewToGrid(previewCanvasY, pieceHeight);
             
             if (this.touchMoved && this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
                 this.placePiece(this.draggedPiece, gridX, gridY);
@@ -1341,10 +1346,8 @@ class MobileSudokuTetris {
         const previewCanvasX = this.previewCenterX - canvasRect.left;
         // Ограничиваем previewCanvasY для корректного отображения превью на нижних строках
         const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
-        let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-        let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
-        gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
-        gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
+        const gridX = this.snapPreviewToGrid(previewCanvasX, pieceWidth);
+        const gridY = this.snapPreviewToGrid(previewCanvasY, pieceHeight);
         
         // Показываем призрак только если можно поставить
         this.drawWithPreview(gridX, gridY, this.canPlacePiece(this.draggedPiece, gridX, gridY));
@@ -1362,7 +1365,7 @@ class MobileSudokuTetris {
         // Проверяем, был ли клик над canvas (с небольшим запасом для лучшего UX)
         const marginX = 10; // Горизонтальный запас
         const marginYTop = 10; // Верхний запас
-        const marginYBottom = 60; // Увеличенный нижний запас для удобного размещения на нижних строках
+        const marginYBottom = Math.max(50, Math.round(this.previewOffsetY * 0.85)); // Подстраиваем под смещение превью
         if (e.clientX >= canvasRect.left - marginX && e.clientX <= canvasRect.right + marginX &&
             e.clientY >= canvasRect.top - marginYTop && e.clientY <= canvasRect.bottom + marginYBottom) {
             
@@ -1372,10 +1375,8 @@ class MobileSudokuTetris {
             const previewCanvasX = this.previewCenterX - canvasRect.left;
             // Ограничиваем previewCanvasY для корректного размещения на нижних строках
             const previewCanvasY = Math.min(this.previewCenterY - canvasRect.top, this.canvas.height);
-            let gridX = Math.round(previewCanvasX / this.CELL_SIZE) - Math.floor(pieceWidth / 2);
-            let gridY = Math.round(previewCanvasY / this.CELL_SIZE) - Math.floor(pieceHeight / 2);
-            gridX = Math.max(0, Math.min(this.BOARD_SIZE - pieceWidth, gridX));
-            gridY = Math.max(0, Math.min(this.BOARD_SIZE - pieceHeight, gridY));
+            const gridX = this.snapPreviewToGrid(previewCanvasX, pieceWidth);
+            const gridY = this.snapPreviewToGrid(previewCanvasY, pieceHeight);
             
             if (this.canPlacePiece(this.draggedPiece, gridX, gridY)) {
                 this.placePiece(this.draggedPiece, gridX, gridY);
@@ -1964,7 +1965,7 @@ class MobileSudokuTetris {
             } else if (cell.flashProgress !== undefined) {
                 // Анимация вспышки
                 const flashElapsed = performance.now() - cell.flashStartTime;
-                const flashProgress = Math.min(flashElapsed / 80, 1); // 80ms для вспышки
+                const flashProgress = Math.min(flashElapsed / 120, 1); // 120ms для вспышки
                 const flashAlpha = Math.sin(flashProgress * Math.PI) * 0.3;
                 
                 this.ctx.save();
