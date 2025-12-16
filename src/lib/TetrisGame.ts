@@ -29,7 +29,7 @@ export class MobileSudokuTetris {
         console.log('Контейнер фигур найден:', this.piecesContainer);
         
         this.BOARD_SIZE = 9;
-        this.CELL_SIZE = 40; // Адаптивный размер для мобильных устройств
+        this.CELL_SIZE = 36; // Адаптивный размер для мобильных устройств
         
         // Устанавливаем размер canvas
         this.canvas.width = this.BOARD_SIZE * this.CELL_SIZE;
@@ -1532,9 +1532,9 @@ export class MobileSudokuTetris {
         let piecePlaced = false;
         
         // Проверяем, был ли touch в области canvas
-        const marginX = 14; // Горизонтальный запас
-        const marginYTop = 14; // Верхний запас
-        const marginYBottom = Math.max(60, this.previewOffsetY + this.dragCanvas.height / 2); // Увеличенный нижний запас для удобного размещения на нижних строках
+        const marginX = 16; // Горизонтальный запас
+        const marginYTop = 16; // Верхний запас
+        const marginYBottom = Math.max(50, this.previewOffsetY + this.dragCanvas.height / 1.5); // Увеличенный нижний запас для удобного размещения на нижних строках
         if (touch.clientX >= canvasRect.left - marginX && touch.clientX <= canvasRect.right + marginX &&
             touch.clientY >= canvasRect.top - marginYTop && touch.clientY <= canvasRect.bottom + marginYBottom) {
             

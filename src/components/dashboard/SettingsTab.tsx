@@ -39,7 +39,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
   return (
     <div className="space-y-3">
-      <div className="text-center">
+      <div className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur-sm text-center py-3 -mx-4 px-4">
         <h1 className="text-lg font-bold text-gray-900 mb-1">Настройки</h1>
         <p className="text-xs text-gray-600">Управляйте уведомлениями и настройками</p>
       </div>
@@ -103,7 +103,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
           <h2 className="text-base font-semibold text-gray-900 text-center mb-2">Интервалы</h2>
             <div className="slider-header">
-              <div className="slider-icon-emoji">🍼</div>
+            <img
+                src="/icons/feeding.png"
+                alt="Покакал"
+                className="w-10 h-10 object-contain"
+                />
               <h3 className="slider-info">Кормление</h3>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.feedingInterval}</span>
@@ -129,7 +133,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
 
             <div className="slider-header">
-              <div className="slider-icon-emoji">👶</div>
+              <img
+                src="/icons/diaper.png"
+                alt="Покакал"
+                className="w-10 h-10 object-contain"
+                />
               <h3 className="slider-info">Подгузники</h3>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.diaperInterval}</span>
@@ -155,7 +163,11 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
 
             <div className="slider-header">
-              <div className="slider-icon-emoji">🛁</div>
+            <img
+                src="/icons/bath.png"
+                alt="Покакал"
+                className="w-10 h-10 object-contain"
+                />
               <h3 className="slider-info">Купание</h3>
               <div className="slider-value-badge">
                 <span className="value-number">{settings.bathInterval}</span>
