@@ -1181,7 +1181,7 @@ export class MobileSudokuTetris {
         const refreshBtn = this.root.getElementById('refreshBtn');
         
         if (newGameBtn) {
-            this.addEventListenerWithCleanup(newGameBtn, 'click', () => this.restart());
+            this.addEventListenerWithCleanup(newGameBtn, 'click', () => this.handleNewGameRequest());
         }
         
         if (undoBtn) {
@@ -1534,7 +1534,7 @@ export class MobileSudokuTetris {
         // Проверяем, был ли touch в области canvas
         const marginX = 14; // Горизонтальный запас
         const marginYTop = 14; // Верхний запас
-        const marginYBottom = Math.max(50, this.previewOffsetY + this.dragCanvas.height / 0.85); // Увеличенный нижний запас для удобного размещения на нижних строках
+        const marginYBottom = Math.max(60, this.previewOffsetY + this.dragCanvas.height / 2); // Увеличенный нижний запас для удобного размещения на нижних строках
         if (touch.clientX >= canvasRect.left - marginX && touch.clientX <= canvasRect.right + marginX &&
             touch.clientY >= canvasRect.top - marginYTop && touch.clientY <= canvasRect.bottom + marginYBottom) {
             
@@ -1673,7 +1673,7 @@ export class MobileSudokuTetris {
         // Проверяем, был ли клик над canvas (с небольшим запасом для лучшего UX)
         const marginX = 14; // Горизонтальный запас
         const marginYTop = 14; // Верхний запас
-        const marginYBottom = Math.max(50, this.previewOffsetY + this.dragCanvas.height / 0.85); // Увеличенный нижний запас для удобного размещения на нижних строках
+        const marginYBottom = Math.max(60, this.previewOffsetY + this.dragCanvas.height / 2); // Увеличенный нижний запас для удобного размещения на нижних строках
         if (e.clientX >= canvasRect.left - marginX && e.clientX <= canvasRect.right + marginX &&
             e.clientY >= canvasRect.top - marginYTop && e.clientY <= canvasRect.bottom + marginYBottom) {
             
@@ -3205,6 +3205,28 @@ export class MobileSudokuTetris {
         this.updateUI();
         this.generatePieces();
         this.draw();
+    }
+    
+    handleNewGameRequest() {
+        if (this.shouldConfirmRestart()) {
+            const confirmed = window.confirm('Начать новую игру? Текущий прогресс будет потерян.');
+            if (!confirmed) {
+                return;
+            }
+        }
+
+        this.restart();
+    }
+
+    shouldConfirmRestart() {
+        if (!this.gameRunning) {
+            return false;
+        }
+
+        const hasScore = this.score > 0 || this.lines > 0 || this.piecesPlaced > 0;
+        const hasBlocksOnBoard = this.board?.some(row => row.some(cell => cell !== 0));
+
+        return Boolean(hasScore || hasBlocksOnBoard);
     }
     
     // Сохраняет состояние перед ходом для возможности отмены
