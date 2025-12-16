@@ -378,7 +378,7 @@ export default function WeeklyStatsChart({ type, onClose }: WeeklyStatsChartProp
             </div>
           </section>
 
-          <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-2 text-xs text-blue-700 shadow-inner sm:text-sm">
+          <div className="p-2 text-xs text-blue-700">
             {summary && summary.last > 0
               ? `Вчера записано ${summary.last} ${palette.legend.toLowerCase()} — отличный результат!`
               : 'За последние сутки нет новых записей — самое время добавить свежие данные.'}

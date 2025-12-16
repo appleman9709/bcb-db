@@ -55,18 +55,16 @@ export default function Modal({ isOpen, onClose, children, size = 'md' }: ModalP
       {/* Modal - объединяем контейнер и содержимое */}
       <div 
         className={`px-3 py-4 modal-content relative w-full ${sizeClasses[size]} mt-10 flex flex-col overflow-hidden overflow-x-hidden rounded-3xl bg-white shadow-2xl animate-bounce-in`}>
-
-        {/* Content */}
-        {children}
-              {/* Close button */}
-      <button
+        <button
           onClick={onClose}
-          className="z-50 absolute top-6 right-6 rounded-3xl p-1.5 text-gray-400 transition-colors duration-200"
+          className="z-50 right-5 absolute p-2 transition-colors duration-200"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+        {/* Content */}
+        {children}
       </div>
     </div>
   )
