@@ -132,11 +132,11 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
       <div className="space-y-4">
         {/* Заголовок с иконкой */}
         <div className={`${typeInfo.bgColor} rounded-3xl p-4 border border-gray-200 flex items-center gap-3`}>
-          <div className="w-12 h-12 flex items-center justify-center bg-white rounded-3xl shadow-sm">
+          <div className="w-12 h-12 flex items-center justify-center">
             <img 
               src={typeInfo.icon} 
               alt={typeInfo.title} 
-              className="w-8 h-8 object-contain" 
+              className="w-10 h-10 object-contain" 
             />
           </div>
           <div className="flex-1">
@@ -186,7 +186,7 @@ export default function RecordDetailModal({ isOpen, onClose, onDelete, record }:
             {record.type === 'feeding' && record.ounces && (
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Количество унций:</span>
-                <span className="text-sm text-blue-600 font-semibold bg-white px-2 py-1 rounded-3xl border border-blue-200">
+                <span className="text-sm text-blue-600 font-semibold bg-white px-2 py-1 rounded-xl border border-blue-200">
                   🍼 {record.ounces} унций
                 </span>
               </div>

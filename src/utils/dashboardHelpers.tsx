@@ -80,7 +80,7 @@ export const getTypeInfo = (type: string, item: any): TypeInfo => {
       }
     case 'diaper':
       return {
-        icon: <img src="/icons/poor.png" alt="Подгузники полные" className="w-9 h-9 object-contain" />,
+        icon: <img src="/icons/diaper.png" alt="Подгузники полные" className="w-9 h-9 object-contain" />,
         label: 'Подгузники полные',
         color: 'bg-green-100 text-green-600',
         bgColor: 'bg-green-50',
