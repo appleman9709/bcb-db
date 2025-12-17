@@ -620,7 +620,7 @@ useEffect(() => {
             style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
           />
         </svg>
-        <div className="absolute inset-2 rounded-full flex items-center justify-center">
+        <div className="absolute inset-2 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90">
           <img src={iconSrc} alt={alt} className="w-[54px] h-[54px] object-contain" />
         </div>
       </div>
@@ -1225,7 +1225,7 @@ useEffect(() => {
                       setGrowthChartType('weight')
                       setGrowthChartModalOpen(true)
                     }}
-                    className="w-16 h-16"
+                    className="w-16 h-16 transition-all duration-200 active:scale-90"
                     title="График веса"
                   >
                     <img src="/icons/wight.png" alt="График веса" />
@@ -1252,7 +1252,7 @@ useEffect(() => {
                       setGrowthChartType('height')
                       setGrowthChartModalOpen(true)
                     }}
-                    className="w-16 h-16"
+                    className="w-16 h-16 transition-all duration-200 active:scale-90"
                     title="График роста"
                   >
                     <img src="/icons/height.png" alt="График роста" />
