@@ -112,7 +112,7 @@ export default function PushNotificationManager() {
             disabled={isLoading}
             className="w-full bg-blue-500 text-white font-semibold py-3 px-3 rounded-2xl shadow-lg text-sm"
           >
-            {isLoading ? 'Подписка...' : '🔔 Подписаться'}
+            {isLoading ? 'Подписка...' : 'Подписаться'}
           </button>
         ) : (
           <button
@@ -120,7 +120,7 @@ export default function PushNotificationManager() {
             disabled={isLoading}
             className="w-full bg-purple-600 text-white font-semibold py-3 px-3 rounded-2xl shadow-lg text-sm"
           >
-            {isLoading ? 'Отписка...' : '🔕 Отписаться'}
+            {isLoading ? 'Отписка...' : 'Отписаться'}
           </button>
         )}
     </div>

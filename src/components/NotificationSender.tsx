@@ -138,7 +138,7 @@ export default function NotificationSender() {
           disabled={isLoading || !body.trim()}
           className="w-full bg-blue-500 text-white font-semibold py-3 px-3 rounded-2xl shadow-lg text-sm"
         >
-          {isLoading ? 'Отправка...' : '📤 Отправить уведомление'}
+          {isLoading ? 'Отправка...' : 'Отправить уведомление'}
         </button>
     </div>
   )
