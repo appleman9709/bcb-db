@@ -101,7 +101,12 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
                 draggable
                 data-inventory-type="feeding"
               >
-                <img src="/icons/feeding.png" alt="Кормление" className="inventory-icon" />
+                <img
+                  src="/icons/feeding.png"
+                  alt="Кормление"
+                  className="inventory-icon"
+                  style={{ width: 40, height: 40 }}
+                />
                 <span className="inventory-count" id="feedingInventoryCount">0</span>
               </button>
               <button
@@ -111,7 +116,12 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
                 draggable
                 data-inventory-type="diaper"
               >
-                <img src="/icons/diaper.png" alt="Пеленка" className="inventory-icon" />
+                <img
+                  src="/icons/diaper.png"
+                  alt="Пеленка"
+                  className="inventory-icon"
+                  style={{ width: 40, height: 40 }}
+                />
                 <span className="inventory-count" id="diaperInventoryCount">0</span>
               </button>
             </div>

@@ -1095,7 +1095,10 @@ useEffect(() => {
           (activeTab === 'home' && recentEventsExpanded) ? 'overflow-y-auto overflow-x-hidden' : 
           'overflow-hidden'
         }`}>
-          <div key={activeTab} className="h-full w-full tab-content-animated">
+          <div
+            key={activeTab}
+            className={`h-full w-full ${activeTab === 'tetris' ? '' : 'tab-content-animated'}`}
+          >
             {activeTab === 'tamagotchi' ? (
               <TamagotchiPage
                 onModalOpen={handleTamagotchiModalOpen}
