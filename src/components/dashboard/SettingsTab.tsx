@@ -71,7 +71,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   key={option.value}
                   type="button"
                   onClick={() => setTheme(option.value)}
-                  className={`flex items-center justify-center rounded-2xl px-3 py-2 text-centr ${
+                  className={`flex items-center justify-center rounded-xl px-3 py-2 text-centr ${
                     isActive ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-800'
                   }`}
                   aria-pressed={isActive}

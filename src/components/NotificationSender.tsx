@@ -130,7 +130,7 @@ export default function NotificationSender() {
             placeholder="Текст уведомления"
             rows={3}
             className="mt-3 w-full px-4 py-2 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500"
-            style={{ fontSize: '16px' }}
+            style={{ fontSize: '16px'}}
           />
         
         <button
