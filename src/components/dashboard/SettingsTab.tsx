@@ -56,10 +56,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       )}
 
       {/* Оформление + Push-уведомления в сетке */}
-      <div className="grid grid-cols-2 gap-x-2 gap-y-2">
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-3">
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center gap-2">
           <span className="slider-icon-emoji">🌗</span>
-          <p className="text-sm font-semibold text-gray-900">Оформление:</p>
+          <p className="text-sm font-semibold text-gray-900">Оформление</p>
+          <p className="text-xs text-gray-600 text-center">
+          Выберите тему
+        </p>
           <div className="flex flex-col items-center justify-center">
             {themeOptions.map((option) => {
               const isActive = theme === option.value
@@ -79,11 +82,10 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
             })}
           </div>
         </div>
-
         {/* Push уведомления */}
-        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2">
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center gap-2">
           <span className="slider-icon-emoji">🔔</span>
-          <p className="text-sm font-semibold text-gray-900 text-center">Push-уведомления</p>
+          <p className="text-sm font-semibold text-gray-900 text-center">Уведомления</p>
           <PushNotificationManager />
         </div>
       </div>
