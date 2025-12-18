@@ -9,11 +9,14 @@
   --app-text-color: #111827;
   --app-card-bg: #ffffff;
   --app-card-border: #f3f4f6;
-  --tab-bar-z-index: 50;
+  /* Панель вкладок должна быть ниже модальных окон */
+  --tab-bar-z-index: 40;
   --tab-bar-position: fixed;
   --tab-bar-bottom: 2px;
   --tab-bar-left: 16px;
   --tab-bar-right: 16px;
+  /* Глобальный z-index для всех модальных окон, чтобы они были поверх навигации */
+  --modal-z-index: 60;
 }
 
 :root.theme-dark {
@@ -79,7 +82,11 @@
   border-color: var(--app-card-border) !important;
 }
 
-
+:root.theme-dark textarea {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--app-card-border);
+}
 
 :root.theme-dark .bg-green-50,
 :root.theme-dark .bg-blue-50,
