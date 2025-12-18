@@ -19,6 +19,7 @@ body {
     width: 100%;
     font-size: 16px;
     font-feature-settings: "tnum"; /* Tabular numerals */
+    overscroll-behavior: contain;
 }
 
 /* Основной контейнер игры */
@@ -238,16 +239,27 @@ body {
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    width: 100%;
+    padding: 8px 6px 12px;
+    border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 .pieces-container {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     justify-content: center;
     align-items: center;
     flex-wrap: nowrap;
     max-width: 100%;
-    padding: 8px 0;
+    width: 100%;
+    padding: 8px 4px 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+}
+
+.pieces-container::-webkit-scrollbar {
+    display: none;
 }
 
 .inventory-pieces-tray {
@@ -257,7 +269,7 @@ body {
     gap: 8px;
     width: 100%;
     padding: 4px 8px 12px;
-    color: #f7f0e8;
+
 }
 
 .inventory-pieces-tray .piece-item {
@@ -285,8 +297,8 @@ body {
 /* Карточки-слоты для фигур */
 [id^="slot"] {
     background: transparent;
-    min-height: 85px;
-    min-width: 85px;
+    min-height: 96px;
+    min-width: 96px;
     max-width: 140px;
     max-height: 140px;
     flex-shrink: 0;
@@ -298,6 +310,7 @@ body {
     cursor: pointer;
     touch-action: none;
     user-select: none;
+    scroll-snap-align: center;
 }
 
 /* Пустой слот (фигура уже размещена) */
@@ -343,6 +356,20 @@ body {
     transition: filter 120ms ease;
     flex-shrink: 0;
     object-fit: contain;
+}
+
+@media (max-width: 480px) {
+    .game-header {
+        padding: 8px 12px;
+    }
+
+    .current-score {
+        font-size: 24px;
+    }
+
+    .pieces-tray {
+        padding: 10px 2px 14px;
+    }
 }
 
 .inventory-piece {

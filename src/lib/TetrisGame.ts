@@ -29,7 +29,7 @@ export class MobileSudokuTetris {
         console.log('Контейнер фигур найден:', this.piecesContainer);
         
         this.BOARD_SIZE = 9;
-        this.CELL_SIZE = 36; // Адаптивный размер для мобильных устройств
+        this.CELL_SIZE = this.calculateCellSize(); // Адаптивный размер для мобильных устройств
         
         // Устанавливаем размер canvas
         this.canvas.width = this.BOARD_SIZE * this.CELL_SIZE;
@@ -55,7 +55,7 @@ export class MobileSudokuTetris {
         this.coinImages.feeding.src = '/icons/feeding.png';
         this.coinImages.diaper.src = '/icons/diaper.png';
         Object.values(this.coinImages).forEach((img) => {
-            img.onload = () => this.draw();
+            img.onload = () => this.requestRender();
         });
 
         this.MAX_BLOCKS_PER_PIECE = 6;
@@ -67,7 +67,9 @@ export class MobileSudokuTetris {
         // Анимация очков
         this.pointsAnimations = [];
         this.POINTS_ANIMATION_DURATION = 1800; // 1.5 секунды
-        
+        this.renderFrameId = null;
+        this.renderQueued = false;
+
         this.score = 0;
         this.level = 1;
         this.lines = 0;
@@ -82,7 +84,8 @@ export class MobileSudokuTetris {
         this.comboCount = 0;
         this.lastClearTime = 0;
         this.COMBO_TIMEOUT = 2000; // Комбо сбрасывается через 2 секунды
-        
+        this.resizeTimeout = null;
+
         // Состояние перетаскивания
         this.draggedPiece = null;
         this.dragOffset = { x: 0, y: 0 };
@@ -346,6 +349,59 @@ export class MobileSudokuTetris {
         }, 5000);
     }
     
+    calculateCellSize() {
+        const rootElement = this.document?.documentElement || document.documentElement;
+        const viewportWidth = rootElement?.clientWidth || window.innerWidth || 360;
+        const horizontalPadding = 32;
+        const availableWidth = Math.max(320, viewportWidth - horizontalPadding);
+        const rawSize = Math.floor(availableWidth / this.BOARD_SIZE);
+        return Math.min(44, Math.max(30, rawSize));
+    }
+
+    updateCanvasSize(forceRedraw = false) {
+        const nextCellSize = this.calculateCellSize();
+
+        if (!forceRedraw && nextCellSize === this.CELL_SIZE) {
+            return;
+        }
+
+        this.CELL_SIZE = nextCellSize;
+        this.canvas.width = this.BOARD_SIZE * this.CELL_SIZE;
+        this.canvas.height = this.BOARD_SIZE * this.CELL_SIZE;
+        this.dragCanvas.width = this.canvas.width;
+        this.dragCanvas.height = this.canvas.height;
+
+        this.TOUCH_LIFT_BASE = this.CELL_SIZE * 0.65;
+        this.MIN_TOUCH_LIFT = this.CELL_SIZE * 0.3;
+        this.touchLiftOffset = this.TOUCH_LIFT_BASE;
+        this.previewOffsetY = Math.max(70, Math.round(this.CELL_SIZE * 2.2));
+
+        this.renderPieces(false);
+        this.requestRender();
+    }
+
+    handleResize() {
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
+        }
+
+        this.resizeTimeout = setTimeout(() => {
+            this.updateCanvasSize(true);
+            this.resizeTimeout = null;
+        }, 120);
+    }
+
+    requestRender() {
+        if (this.renderQueued) {
+            return;
+        }
+
+        this.renderQueued = true;
+        this.renderFrameId = requestAnimationFrame(() => {
+            this.renderQueued = false;
+            this.draw();
+        });
+    }
     // Функция для подсчета кубиков в фигуре
     countCubes(shape) {
         let count = 0;
@@ -605,9 +661,9 @@ export class MobileSudokuTetris {
             this.renderPieces(false);
         }
 
-        this.draw();
         this.setupEventListeners();
         this.setupInventoryControls();
+        this.updateCanvasSize(true);
         this.updateUI();
     }
     
@@ -1206,6 +1262,12 @@ export class MobileSudokuTetris {
         this.addEventListenerWithCleanup(this.document, 'mousemove', (e) => this.handlePieceMouseMove(e));
         this.addEventListenerWithCleanup(this.document, 'mouseup', (e) => this.handlePieceMouseEnd(e));
 
+        const view = this.document.defaultView || window;
+        if (view) {
+            this.addEventListenerWithCleanup(view, 'resize', () => this.handleResize());
+            this.addEventListenerWithCleanup(view, 'orientationchange', () => this.handleResize());
+        }
+
         this.setupInventoryDragAndDrop();
     }
 
@@ -1217,7 +1279,7 @@ export class MobileSudokuTetris {
             this.hideDragPreview();
             this.root.querySelectorAll('.piece-item').forEach((el) => el.classList.remove('dragging'));
             this.root.querySelectorAll('.inventory-item').forEach((el) => el.classList.remove('dragging'));
-            this.draw();
+            this.requestRender();
         };
 
         const startInventoryDrag = (type, sourceElement, event, pieceOverride = null) => {
@@ -3312,6 +3374,16 @@ export class MobileSudokuTetris {
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
+        }
+
+        if (this.renderFrameId) {
+            cancelAnimationFrame(this.renderFrameId);
+            this.renderFrameId = null;
+        }
+
+        if (this.resizeTimeout) {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = null;
         }
 
         this.cleanupFns.forEach(fn => fn());

@@ -39,7 +39,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
 
   return (
     <div className="space-y-3">
-      <div className="sticky top-0 z-10 bg-gray-50/90 backdrop-blur-sm text-center py-3 -mx-4 px-4">
+      <div className="sticky top-0 z-10 bg-gray-50 backdrop-blur-sm text-center py-3 -mx-4 px-4">
         <h1 className="text-lg font-bold text-gray-900 mb-1">Настройки</h1>
         <p className="text-xs text-gray-600">Управляйте уведомлениями и настройками</p>
       </div>
