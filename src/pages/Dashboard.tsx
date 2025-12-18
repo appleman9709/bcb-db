@@ -1095,75 +1095,76 @@ useEffect(() => {
           (activeTab === 'home' && recentEventsExpanded) ? 'overflow-y-auto overflow-x-hidden' : 
           'overflow-hidden'
         }`}>
-          {activeTab === 'tamagotchi' ? (
-            <TamagotchiPage
-              onModalOpen={handleTamagotchiModalOpen}
-            />
-          ) : activeTab === 'tetris' ? (
-            <TetrisPage />
-          ) : activeTab === 'settings' ? (
-            <SettingsTab
-              dailyTip={data?.dailyTip ?? null}
-              settings={settings}
-              onSettingChange={handleSettingChange}
-              onSaveSettings={handleSaveSettings}
-              familyName={family?.name}
-              memberDisplayName={memberDisplayName}
-              onSignOut={signOut}
-            />
-          ) : activeTab === 'home' && (
-            <div className={`${isLandscape ? 'dashboard-landscape-grid pl-[128px]' : ''}`}>
-              <div className={isLandscape ? 'space-y-3' : 'space-y-2'}>
-                {/* Дежурство */}
-                <div
-                  className=""
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setDutyModalOpen(true)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault()
-                      setDutyModalOpen(true)
-                    }
-                  }}
-                >
-                  <div className="text-center">
-                    <p className="text-sm font-semibold uppercase tracking-wide text-sky-500">Сейчас на подхвате</p>
-                    <p className="font-semibold text-gray-900">
-                      {currentDutyName || 'Добавьте расписание'}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {currentDutyBlock
-                        ? `Смена ${currentDutyBlock.label}`
-                        : 'Расскажите приложению, кто помогает семье и когда'}
+          <div key={activeTab} className="h-full w-full tab-content-animated">
+            {activeTab === 'tamagotchi' ? (
+              <TamagotchiPage
+                onModalOpen={handleTamagotchiModalOpen}
+              />
+            ) : activeTab === 'tetris' ? (
+              <TetrisPage />
+            ) : activeTab === 'settings' ? (
+              <SettingsTab
+                dailyTip={data?.dailyTip ?? null}
+                settings={settings}
+                onSettingChange={handleSettingChange}
+                onSaveSettings={handleSaveSettings}
+                familyName={family?.name}
+                memberDisplayName={memberDisplayName}
+                onSignOut={signOut}
+              />
+            ) : activeTab === 'home' && (
+              <div className={`${isLandscape ? 'dashboard-landscape-grid pl-[128px]' : ''}`}>
+                <div className={isLandscape ? 'space-y-3' : 'space-y-2'}>
+                  {/* Дежурство */}
+                  <div
+                    className=""
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDutyModalOpen(true)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        setDutyModalOpen(true)
+                      }
+                    }}
+                  >
+                    <div className="text-center">
+                      <p className="text-sm font-semibold uppercase tracking-wide text-sky-500">Сейчас на подхвате</p>
+                      <p className="font-semibold text-gray-900">
+                        {currentDutyName || 'Добавьте расписание'}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {currentDutyBlock
+                          ? `Смена ${currentDutyBlock.label}`
+                          : 'Расскажите приложению, кто помогает семье и когда'}
+                      </p>
+                    </div>
+                    {familyMembers.length === 0 && (
+                      <p className="mt-1 text-sm text-gray-500 text-center">
+                        Добавьте родных и друзей, чтобы распределять заботу по очереди.
+                      </p>
+                    )}
+                  </div>
+                  {/* Иллюстрация младенца */}
+                  <div className="text-center font-semibold text-lg">
+                    <BabyIllustration
+                      state={babyImageState}
+                      onClick={handleBabyImageClick}
+                      customImage={customBabyImage}
+                      dutyProgress={currentDutyProgressDisplay}
+                    />
+                    <p>
+                      Неделя {babyWeeks}
                     </p>
                   </div>
-                  {familyMembers.length === 0 && (
-                    <p className="mt-1 text-sm text-gray-500 text-center">
-                      Добавьте родных и друзей, чтобы распределять заботу по очереди.
-                    </p>
-                  )}
                 </div>
-              {/* Иллюстрация младенца */}
-              <div className="text-center font-semibold text-lg">
-                  <BabyIllustration
-                    state={babyImageState}
-                    onClick={handleBabyImageClick}
-                    customImage={customBabyImage}
-                    dutyProgress={currentDutyProgressDisplay}
-                  />
-                  <p>
-                    Неделя {babyWeeks}
-                  </p>
-               </div>
-              </div>
-              {/* Блок истории событий */}
-              <div className={isLandscape ? 'dashboard-landscape-scroll' : ''}>
-                {/* Карточки активности */}
-              <div className="flex flex-wrap gap-2 py-4">
-                  <button
-                    onClick={() => handleQuickAction('feeding')}
-                    className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all"
+                {/* Блок истории событий */}
+                <div className={isLandscape ? 'dashboard-landscape-scroll' : ''}>
+                  {/* Карточки активности */}
+                  <div className="flex flex-wrap gap-2 py-4">
+                    <button
+                      onClick={() => handleQuickAction('feeding')}
+                      className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all"
                     >
                       {renderQuickActionRing('feeding', '/icons/feeding.png', 'Кормление', feedingProgress)}
                       <p className="mt-2 font-semibold text-gray-900">Кормление</p>
@@ -1179,10 +1180,10 @@ useEffect(() => {
                       </span>
                       <p className="text-sm font-medium text-gray-700">назад</p>
                     </button>
-  
+
                     <button
-                    onClick={() => handleQuickAction('diaper')}
-                    className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all"
+                      onClick={() => handleQuickAction('diaper')}
+                      className="flex-1 min-w-[104px] flex flex-col items-center text-center transition-all"
                     >
                       {renderQuickActionRing('diaper', '/icons/diaper.png', 'Смена подгузника', diaperProgress)}
                       <p className="mt-2 font-semibold text-gray-900">Подгузник</p>
@@ -1198,10 +1199,10 @@ useEffect(() => {
                       </span>
                       <p className="text-sm font-medium text-gray-700">назад</p>
                     </button>
-  
+
                     <button
-                    onClick={() => handleQuickAction('bath')}
-                    className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200"
+                      onClick={() => handleQuickAction('bath')}
+                      className="flex-1 min-w-[104px] rounded-3xl flex flex-col items-center text-center transition-all duration-200"
                     >
                       {renderQuickActionRing('bath', '/icons/bath.png', 'Купание', bathProgress)}
                       <p className="mt-2 font-semibold text-gray-900">Купание</p>
@@ -1218,95 +1219,95 @@ useEffect(() => {
                       <p className="text-sm font-medium text-gray-700">назад</p>
                     </button>
                   </div>
-                <div className="flex items-center justify-center gap-2">
-                  {/* Кнопка графика веса слева */}
-                  <button
-                    onClick={() => {
-                      setGrowthChartType('weight')
-                      setGrowthChartModalOpen(true)
-                    }}
-                    className="w-16 h-16 transition-all duration-200 active:scale-90"
-                    title="График веса"
-                  >
-                    <img src="/icons/wight.png" alt="График веса" />
-                  </button>
-                  
-                  {/* Основное изображение малыша */}
-                  <div
-                    onTouchStart={handleSwipeStart}
-                    onTouchMove={handleSwipeMove}
-                    onTouchEnd={handleSwipeEnd}
-                  >
-                    <img
-                      ref={clockRef}
-                      src="/icons/clock.png"
-                      alt="Часы"
-                      className="w-32 h-32 object-contain"
-                      onClick={handleRecentEventsClick}
-                    />
-                  </div>
-                  
-                  {/* Кнопка графика роста справа */}
-                  <button
-                    onClick={() => {
-                      setGrowthChartType('height')
-                      setGrowthChartModalOpen(true)
-                    }}
-                    className="w-16 h-16 transition-all duration-200 active:scale-90"
-                    title="График роста"
-                  >
-                    <img src="/icons/height.png" alt="График роста" />
-                  </button>
-                </div>
-                
-                {/* Таймлайн недавних событий */}
-                {recentEventsExpanded && (
-                  <div className="mt-4" data-recent-events>
-                    {/* Кнопки графиков статистики */}
-                    <div className="flex items-center justify-center gap-3 mb-4">
-                      <button
-                        onClick={() => {
-                          setWeeklyStatsChartType('feedings')
-                          setWeeklyStatsChartOpen(true)
-                        }}
-                        className="flex items-center justify-center gap-3 flex-1 bg-blue-50 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
-                      >
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-xs font-semibold">Кормление</span>
-                        </div>
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setWeeklyStatsChartType('diapers')
-                          setWeeklyStatsChartOpen(true)
-                        }}
-                        className="flex items-center justify-center gap-3 flex-1 bg-green-50 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
-                      >
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-xs font-semibold">Подгузник</span>
-                        </div>
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setWeeklyStatsChartType('poo')
-                          setWeeklyStatsChartOpen(true)
-                        }}
-                        className="flex items-center justify-center gap-3 flex-1 bg-amber-50 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
-                      >
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="text-xs font-semibold">Покакал</span>
-                        </div>
-                      </button>
+                  <div className="flex items-center justify-center gap-2">
+                    {/* Кнопка графика веса слева */}
+                    <button
+                      onClick={() => {
+                        setGrowthChartType('weight')
+                        setGrowthChartModalOpen(true)
+                      }}
+                      className="w-16 h-16 transition-all duration-200 active:scale-90"
+                      title="График веса"
+                    >
+                      <img src="/icons/wight.png" alt="График веса" />
+                    </button>
+
+                    {/* Основное изображение малыша */}
+                    <div
+                      onTouchStart={handleSwipeStart}
+                      onTouchMove={handleSwipeMove}
+                      onTouchEnd={handleSwipeEnd}
+                    >
+                      <img
+                        ref={clockRef}
+                        src="/icons/clock.png"
+                        alt="Часы"
+                        className="w-32 h-32 object-contain"
+                        onClick={handleRecentEventsClick}
+                      />
                     </div>
-                    
-                    <h3 className="text-center text-lg font-bold text-gray-900">
-                      Недавние события
-                    </h3>
-                    
-                    {/* Статистика за день */}
-                    {!recentEventsLoading && recentEvents.length > 0 && (
+
+                    {/* Кнопка графика роста справа */}
+                    <button
+                      onClick={() => {
+                        setGrowthChartType('height')
+                        setGrowthChartModalOpen(true)
+                      }}
+                      className="w-16 h-16 transition-all duration-200 active:scale-90"
+                      title="График роста"
+                    >
+                      <img src="/icons/height.png" alt="График роста" />
+                    </button>
+                  </div>
+
+                  {/* Таймлайн недавних событий */}
+                  {recentEventsExpanded && (
+                    <div className="mt-4" data-recent-events>
+                      {/* Кнопки графиков статистики */}
+                      <div className="flex items-center justify-center gap-3 mb-4">
+                        <button
+                          onClick={() => {
+                            setWeeklyStatsChartType('feedings')
+                            setWeeklyStatsChartOpen(true)
+                          }}
+                          className="flex items-center justify-center gap-3 flex-1 bg-blue-50 text-blue-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-blue-200"
+                        >
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs font-semibold">Кормление</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setWeeklyStatsChartType('diapers')
+                            setWeeklyStatsChartOpen(true)
+                          }}
+                          className="flex items-center justify-center gap-3 flex-1 bg-green-50 text-green-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-green-200"
+                        >
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs font-semibold">Подгузник</span>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setWeeklyStatsChartType('poo')
+                            setWeeklyStatsChartOpen(true)
+                          }}
+                          className="flex items-center justify-center gap-3 flex-1 bg-amber-50 text-amber-600 rounded-2xl p-3 transition-all duration-200 active:scale-95 border border-amber-200"
+                        >
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs font-semibold">Покакал</span>
+                          </div>
+                        </button>
+                      </div>
+
+                      <h3 className="text-center text-lg font-bold text-gray-900">
+                        Недавние события
+                      </h3>
+
+                      {/* Статистика за день */}
+                      {!recentEventsLoading && recentEvents.length > 0 && (
                         <div className="m-4 flex items-center justify-center gap-2 flex-wrap text-xs text-gray-600">
                           {(() => {
                             const today = new Date().toDateString()
@@ -1314,26 +1315,26 @@ useEffect(() => {
                               const eventDate = new Date(event.timestamp).toDateString()
                               return eventDate === today
                             })
-                            
+
                             const feedingsCount = todaysEvents.filter(e => e.type === 'feeding').length
                             const diapersCount = todaysEvents.filter(e => e.type === 'diaper').length
                             const pooCount = todaysEvents.filter(e => e.type === 'diaper' && e.diaper_type === 'Покакал').length
-                            
+
                             // Считаем общую продолжительность сна в минутах
                             const sleepMinutes = todaysEvents
                               .filter(e => e.type === 'sleep')
                               .reduce((sum, e) => sum + (e.duration_minutes || 0), 0)
-                            
+
                             // Форматируем сон в формат "6ч15м"
                             let sleepDisplay = ''
                             if (sleepMinutes > 0) {
                               const hours = Math.floor(sleepMinutes / 60)
                               const minutes = sleepMinutes % 60
-                              sleepDisplay = minutes > 0 
+                              sleepDisplay = minutes > 0
                                 ? `${hours}ч${minutes}м`
                                 : `${hours}ч`
                             }
-                            
+
                             return (
                               <>
                                 {feedingsCount > 0 && (
@@ -1360,83 +1361,84 @@ useEffect(() => {
                             )
                           })()}
                         </div>
-                    )}
-                    
-                    {recentEventsLoading ? (
-                      <div className="flex items-center justify-center py-4">
-                        <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin animation-priority-high"></div>
-                        <span className="ml-2 text-gray-600 text-sm">Загружаем события...</span>
-                      </div>
-                    ) : recentEvents.length === 0 ? (
-                      <div className="text-center py-4">
-                        <div className="text-2xl mb-2">📅</div>
-                        <p className="text-gray-600 text-sm">Пока нет записанных событий</p>
-                        <p className="text-xs text-gray-500 mt-1">Начните записывать кормления, смены подгузников и другие активности</p>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        <div className="space-y-0">
-                          {recentEvents.map((event, index) => {
-                            const typeInfo = getTypeInfo(event.type, event)
-                            const eventDate = new Date(event.timestamp)
-                            const timeAgo = getTimeAgo(event.timestamp)
-                            const isLast = index === recentEvents.length - 1
-                            
-                            return (
-                              <div 
-                                key={`${event.type}-${event.id}-${index}`} 
-                                className="relative flex items-start space-x-3 pb-4 cursor-pointer"
-                                onClick={() => handleRecordClick(event)}
-                              >
-                                {/* Контейнер для иконки и линии */}
-                                <div className="flex flex-col items-center">
-                                  {/* Иконка события */}
-                                  <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
-                                    <div className="w-9 h-9 flex items-center justify-center">
-                                      {typeInfo.icon}
+                      )}
+
+                      {recentEventsLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin animation-priority-high"></div>
+                          <span className="ml-2 text-gray-600 text-sm">Загружаем события...</span>
+                        </div>
+                      ) : recentEvents.length === 0 ? (
+                        <div className="text-center py-4">
+                          <div className="text-2xl mb-2">📅</div>
+                          <p className="text-gray-600 text-sm">Пока нет записанных событий</p>
+                          <p className="text-xs text-gray-500 mt-1">Начните записывать кормления, смены подгузников и другие активности</p>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <div className="space-y-0">
+                            {recentEvents.map((event, index) => {
+                              const typeInfo = getTypeInfo(event.type, event)
+                              const eventDate = new Date(event.timestamp)
+                              const timeAgo = getTimeAgo(event.timestamp)
+                              const isLast = index === recentEvents.length - 1
+
+                              return (
+                                <div
+                                  key={`${event.type}-${event.id}-${index}`}
+                                  className="relative flex items-start space-x-3 pb-4 cursor-pointer"
+                                  onClick={() => handleRecordClick(event)}
+                                >
+                                  {/* Контейнер для иконки и линии */}
+                                  <div className="flex flex-col items-center">
+                                    {/* Иконка события */}
+                                    <div className="w-10 h-10 rounded-full z-10 flex items-center justify-center">
+                                      <div className="w-9 h-9 flex items-center justify-center">
+                                        {typeInfo.icon}
+                                      </div>
                                     </div>
-                                  </div>
-                                  {/* Линия снизу (кроме последнего элемента) */}
-                                  {!isLast && (
-                                    <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
-                                  )}
-                                </div>
-                                
-                                {/* Карточка события */}
-                                <div className={`flex-1 min-w-0 p-3 rounded-2xl ${typeInfo.bgColor} border border-gray-100 shadow-sm`}>
-                                  <div className="flex items-center justify-between mb-1">
-                                    <h4 className="text-sm font-semibold text-gray-900">{typeInfo.label}</h4>
-                                    <span className="text-xs text-gray-500">{timeAgo}</span>
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-sm text-gray-600">{formatTime(eventDate)}</span>
-                                    {typeInfo.extraInfo && (
-                                      <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">
-                                        {typeInfo.extraInfo}
-                                      </span>
+                                    {/* Линия снизу (кроме последнего элемента) */}
+                                    {!isLast && (
+                                      <div className="w-0.5 h-16 bg-gray-500 mt-2"></div>
                                     )}
                                   </div>
-                                  
-                                  <div className="text-xs text-gray-500">
-                                    👤 {event.author_name || 'Неизвестно'} • {eventDate.toLocaleDateString('ru-RU')}
+
+                                  {/* Карточка события */}
+                                  <div className={`flex-1 min-w-0 p-3 rounded-2xl ${typeInfo.bgColor} border border-gray-100 shadow-sm`}>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <h4 className="text-sm font-semibold text-gray-900">{typeInfo.label}</h4>
+                                      <span className="text-xs text-gray-500">{timeAgo}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="text-sm text-gray-600">{formatTime(eventDate)}</span>
+                                      {typeInfo.extraInfo && (
+                                        <span className="text-xs font-medium text-gray-700 bg-white px-2 py-1 rounded-full border border-gray-200">
+                                          {typeInfo.extraInfo}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="text-xs text-gray-500">
+                                      👤 {event.author_name || 'Неизвестно'} • {eventDate.toLocaleDateString('ru-RU')}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )
-                          })}
+                              )
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
+            )}
+          </div>
         </div>
-        )}
       </div>
 
-        {activeTab !== 'tetris' && <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />}
-              </div>
+      {activeTab !== 'tetris' && <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />}
 
         <DutyScheduleModal
           isOpen={dutyModalOpen}

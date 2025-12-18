@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { MobileSudokuTetris } from '../lib/TetrisGame'
 import React from 'react';
 
@@ -21,7 +21,6 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
   const gameInstanceRef = useRef<MobileSudokuTetris | null>(null)
   const gameOverHandlerRef = useRef<typeof onGameOver>()
   const initialRecordRef = useRef<number | undefined>(familyRecordScore ?? undefined)
-  const [isLoading, setIsLoading] = useState(true)
 
   gameOverHandlerRef.current = onGameOver
 
@@ -37,20 +36,13 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
     stylesheet.href = '/style.css'
     document.head.appendChild(stylesheet)
 
-    let animationFrameId: number | null = null
-
     const gameInstance = new MobileSudokuTetris({
       onGameOver: memoizedCallback,
       initialRecord: initialRecordRef.current
     })
     gameInstanceRef.current = gameInstance;
 
-    animationFrameId = requestAnimationFrame(() => setIsLoading(false))
-
     return () => {
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId)
-      }
       gameInstance.destroy()
       gameInstanceRef.current = null
       if (stylesheet.parentNode) {
@@ -143,24 +135,6 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
       </main>
 
       <div className="game-over" id="gameOver" style={{ display: 'none' }} />
-
-      {isLoading && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm">
-          <div className="relative flex h-32 w-32 items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-4 border-orange-200" />
-            <div
-              className="absolute inset-0 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"
-              style={{ animationDuration: '1.1s' }}
-            />
-            <img
-              src="/icons/feeding.png"
-              alt="Загрузка Тетриса"
-              loading="lazy"
-              className="relative z-10 h-20 w-20 animate-pulse object-contain"
-            />
-          </div>
-        </div>
-      )}
     </div>
   )
 }

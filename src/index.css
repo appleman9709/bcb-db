@@ -293,6 +293,22 @@
   }
 }
 
+/* Плавная анимация переключения вкладок (Никола / Тамагочи / Тетрис / Настройки) */
+@keyframes tabContentFade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-content-animated {
+  animation: tabContentFade 0.25s ease-out;
+}
+
 /* Дополнительная тень для лучшей читаемости на светлых градиентах */
 .text-gray-900.drop-shadow-lg {
   filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.8)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
