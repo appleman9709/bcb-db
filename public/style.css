@@ -222,7 +222,7 @@ body {
     border: 2px solid rgba(207, 198, 184, 0.3);
     position: relative;
     border-color: #ffffff;
-    border-width: 8px;
+    border-width: 16px;
 }
 
 #gameCanvas {
@@ -241,7 +241,6 @@ body {
     flex-direction: column;
     width: 100%;
     padding: 8px 6px 12px;
-    border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 .pieces-container {
