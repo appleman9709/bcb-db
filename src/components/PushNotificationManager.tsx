@@ -102,8 +102,8 @@ export default function PushNotificationManager() {
         </div>
       )}
       
-        <p className="text-xs text-gray-600">
-          Получайте push-уведомления о важных событиях от Николы
+        <p className="text-xs text-gray-600 text-center">
+          Получайте уведомления от Николы
         </p>
         
         {!isSubscribed ? (
@@ -112,7 +112,7 @@ export default function PushNotificationManager() {
             disabled={isLoading}
             className="w-full bg-blue-500 text-white font-semibold py-3 px-3 rounded-2xl shadow-lg text-sm"
           >
-            {isLoading ? 'Подписка...' : '🔔 Подписаться на уведомления'}
+            {isLoading ? 'Подписка...' : '🔔 Подписаться'}
           </button>
         ) : (
           <button
@@ -120,7 +120,7 @@ export default function PushNotificationManager() {
             disabled={isLoading}
             className="w-full bg-purple-600 text-white font-semibold py-3 px-3 rounded-2xl shadow-lg text-sm"
           >
-            {isLoading ? 'Отписка...' : '🔕 Отписаться от уведомлений'}
+            {isLoading ? 'Отписка...' : '🔕 Отписаться'}
           </button>
         )}
     </div>

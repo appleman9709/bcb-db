@@ -1456,7 +1456,33 @@ export class MobileSudokuTetris {
 
     // Управление плавающим превью фигуры (над пальцем)
     showDragPreview(piece) {
-        if (!piece) return;
+        if (!piece || !this.dragCanvasCtx) return;
+
+        // Для бонусов показываем только иконку
+        if (piece.isInventory && piece.inventoryType && this.coinImages[piece.inventoryType]) {
+            const baseSize = Math.min(48, Math.max(28, Math.round(this.CELL_SIZE * this.dragPreviewIconSizeRatio)));
+            const padding = 6;
+            const canvasSize = baseSize + padding * 2;
+
+            this.dragCanvas.width = canvasSize;
+            this.dragCanvas.height = canvasSize;
+            const ctx = this.dragCanvasCtx;
+            ctx.clearRect(0, 0, canvasSize, canvasSize);
+
+            const img = this.coinImages[piece.inventoryType];
+            if (img && img.complete) {
+                const iconX = (canvasSize - baseSize) / 2;
+                const iconY = (canvasSize - baseSize) / 2;
+                ctx.save();
+                ctx.globalAlpha = 0.95;
+                ctx.drawImage(img, iconX, iconY, baseSize, baseSize);
+                ctx.restore();
+            }
+
+            this.dragCanvas.style.display = 'block';
+            return;
+        }
+
         const pieceWidth = piece.shape[0].length;
         const pieceHeight = piece.shape.length;
         const cellSize = Math.max(20, Math.min(44, this.CELL_SIZE));
@@ -1470,21 +1496,6 @@ export class MobileSudokuTetris {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
         this.drawPieceOnCanvas(ctx, piece, cellSize, padding);
 
-        // Добавляем иконку бонуса поверх превью в воздухе
-        if (piece.isInventory && piece.inventoryType && this.coinImages[piece.inventoryType]) {
-            const iconSize = Math.min(32, Math.round(cellSize * this.dragPreviewIconSizeRatio));
-            const iconPadding = 4;
-            const iconX = canvasWidth - iconSize - iconPadding;
-            const iconY = canvasHeight - iconSize - iconPadding;
-
-            const img = this.coinImages[piece.inventoryType];
-            if (img && img.complete) {
-                ctx.save();
-                ctx.globalAlpha = 0.95;
-                ctx.drawImage(img, iconX, iconY, iconSize, iconSize);
-                ctx.restore();
-            }
-        }
         this.dragCanvas.style.display = 'block';
     }
 
@@ -2165,10 +2176,6 @@ export class MobileSudokuTetris {
             return true;
         }
 
-        if ((this.inventory?.feeding ?? 0) > 0 || (this.inventory?.diaper ?? 0) > 0) {
-            return true;
-        }
-
         // Получаем список свободных клеток для оптимизации
         const freeCells = this.getFreeCells();
         
@@ -2291,15 +2298,12 @@ export class MobileSudokuTetris {
             this.ctx.fillRect(0, previewY * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
             this.ctx.strokeRect(0, previewY * this.CELL_SIZE, this.canvas.width, this.CELL_SIZE);
 
-            this.drawInventoryEffectIcon(type, this.canvas.width / 2 - this.CELL_SIZE / 2, previewY * this.CELL_SIZE + 6);
         } else if (type === 'diaper') {
             const areaX = previewX * this.CELL_SIZE;
             const areaY = previewY * this.CELL_SIZE;
             const areaSize = this.CELL_SIZE * 2;
             this.ctx.fillRect(areaX, areaY, areaSize, areaSize);
             this.ctx.strokeRect(areaX, areaY, areaSize, areaSize);
-
-            this.drawInventoryEffectIcon(type, areaX + areaSize / 2 - this.CELL_SIZE / 2, areaY + areaSize / 2 - this.CELL_SIZE / 2);
         }
 
         this.ctx.restore();
@@ -3229,10 +3233,12 @@ export class MobileSudokuTetris {
     }
     
     restart() {
+        const preservedInventory = { ...this.inventory };
+
         this.board = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(0));
         this.boardColors = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
         this.coinMap = Array(this.BOARD_SIZE).fill().map(() => Array(this.BOARD_SIZE).fill(null));
-        this.inventory = { feeding: 0, diaper: 0 };
+        this.inventory = preservedInventory;
         this.score = 0;
         this.level = 1;
         this.lines = 0;
@@ -3267,6 +3273,7 @@ export class MobileSudokuTetris {
         this.availablePieces = Array(3).fill(null);
         this.updateUI();
         this.generatePieces();
+        this.saveGameState();
         this.draw();
     }
     

@@ -47,35 +47,46 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       {/* Совет дня */}
       {dailyTip && (
         <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex items-center gap-2">
-              <img src="/icons/sovet.png" alt="Совет" className="w-10 h-10 object-contain" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-900">Совет дня</h3>
-              <p className="text-xs text-gray-700">{dailyTip.content}</p>
-            </div>
+          <img src="/icons/sovet.png" alt="Совет" className="w-10 h-10 object-contain" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-gray-900">Совет дня</h3>
+            <p className="text-xs text-gray-700">{dailyTip.content}</p>
+          </div>
         </div>
       )}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex items-center justify-center gap-2">
-            <span className="slider-icon-emoji">🌗</span>
-            <p className="text-sm font-semibold text-gray-900">Оформление:</p>
-            <div className="flex items-center justify-center">
-              {themeOptions.map((option) => {
-                const isActive = theme === option.value
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setTheme(option.value)}
-                    className={`flex items-center justify-center rounded-2xl px-3 py-2 text-centr ${
-                      isActive ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-800'
-                    }`}
-                    aria-pressed={isActive}
-                  >
-                    <span className="text-sm font-semibold leading-none">{option.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-       </div>
+
+      {/* Оформление + Push-уведомления в сетке */}
+      <div className="grid grid-cols-2 gap-x-2 gap-y-2">
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2">
+          <span className="slider-icon-emoji">🌗</span>
+          <p className="text-sm font-semibold text-gray-900">Оформление:</p>
+          <div className="flex flex-col items-center justify-center">
+            {themeOptions.map((option) => {
+              const isActive = theme === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setTheme(option.value)}
+                  className={`flex items-center justify-center rounded-2xl px-3 py-2 text-centr ${
+                    isActive ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-800'
+                  }`}
+                  aria-pressed={isActive}
+                >
+                  <span className="text-sm font-semibold leading-none">{option.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Push уведомления */}
+        <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 flex flex-col items-center justify-center gap-2">
+          <span className="slider-icon-emoji">🔔</span>
+          <p className="text-sm font-semibold text-gray-900 text-center">Push-уведомления</p>
+          <PushNotificationManager />
+        </div>
+      </div>
       {/* Дата рождения */}
       <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100 date-input-container">
           <h2 className="text-base font-semibold text-gray-900 text-center mb-2">Дата рождения</h2>
@@ -191,12 +202,6 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                   className="modern-slider"
                 />
               </div>
-      </div>
-
-      {/* Push уведомления */}
-      <div className="bg-white rounded-3xl p-4 shadow-sm border border-gray-100">
-        <h2 className="text-base font-semibold text-gray-900 text-center">🔔 Push-уведомления</h2>
-        <PushNotificationManager />
       </div>
 
       {/* Отправить уведомление */}
