@@ -1449,7 +1449,8 @@ export class MobileSudokuTetris {
 
     snapPreviewToGrid(previewCanvasCoord, pieceSize) {
         const deadZone = this.GRID_SNAP_DEADZONE || 0;
-        const snapped = Math.floor((previewCanvasCoord + deadZone) / this.CELL_SIZE) - Math.floor(pieceSize / 2);
+        const centerBasedCoord = (previewCanvasCoord + deadZone) / this.CELL_SIZE - pieceSize / 2;
+        const snapped = Math.round(centerBasedCoord);
         return Math.max(0, Math.min(this.BOARD_SIZE - pieceSize, snapped));
     }
 
