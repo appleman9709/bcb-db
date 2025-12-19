@@ -1015,6 +1015,20 @@ useEffect(() => {
   const handleTabChange = (tab: 'home' | 'settings' | 'tamagotchi' | 'tetris') => {
     console.log('Tab changed to:', tab) // Отладочная информация
     setActiveTab(tab)
+    
+    // При переключении на вкладку Тетрис сбрасываем прокрутку
+    if (tab === 'tetris') {
+      // Используем requestAnimationFrame для синхронизации с рендерингом
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0)
+        if (document.documentElement) {
+          document.documentElement.scrollTop = 0
+        }
+        if (document.body) {
+          document.body.scrollTop = 0
+        }
+      })
+    }
   }
 
   // Обработчик сообщений от игры Tetris

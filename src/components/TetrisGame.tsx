@@ -31,23 +31,89 @@ export default function TetrisGame({ onGameOver, familyRecordScore }: TetrisGame
   }, [])
 
   useEffect(() => {
-    const stylesheet = document.createElement('link')
-    stylesheet.rel = 'stylesheet'
-    stylesheet.href = '/style.css'
-    document.head.appendChild(stylesheet)
+    let stylesheet: HTMLLinkElement | null = null
+    let isMounted = true
 
-    const gameInstance = new MobileSudokuTetris({
-      onGameOver: memoizedCallback,
-      initialRecord: initialRecordRef.current
-    })
-    gameInstanceRef.current = gameInstance;
+    // Проверяем, не загружен ли стиль уже
+    const existingStylesheet = document.querySelector('link[href="/style.css"]') as HTMLLinkElement
+    
+    const initializeGame = () => {
+      if (!isMounted) return
+      
+      // Используем requestAnimationFrame для синхронизации с браузером
+      requestAnimationFrame(() => {
+        if (!isMounted) return
+        
+        // Еще один frame для гарантии завершения layout
+        requestAnimationFrame(() => {
+          if (!isMounted) return
+          
+          try {
+            const gameInstance = new MobileSudokuTetris({
+              onGameOver: memoizedCallback,
+              initialRecord: initialRecordRef.current
+            })
+            gameInstanceRef.current = gameInstance
+          } catch (error) {
+            console.error('Error initializing Tetris game:', error)
+          }
+        })
+      })
+    }
+
+    if (!existingStylesheet) {
+      stylesheet = document.createElement('link')
+      stylesheet.rel = 'stylesheet'
+      stylesheet.href = '/style.css'
+      
+      // Предзагружаем стиль, чтобы предотвратить layout shift
+      stylesheet.onload = () => {
+        if (isMounted) {
+          initializeGame()
+        }
+      }
+      
+      // Если стиль не загрузится, все равно инициализируем через таймаут
+      stylesheet.onerror = () => {
+        console.warn('Failed to load Tetris stylesheet, initializing anyway')
+        if (isMounted) {
+          initializeGame()
+        }
+      }
+      
+      document.head.appendChild(stylesheet)
+    } else {
+      // Стиль уже загружен, но проверяем, что он действительно загрузился
+      if (existingStylesheet.sheet) {
+        // Стиль уже полностью загружен
+        initializeGame()
+      } else {
+        // Ждем загрузки существующего стиля
+        existingStylesheet.onload = () => {
+          if (isMounted) {
+            initializeGame()
+          }
+        }
+        // Если стиль уже загружен, но событие не сработало
+        setTimeout(() => {
+          if (isMounted && !gameInstanceRef.current) {
+            initializeGame()
+          }
+        }, 50)
+      }
+    }
 
     return () => {
-      gameInstance.destroy()
-      gameInstanceRef.current = null
-      if (stylesheet.parentNode) {
-        stylesheet.parentNode.removeChild(stylesheet)
+      isMounted = false
+      if (gameInstanceRef.current) {
+        try {
+          gameInstanceRef.current.destroy()
+        } catch (error) {
+          console.error('Error destroying Tetris game:', error)
+        }
+        gameInstanceRef.current = null
       }
+      // Не удаляем stylesheet, он может использоваться при повторном открытии
     }
   }, [memoizedCallback])
 

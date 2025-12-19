@@ -58,10 +58,52 @@ export default function TetrisPage() {
     }
   }, [family, member, getCachedRecord, updateCacheIfBetter])
 
+  // Предотвращаем прокрутку и скачки при загрузке
+  useEffect(() => {
+    // Сбрасываем позицию прокрутки при монтировании
+    const resetScroll = () => {
+      window.scrollTo(0, 0)
+      if (document.documentElement) {
+        document.documentElement.scrollTop = 0
+      }
+      if (document.body) {
+        document.body.scrollTop = 0
+      }
+    }
+    
+    // Сбрасываем сразу
+    resetScroll()
+    
+    // И еще раз через небольшой интервал на случай асинхронных обновлений
+    const resetTimer = setTimeout(resetScroll, 0)
+    
+    // Блокируем прокрутку на время инициализации
+    const originalBodyOverflow = document.body.style.overflow
+    const originalHtmlOverflow = document.documentElement.style.overflow
+    
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    
+    // Восстанавливаем через задержку (после загрузки игры)
+    const restoreTimer = setTimeout(() => {
+      document.body.style.overflow = originalBodyOverflow
+      document.documentElement.style.overflow = originalHtmlOverflow
+    }, 200)
+    
+    return () => {
+      clearTimeout(resetTimer)
+      clearTimeout(restoreTimer)
+      document.body.style.overflow = originalBodyOverflow
+      document.documentElement.style.overflow = originalHtmlOverflow
+      // Сбрасываем прокрутку при размонтировании
+      resetScroll()
+    }
+  }, [])
+
   return (
-    <div className="h-full w-full flex flex-col">
+    <div className="h-full w-full flex flex-col overflow-hidden">
       {/* Игра Тетрис */}
-      <div className="flex-1 relative pb-20">
+      <div className="flex-1 relative overflow-hidden">
         <TetrisGame
           onGameOver={handleGameOver}
           familyRecordScore={familyBestRecord?.score ?? null}

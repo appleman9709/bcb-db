@@ -240,7 +240,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
       </button>
 
       {/* Отступ для нижней навигации */}
-      <div className="h-28"></div>
+      <div className="h-32"></div>
     </div>
   )
 }

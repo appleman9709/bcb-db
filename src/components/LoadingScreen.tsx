@@ -5,7 +5,7 @@ const SPIN_DURATION = '1.2s'
 const LoadingScreen = React.memo(function LoadingScreen() {
   return (
     <div className="flex h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
-      <div className="relative flex h-32 w-32 items-center justify-center">
+      <div className="relative flex h-32 w-32 items-center justify-center mt-4">
         <div className="absolute inset-0 rounded-full border-4 border-indigo-200" />
         <div
           className="absolute inset-0 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"

@@ -37,7 +37,6 @@ interface SettingsState {
 }
 
 export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
-  // console.log('TamagotchiPage rendered') // Отключено для экономии ресурсов
   
   const [data, setData] = useState<TamagotchiData | null>(null)
   const [settings, setSettings] = useState<SettingsState>({
@@ -673,7 +672,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }, [member, family])
 
-  // Автоматическое фоновое обновление данных каждые 10 минут (увеличено с 2 минут)
   // Используем useRef для предотвращения лишних рендеров
   const backgroundUpdateIntervalRef = useRef<number | null>(null)
   
@@ -786,10 +784,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       
       const position = getRandomCoinPosition()
       
-      // Определяем тип и иконку монетки на основе текущего состояния
-      // console.log('🌙 spawnCoin called with:', { babyState, isSleepMode }) // Отключено для экономии ресурсов
-      // console.log('🌙 isSleepMode type:', typeof isSleepMode, 'value:', isSleepMode) // Отключено для экономии ресурсов
-      
       // Если малыш спит, всегда показываем монетки сна
       let coinType: 'feeding_coins' | 'diaper_coins' | 'bath_coins' | 'activity_coins' | 'mom_coins' | 'sleep_coins'
       let coinIcon: string
@@ -797,11 +791,9 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       if (isSleepMode) {
         coinType = 'sleep_coins'
         coinIcon = '/icons/sleep.png'
-        // console.log('🌙 Sleep mode detected - using sleep coins') // Отключено для экономии ресурсов
       } else {
         coinType = getCoinType(babyState, false)
         coinIcon = getCoinIcon(babyState, false)
-        // console.log('🌙 Normal mode - using state-based coins:', { babyState, coinType, coinIcon }) // Отключено для экономии ресурсов
       }
       
       const newCoin = {
@@ -1112,16 +1104,12 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     ))
 
     try {
-      // Сохраняем монетку в БД
-      // console.log(`Adding ${coin.type} coin to database...`) // Отключено для экономии ресурсов
       const updatedCoins = await dataService.addCoins(coin.type, 1)
       
       if (updatedCoins) {
-        // console.log('Coins updated successfully:', updatedCoins) // Отключено для экономии ресурсов
         // Обновляем данные в состоянии локально для быстрого отклика
         setData(prev => prev ? { ...prev, parentCoins: updatedCoins } : null)
         // Фоновое обновление убрано - обновляем данные локально
-        // fetchData(true)
       } else {
         console.warn('Failed to update coins in database')
       }
@@ -1378,16 +1366,6 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
 
           {/* Иконки болезней и кнопка добавления - нижний левый угол */}
           <div className="absolute bottom-64 left-4 z-50 gap-2">
-            {/* Кнопка добавления болезни */}
-            <button
-              onClick={handleAddIllness}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500 text-white text-xl font-bold shadow-lg transition-colors"
-              aria-label="Добавить болезнь"
-              title="Добавить болезнь"
-            >
-              +
-            </button>
-            
             {/* Иконки болезней */}
             {illnesses.length > 0 && (
               <>
@@ -1466,19 +1444,19 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
             </div>
           </div>
 
-          {/* Активность */}
+          {/* Добавить болезнь */}
           <div 
             onClick={(e) => {
               e.currentTarget.classList.add('clicked');
               setTimeout(() => e.currentTarget.classList.remove('clicked'), 600);
-              handleItemClick('activity');
+              handleAddIllness();
             }}
             className="tamagotchi-inventory-item"
           >
             <div className="tamagotchi-inventory-icon">
               <img 
-                src="/icons/activity.png" 
-                alt="Активность" 
+                src="/icons/temp.png" 
+                alt="Добавить болезнь" 
               />
             </div>
           </div>
