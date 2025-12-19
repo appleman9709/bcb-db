@@ -29,7 +29,7 @@ export class MobileSudokuTetris {
         console.log('Контейнер фигур найден:', this.piecesContainer);
         
         this.BOARD_SIZE = 9;
-        this.CELL_SIZE = this.calculateCellSize(); // Адаптивный размер для мобильных устройств
+        this.CELL_SIZE = 34; // Адаптивный размер для мобильных устройств
         
         // Устанавливаем размер canvas
         this.canvas.width = this.BOARD_SIZE * this.CELL_SIZE;
