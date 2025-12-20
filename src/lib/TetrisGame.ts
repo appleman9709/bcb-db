@@ -229,35 +229,6 @@ export class MobileSudokuTetris {
                 size: 3
             },
             {
-                id: 'L_SHAPE',
-                name: 'L-форма',
-                shape: [
-                    [1, 0],
-                    [1, 0],
-                    [1, 1]
-                ],
-                color: '#EA580C', // Темно-оранжевый
-                size: 3
-            },
-            {
-                id: 'LINE4',
-                name: 'Четверка',
-                shape: [[1, 1, 1, 1]],
-                color: '#6D28D9', // Темно-фиолетовый
-                size: 4
-            },
-            {
-                id: 'CORNER3',
-                name: 'Уголок 3',
-                shape: [
-                    [1, 1],
-                    [1, 0],
-                    [1, 0]
-                ],
-                color: '#DC2626', // Темно-красный
-                size: 3
-            },
-            {
                 id: 'HOOK',
                 name: 'Крючок',
                 shape: [
