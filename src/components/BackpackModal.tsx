@@ -33,6 +33,15 @@ interface BackpackModalProps {
   restockLoading: boolean
   restockFeedback: string | null
   restockFeedbackClass: string
+  revisionDiapersInput: string
+  revisionGramsInput: string
+  setRevisionDiapersInput: (value: string) => void
+  setRevisionGramsInput: (value: string) => void
+  handleRevisionSubmit: (event: React.FormEvent<HTMLFormElement>) => void
+  revisionPortionsPreviewText: string
+  revisionLoading: boolean
+  revisionFeedback: string | null
+  revisionFeedbackClass: string
 }
 
 const BackpackModal: React.FC<BackpackModalProps> = ({
@@ -58,6 +67,15 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
   restockLoading,
   restockFeedback,
   restockFeedbackClass,
+  revisionDiapersInput,
+  revisionGramsInput,
+  setRevisionDiapersInput,
+  setRevisionGramsInput,
+  handleRevisionSubmit,
+  revisionPortionsPreviewText,
+  revisionLoading,
+  revisionFeedback,
+  revisionFeedbackClass,
 }) => {
   if (!isOpen) {
     return null
@@ -121,7 +139,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
             </div>
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1.2fr,0.8fr] sm:items-center sm:gap-3">
-              <div className="rounded-xl border border-slate-200 bg-white p-2.5">
+              <div className="rounded-xl border border-slate-200 bg-white p-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold">Размер порции</span>
                   <span className="text-[10px]">унц.</span>
@@ -170,7 +188,7 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
               )}
             </div>
 
-            <form className="grid grid-cols-1 gap-2 rounded-xl sm:grid-cols-2 sm:gap-3" onSubmit={handleRestockSubmit}>
+            <form className="grid gap-2 rounded-xl grid-cols-2 gap-3" onSubmit={handleRestockSubmit}>
               <div className="rounded-xl border border-slate-200 bg-white p-2.5">
                 <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide">
                   <span>Подгузники</span>
@@ -237,11 +255,6 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                     +
                   </button>
                 </div>
-                {restockPortionsPreviewText && (
-                  <span className="mt-1.5 block text-[9px] font-medium">
-                    ≈ {restockPortionsPreviewText} порций ({portionSizeOunces} оз.)
-                  </span>
-                )}
               </div>
 
               <div className="col-span-full flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
@@ -256,6 +269,96 @@ const BackpackModal: React.FC<BackpackModalProps> = ({
                 {restockFeedback && (
                   <div className={`text-center text-[10px] font-medium ${restockFeedbackClass}`} aria-live="polite">
                     {restockFeedback}
+                  </div>
+                )}
+              </div>
+            </form>
+
+            <form className="grid grid-cols-2 gap-2 rounded-xl sm:grid-cols-2 sm:gap-3" onSubmit={handleRevisionSubmit}>
+              <div className="col-span-full text-[16px] font-semibold items-center justify-center">
+                Ревизия остатков
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-2.5">
+                <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide">
+                  <span>Подгузники</span>
+                  <span className="text-[9px]">шт.</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = parseInt(revisionDiapersInput) || 0
+                      const newValue = Math.max(0, current - 5)
+                      setRevisionDiapersInput(newValue.toString())
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full"
+                    aria-label="Уменьшить остаток подгузников"
+                  >
+                    -
+                  </button>
+                  <span className="text-lg font-semibold">{revisionDiapersInput || '0'}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = parseInt(revisionDiapersInput) || 0
+                      const newValue = Math.min(500, current + 5)
+                      setRevisionDiapersInput(newValue.toString())
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full"
+                    aria-label="Увеличить остаток подгузников"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-2.5">
+                <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide">
+                  <span>Смесь</span>
+                  <span className="text-[9px]">г</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = parseInt(revisionGramsInput) || 0
+                      const newValue = Math.max(0, current - 100)
+                      setRevisionGramsInput(newValue.toString())
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full"
+                    aria-label="Уменьшить остаток смеси"
+                  >
+                    -
+                  </button>
+                  <span className="text-lg font-semibold">{revisionGramsInput || '0'}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const current = parseInt(revisionGramsInput) || 0
+                      const newValue = Math.min(4000, current + 100)
+                      setRevisionGramsInput(newValue.toString())
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-full"
+                    aria-label="Увеличить остаток смеси"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="col-span-full flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                <button
+                  type="submit"
+                  disabled={revisionLoading}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white shadow transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-6"
+                >
+                  {revisionLoading ? 'Сохраняем ревизию...' : 'Сохранить ревизию'}
+                </button>
+
+                {revisionFeedback && (
+                  <div className={`text-center text-[10px] font-medium ${revisionFeedbackClass}`} aria-live="polite">
+                    {revisionFeedback}
                   </div>
                 )}
               </div>

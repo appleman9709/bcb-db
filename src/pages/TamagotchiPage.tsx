@@ -62,6 +62,11 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const [restockLoading, setRestockLoading] = useState(false)
   const [restockFeedback, setRestockFeedback] = useState<string | null>(null)
   const [restockFeedbackTone, setRestockFeedbackTone] = useState<'neutral' | 'success' | 'error'>('neutral')
+  const [revisionDiapersInput, setRevisionDiapersInput] = useState('')
+  const [revisionGramsInput, setRevisionGramsInput] = useState('')
+  const [revisionLoading, setRevisionLoading] = useState(false)
+  const [revisionFeedback, setRevisionFeedback] = useState<string | null>(null)
+  const [revisionFeedbackTone, setRevisionFeedbackTone] = useState<'neutral' | 'success' | 'error'>('neutral')
   const [portionSizeOunces, setPortionSizeOunces] = useState<number>(1)
   const [portionSizeOuncesInput, setPortionSizeOuncesInput] = useState<string>('1')
   const [portionSizeStatus, setPortionSizeStatus] = useState<string | null>(null)
@@ -241,6 +246,26 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }, [backpackOpen])
 
+  useEffect(() => {
+    if (!backpackOpen) {
+      return
+    }
+
+    const diapersValue = data?.inventory?.diapers_stock
+    const gramsValue = data?.inventory?.formula_grams
+
+    setRevisionDiapersInput(
+      diapersValue !== undefined && diapersValue !== null
+        ? Math.max(0, Math.round(diapersValue)).toString()
+        : ''
+    )
+    setRevisionGramsInput(
+      gramsValue !== undefined && gramsValue !== null
+        ? Math.max(0, Math.round(gramsValue * 1000) / 1000).toString()
+        : ''
+    )
+  }, [backpackOpen, data?.inventory?.diapers_stock, data?.inventory?.formula_grams])
+
   const inventoryTotals = useMemo(() => {
     const rawInventory = data?.inventory
     const diapers = Math.max(0, rawInventory?.diapers_stock ?? 0)
@@ -343,6 +368,31 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       : restockPortionsPreview.toFixed(1)
   }, [restockPortionsPreview])
 
+  const revisionPortionsPreview = useMemo(() => {
+    const normalized = revisionGramsInput.replace(',', '.').trim()
+    if (!normalized) {
+      return 0
+    }
+
+    const numericValue = Number(normalized)
+    if (!Number.isFinite(numericValue) || numericValue < 0) {
+      return 0
+    }
+
+    const portionSizeInGrams = portionSizeOunces * GRAMS_PER_OUNCE
+    return portionSizeInGrams > 0 ? Math.round(numericValue / portionSizeInGrams) : 0
+  }, [revisionGramsInput, portionSizeOunces])
+
+  const revisionPortionsPreviewText = useMemo(() => {
+    if (!Number.isFinite(revisionPortionsPreview) || revisionPortionsPreview <= 0) {
+      return ''
+    }
+
+    return Number.isInteger(revisionPortionsPreview)
+      ? revisionPortionsPreview.toFixed(0)
+      : revisionPortionsPreview.toFixed(1)
+  }, [revisionPortionsPreview])
+
   const restockFeedbackClass = useMemo(() => {
     switch (restockFeedbackTone) {
       case 'success':
@@ -353,6 +403,17 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         return 'text-gray-600'
     }
   }, [restockFeedbackTone])
+
+  const revisionFeedbackClass = useMemo(() => {
+    switch (revisionFeedbackTone) {
+      case 'success':
+        return 'text-green-600'
+      case 'error':
+        return 'text-red-600'
+      default:
+        return 'text-gray-600'
+    }
+  }, [revisionFeedbackTone])
 
   const portionSizeStatusClass = useMemo(() => {
     switch (portionSizeStatusTone) {
@@ -382,6 +443,24 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       allTimeoutsRef.current.delete(timeoutId)
     }
   }, [restockFeedback])
+
+  useEffect(() => {
+    if (!revisionFeedback) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setRevisionFeedback(null)
+      setRevisionFeedbackTone('neutral')
+      allTimeoutsRef.current.delete(timeoutId)
+    }, 4000)
+    allTimeoutsRef.current.add(timeoutId)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+      allTimeoutsRef.current.delete(timeoutId)
+    }
+  }, [revisionFeedback])
 
   useEffect(() => {
     if (!portionSizeStatus) {
@@ -481,6 +560,85 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     restockDiapersInput,
     restockLoading,
     restockGramsInput,
+    portionSizeOunces
+  ])
+
+  const handleRevisionSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    if (!member || !family) {
+      setRevisionFeedback('Нет доступа к семейному рюкзаку.')
+      setRevisionFeedbackTone('error')
+      return
+    }
+
+    if (revisionLoading) {
+      return
+    }
+
+    const diapersRaw = revisionDiapersInput.replace(',', '.').trim()
+    const gramsRaw = revisionGramsInput.replace(',', '.').trim()
+
+    const hasDiapersValue = diapersRaw.length > 0
+    const hasGramsValue = gramsRaw.length > 0
+
+    if (!hasDiapersValue && !hasGramsValue) {
+      setRevisionFeedback('Введите значения для ревизии.')
+      setRevisionFeedbackTone('error')
+      return
+    }
+
+    const diapersValue = hasDiapersValue ? Number(diapersRaw) : null
+    const gramsValue = hasGramsValue ? Number(gramsRaw) : null
+
+    if ((hasDiapersValue && (!Number.isFinite(diapersValue) || diapersValue === null || diapersValue < 0)) ||
+        (hasGramsValue && (!Number.isFinite(gramsValue) || gramsValue === null || gramsValue < 0))) {
+      setRevisionFeedback('Введите корректные значения.')
+      setRevisionFeedbackTone('error')
+      return
+    }
+
+    setRevisionLoading(true)
+    setRevisionFeedback(null)
+    setRevisionFeedbackTone('neutral')
+
+    const payload: { diapers?: number; formulaGrams?: number; portionSizeGrams?: number } = {}
+    if (hasDiapersValue && diapersValue !== null) {
+      payload.diapers = Math.round(diapersValue)
+    }
+    if (hasGramsValue && gramsValue !== null) {
+      payload.formulaGrams = Math.round(gramsValue * 1000) / 1000
+      payload.portionSizeGrams = portionSizeOunces * GRAMS_PER_OUNCE
+    }
+
+    try {
+      const updatedInventory = await dataService.reviseInventory(payload)
+
+      if (updatedInventory) {
+        setData(prev => (prev ? { ...prev, inventory: updatedInventory } : prev))
+      }
+
+      setRevisionFeedback('Ревизия сохранена.')
+      setRevisionFeedbackTone('success')
+      if (hasDiapersValue) {
+        setRevisionDiapersInput('')
+      }
+      if (hasGramsValue) {
+        setRevisionGramsInput('')
+      }
+    } catch (error) {
+      console.error('Error revising inventory:', error)
+      setRevisionFeedback('Не получилось сохранить ревизию. Попробуйте ещё раз.')
+      setRevisionFeedbackTone('error')
+    } finally {
+      setRevisionLoading(false)
+    }
+  }, [
+    family,
+    member,
+    revisionDiapersInput,
+    revisionGramsInput,
+    revisionLoading,
     portionSizeOunces
   ])
 
@@ -1485,6 +1643,15 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
         restockLoading={restockLoading}
         restockFeedback={restockFeedback}
         restockFeedbackClass={restockFeedbackClass}
+        revisionDiapersInput={revisionDiapersInput}
+        revisionGramsInput={revisionGramsInput}
+        setRevisionDiapersInput={setRevisionDiapersInput}
+        setRevisionGramsInput={setRevisionGramsInput}
+        handleRevisionSubmit={handleRevisionSubmit}
+        revisionPortionsPreviewText={revisionPortionsPreviewText}
+        revisionLoading={revisionLoading}
+        revisionFeedback={revisionFeedback}
+        revisionFeedbackClass={revisionFeedbackClass}
       />
 
       {/* Модальное окно добавления болезни */}

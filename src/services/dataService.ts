@@ -431,6 +431,38 @@ class DataService {
     })
   }
 
+  async reviseInventory(options: { diapers?: number; formulaGrams?: number; portionSizeGrams?: number }): Promise<FamilyInventory | null> {
+    const currentInventory = await this.getFamilyInventory()
+    if (!currentInventory) {
+      console.error('No family inventory found')
+      return null
+    }
+
+    const nextDiapers =
+      options.diapers !== undefined
+        ? Math.max(0, Math.round(options.diapers))
+        : currentInventory.diapers_stock
+    const nextGrams =
+      options.formulaGrams !== undefined
+        ? Math.max(0, options.formulaGrams)
+        : currentInventory.formula_grams
+
+    const portionSizeGrams =
+      options.portionSizeGrams ??
+      (currentInventory.portion_size_ounces
+        ? currentInventory.portion_size_ounces * GRAMS_PER_OUNCE
+        : GRAMS_PER_OUNCE)
+
+    const nextPortions = portionSizeGrams > 0 ? nextGrams / portionSizeGrams : 0
+
+    return this.upsertFamilyInventory({
+      diapers_stock: nextDiapers,
+      formula_grams: nextGrams,
+      formula_portions: nextPortions,
+      portion_size_ounces: portionSizeGrams / GRAMS_PER_OUNCE
+    })
+  }
+
   async updatePortionSize(portionSizeOunces: number): Promise<FamilyInventory | null> {
     const familyId = this.requireFamilyId()
     const { authorId } = this.requireAuthor()
