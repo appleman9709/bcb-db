@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { dataService, Feeding, Diaper, Bath, ParentCoins, SleepSession, FamilyInventory, GRAMS_PER_OUNCE, type Illness } from '../services/dataService'
 import { useCoinAnimationLimiter } from '../hooks/useAnimationLimiter'
@@ -74,6 +75,19 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   const [currentTime, setCurrentTime] = useState(() => Date.now())
   const [isMusicPlaying, setIsMusicPlaying] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [isRepeaterSupported, setIsRepeaterSupported] = useState(false)
+  const [isRecording, setIsRecording] = useState(false)
+  const [isPlayingBack, setIsPlayingBack] = useState(false)
+  const [hasRecording, setHasRecording] = useState(false)
+  const [repeaterError, setRepeaterError] = useState<string | null>(null)
+  const [repeaterDotProgress, setRepeaterDotProgress] = useState(0)
+  const [isRepeaterLooping, setIsRepeaterLooping] = useState(false)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recordedChunksRef = useRef<Blob[]>([])
+  const playbackAudioRef = useRef<HTMLAudioElement | null>(null)
+  const recordingStopTimeoutRef = useRef<number | null>(null)
+  const autoPlayAfterRecordingRef = useRef(false)
+  const isRepeaterLoopingRef = useRef(false)
   const [illnesses, setIllnesses] = useState<Illness[]>([])
   const [addIllnessModalOpen, setAddIllnessModalOpen] = useState(false)
   const [editIllnessModalOpen, setEditIllnessModalOpen] = useState(false)
@@ -245,6 +259,15 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [backpackOpen])
+
+  useEffect(() => {
+    const hasSupport =
+      typeof navigator !== 'undefined' &&
+      Boolean(navigator.mediaDevices?.getUserMedia) &&
+      typeof MediaRecorder !== 'undefined'
+
+    setIsRepeaterSupported(hasSupport)
+  }, [])
 
   useEffect(() => {
     if (!backpackOpen) {
@@ -1122,6 +1145,169 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     }
   }, [])
 
+  const stopRepeaterRecording = useCallback(() => {
+    const recorder = mediaRecorderRef.current
+    if (!recorder) {
+      return
+    }
+
+    if (recordingStopTimeoutRef.current) {
+      clearTimeout(recordingStopTimeoutRef.current)
+      recordingStopTimeoutRef.current = null
+    }
+
+    if (recorder.state !== 'inactive') {
+      recorder.stop()
+    } else {
+      recorder.stream.getTracks().forEach(track => track.stop())
+    }
+  }, [])
+
+  const startRepeaterRecording = useCallback(async (autoPlayAfter = false) => {
+    if (!isRepeaterSupported || isRecording) {
+      return
+    }
+
+    autoPlayAfterRecordingRef.current = autoPlayAfter
+    setRepeaterError(null)
+    setHasRecording(false)
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      recordedChunksRef.current = []
+
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data)
+        }
+      }
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(recordedChunksRef.current, { type: 'audio/webm' })
+
+        if (playbackAudioRef.current) {
+          playbackAudioRef.current.pause()
+          URL.revokeObjectURL(playbackAudioRef.current.src)
+        }
+
+        if (audioBlob.size === 0) {
+          setRepeaterError('Запись не удалась, попробуйте ещё раз.')
+          setIsRecording(false)
+          recorder.stream.getTracks().forEach(track => track.stop())
+          return
+        }
+
+        const audioUrl = URL.createObjectURL(audioBlob)
+        playbackAudioRef.current = new Audio(audioUrl)
+        playbackAudioRef.current.onended = () => {
+          setIsPlayingBack(false)
+          if (isRepeaterLoopingRef.current) {
+            window.setTimeout(() => startRepeaterRecording(true), 300)
+          }
+        }
+
+        setHasRecording(true)
+        setIsRecording(false)
+        recorder.stream.getTracks().forEach(track => track.stop())
+        mediaRecorderRef.current = null
+
+        if (autoPlayAfterRecordingRef.current && playbackAudioRef.current) {
+          setIsPlayingBack(true)
+          playbackAudioRef.current.currentTime = 0
+          playbackAudioRef.current
+            .play()
+            .then(() => {
+              autoPlayAfterRecordingRef.current = false
+            })
+            .catch(error => {
+              console.error('Error auto-playing repeater audio:', error)
+              setIsPlayingBack(false)
+              setRepeaterError('Не удалось автоматически воспроизвести запись.')
+              autoPlayAfterRecordingRef.current = false
+              setIsRepeaterLooping(false)
+              isRepeaterLoopingRef.current = false
+            })
+        }
+      }
+
+      mediaRecorderRef.current = recorder
+      recorder.start()
+      setIsRecording(true)
+
+      recordingStopTimeoutRef.current = window.setTimeout(() => {
+        stopRepeaterRecording()
+      }, 6000)
+    } catch (error) {
+      console.error('Error starting repeater recording:', error)
+      setRepeaterError('Не удалось получить доступ к микрофону. Проверьте настройки.')
+      setIsRecording(false)
+      setHasRecording(false)
+      autoPlayAfterRecordingRef.current = false
+      setIsRepeaterLooping(false)
+      isRepeaterLoopingRef.current = false
+    }
+  }, [isRepeaterSupported, isRecording, stopRepeaterRecording])
+
+  const stopRepeaterFlow = useCallback(() => {
+    setIsRepeaterLooping(false)
+    isRepeaterLoopingRef.current = false
+    autoPlayAfterRecordingRef.current = false
+
+    if (recordingStopTimeoutRef.current) {
+      clearTimeout(recordingStopTimeoutRef.current)
+      recordingStopTimeoutRef.current = null
+    }
+
+    if (isRecording) {
+      stopRepeaterRecording()
+    }
+
+    if (isPlayingBack && playbackAudioRef.current) {
+      playbackAudioRef.current.pause()
+      setIsPlayingBack(false)
+    }
+  }, [isPlayingBack, isRecording, stopRepeaterRecording])
+
+  const startRepeaterFlow = useCallback(() => {
+    if (!isRepeaterSupported) {
+      setRepeaterError('Микрофон недоступен в этом браузере.')
+      return
+    }
+
+    if (isRepeaterLooping) {
+      stopRepeaterFlow()
+      return
+    }
+
+    setIsRepeaterLooping(true)
+    isRepeaterLoopingRef.current = true
+    startRepeaterRecording(true)
+  }, [isRepeaterLooping, isRepeaterSupported, startRepeaterRecording, stopRepeaterFlow])
+
+  useEffect(() => {
+    return () => {
+      if (recordingStopTimeoutRef.current) {
+        clearTimeout(recordingStopTimeoutRef.current)
+      }
+
+      if (mediaRecorderRef.current) {
+        if (mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop()
+        }
+        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
+        mediaRecorderRef.current = null
+      }
+
+      if (playbackAudioRef.current) {
+        playbackAudioRef.current.pause()
+        URL.revokeObjectURL(playbackAudioRef.current.src)
+        playbackAudioRef.current = null
+      }
+    }
+  }, [])
+
   const getStateDescription = (state: BabyState): string => {
     // Если малыш только что проснулся, показываем специальное сообщение
     if (justWokeUp) {
@@ -1150,6 +1336,75 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
     
     return getStatePhrase(state, coinCounts.score)
   }
+
+  const repeaterStatusText = useMemo(() => {
+    if (!isRepeaterSupported) {
+      return 'Микрофон недоступен в этом браузере.'
+    }
+
+    if (isRepeaterLooping) {
+      if (isRecording) {
+        return 'Цикл: слушаем вас, потом малыш повторит — нажмите, чтобы остановить.'
+      }
+      if (isPlayingBack) {
+        return 'Цикл: малыш повторяет и снова начнёт слушать — нажмите, чтобы остановить.'
+      }
+      return 'Цикл активен — малыш будет слушать и повторять пока вы не остановите.'
+    }
+
+    if (isRecording) {
+      return 'Записываем ваш голос — малыш скоро повторит!'
+    }
+
+    if (isPlayingBack) {
+      return 'Малыш повторяет то, что вы сказали.'
+    }
+
+    if (hasRecording) {
+      return 'Готово! Нажмите кнопку, чтобы повторить ещё раз.'
+    }
+
+    return 'Нажмите «Записать и повторить», чтобы малыш сказал за вами.'
+  }, [hasRecording, isPlayingBack, isRecording, isRepeaterLooping, isRepeaterSupported])
+
+  const repeaterStatusClass = useMemo(() => {
+    if (repeaterError) {
+      return 'text-red-600'
+    }
+
+    if (!isRepeaterSupported) {
+      return 'text-amber-700'
+    }
+
+    if (isRecording) {
+      return 'text-amber-600'
+    }
+
+    if (isPlayingBack) {
+      return 'text-emerald-700'
+    }
+
+    return 'text-slate-600'
+  }, [isRepeaterSupported, isRecording, isPlayingBack, repeaterError])
+
+  const isRepeaterActive = isRecording || isPlayingBack
+
+  useEffect(() => {
+    if (isRepeaterActive) {
+      setRepeaterDotProgress(0)
+    }
+  }, [isRepeaterActive])
+
+  const handleRepeaterDotClick = useCallback((index: number) => {
+    if (!isRepeaterActive) {
+      return
+    }
+
+    // Нажимаем только следующую точку по порядку
+    if (index === repeaterDotProgress) {
+      setRepeaterDotProgress(prev => Math.min(3, prev + 1))
+    }
+  }, [isRepeaterActive, repeaterDotProgress])
 
   const handleItemClick = (action: QuickActionType) => {
     onModalOpen(action)
@@ -1333,7 +1588,42 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
   }
 
   return (
-    <div className="tamagotchi-container">
+    <div className="tamagotchi-container relative">
+
+      {isRepeaterActive && repeaterDotProgress < 3 && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed inset-0 z-[2000] flex items-end justify-center p-4 pb-8 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url('/icons/all-in.gif')" }}
+        >
+          <div className="mb-2 flex flex-col items-center gap-3 bg-white/85 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-slate-200">
+            <p className="text-sm font-semibold text-slate-800 text-center">
+              Повторяшка активна — нажмите 3 точки по очереди
+            </p>
+            <div className="flex gap-3">
+              {[0, 1, 2].map(index => {
+                const isDone = index < repeaterDotProgress
+                const isNext = index === repeaterDotProgress
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleRepeaterDotClick(index)}
+                    className={`h-4 w-4 rounded-full transition transform ${
+                      isDone
+                        ? 'bg-emerald-500 scale-110'
+                        : isNext
+                          ? 'bg-amber-400 animate-pulse'
+                          : 'bg-slate-300'
+                    }`}
+                    aria-label={`Точка ${index + 1}`}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Монетки для сбора - позиционированы относительно всего контейнера */}
       {coins.map(coin => (
@@ -1433,40 +1723,96 @@ export default function TamagotchiPage({ onModalOpen }: TamagotchiPageProps) {
                 />
             </div>
           </div>
-          {/* Кнопка проигрывателя Колыбельной */}
-          <button
-            onClick={toggleMusic}
-            aria-label={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
-            title={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
-          >
-            <div className="flex items-center justify-center">
-              {isMusicPlaying ? (
-                <div className="flex items-center gap-2">
+          {/* Кнопка проигрывателя Колыбельной и повторяшка */}
+          <div className="flex gap-3 items-center">
+            <button
+              onClick={toggleMusic}
+              aria-label={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
+              title={isMusicPlaying ? 'Выключить Колыбельную' : 'Включить Колыбельную'}
+              className="rounded-full bg-white/70 p-2 shadow-sm hover:shadow transition"
+            >
+              <div className="flex items-center justify-center">
+                {isMusicPlaying ? (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src="icons/melody.png"
+                      alt="Иконка мелодии"
+                      className="w-7 h-7"
+                      style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
+                    />
+                    <svg className="w-7 h-7 text-emerald-500 drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src="icons/melody.png"
+                      alt="Иконка мелодии"
+                      className="w-7 h-7"
+                      style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
+                    />
+                    <svg className="w-7 h-7 text-slate-200 drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            </button>
+
+            <div className="flex flex-col items-start gap-1">
+              <button
+                type="button"
+                onClick={startRepeaterFlow}
+                disabled={!isRepeaterSupported}
+                className={`relative rounded-full bg-white/70 p-2 shadow-sm hover:shadow transition ${
+                  !isRepeaterSupported ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
+                aria-label={
+                  !isRepeaterSupported
+                    ? 'Микрофон недоступен'
+                    : isRepeaterLooping
+                      ? 'Остановить повторяшку'
+                      : 'Записать и сразу проиграть'
+                }
+                title={
+                  !isRepeaterSupported
+                    ? 'Микрофон недоступен'
+                    : isRepeaterLooping
+                      ? 'Остановить повторяшку'
+                      : 'Записать и сразу проиграть'
+                }
+              >
+                <div
+                  className={`flex items-center justify-center h-12 w-12 rounded-full transition ${
+                    isRepeaterLooping
+                      ? 'bg-red-50 border border-red-200'
+                      : isRecording
+                        ? 'bg-amber-50 border border-amber-200 animate-pulse'
+                        : isPlayingBack
+                          ? 'bg-indigo-50 border border-indigo-200'
+                          : 'bg-white border border-slate-200'
+                  }`}
+                >
                   <img
-                    src="icons/melody.png"
-                    alt="Иконка мелодии"
+                    src="/icons/alarm.png"
+                    alt="Микрофон"
                     className="w-7 h-7"
-                    style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
+                    style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.4))' }}
                   />
-                  <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <img
-                    src="icons/melody.png"
-                    alt="Иконка мелодии"
-                    className="w-7 h-7"
-                    style={{ filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.5))' }} // аналог drop-shadow-md
-                  />
-                  <svg className="w-7 h-7 text-white drop-shadow-md" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              )}
+                {isRepeaterLooping && (
+                  <span className="absolute -right-0.5 -bottom-0.5 h-4 w-4 rounded-full bg-red-500 border-2 border-white animate-pulse" />
+                )}
+                {isPlayingBack && !isRepeaterLooping && (
+                  <span className="absolute -right-0.5 -bottom-0.5 h-4 w-4 rounded-full bg-indigo-500 border-2 border-white animate-pulse" />
+                )}
+                {isRecording && !isRepeaterLooping && (
+                  <span className="absolute -right-0.5 -bottom-0.5 h-4 w-4 rounded-full bg-amber-500 border-2 border-white animate-pulse" />
+                )}
+              </button>
             </div>
-          </button>
+          </div>
           </div>
 
           {isSleepMode && getGifSource(babyState).endsWith('.MP4') ? (
