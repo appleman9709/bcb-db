@@ -330,6 +330,57 @@ module.exports = async (req, res) => {
       console.log(
         `Reminder ${reminder.id} (${reminder.reminder_type}) sent to ${familySentCount}/${familySubscriptions.length} subscribers`
       )
+
+      // Для напоминаний о кормлении: если кормление не было записано, планируем повторное напоминание через 15 минут
+      if (reminder.reminder_type === 'feeding' && familySentCount > 0) {
+        try {
+          // Проверяем, было ли записано кормление после времени события напоминания
+          // Используем event_time минус небольшой буфер (1 минута) для учета возможных расхождений во времени
+          const checkTime = new Date(reminder.event_time)
+          checkTime.setMinutes(checkTime.getMinutes() - 1)
+          
+          const { data: recentFeedings, error: feedingCheckError } = await supabase
+            .from('feedings')
+            .select('id, timestamp')
+            .eq('family_id', reminder.family_id)
+            .gte('timestamp', checkTime.toISOString()) // Проверяем кормления после времени события (с буфером)
+            .order('timestamp', { ascending: false })
+            .limit(1)
+
+          if (feedingCheckError) {
+            console.error(`Error checking for recent feedings: ${feedingCheckError.message}`)
+          } else if (!recentFeedings || recentFeedings.length === 0) {
+            // Кормление не было записано, планируем повторное напоминание через 15 минут
+            const nextReminderTime = new Date(now)
+            nextReminderTime.setMinutes(nextReminderTime.getMinutes() + 15)
+
+            // Для повторных напоминаний event_time не критично, но устанавливаем его для консистентности
+            // event_time = scheduled_time + 5 минут (как в оригинальных напоминаниях)
+            const nextEventTime = new Date(nextReminderTime)
+            nextEventTime.setMinutes(nextEventTime.getMinutes() + 5)
+
+            const { error: scheduleError } = await supabase
+              .from('scheduled_reminders')
+              .insert({
+                family_id: reminder.family_id,
+                reminder_type: 'feeding',
+                scheduled_time: nextReminderTime.toISOString(),
+                event_time: nextEventTime.toISOString(),
+                status: 'pending'
+              })
+
+            if (scheduleError) {
+              console.error(`Error scheduling recurring feeding reminder: ${scheduleError.message}`)
+            } else {
+              console.log(`✅ Запланировано повторное напоминание о кормлении через 15 минут (${nextReminderTime.toISOString()})`)
+            }
+          } else {
+            console.log(`✅ Кормление уже записано после напоминания (${recentFeedings[0].timestamp}), повторное напоминание не требуется`)
+          }
+        } catch (error) {
+          console.error(`Error processing recurring feeding reminder: ${error.message}`)
+        }
+      }
     }
 
     // Обрабатываем напоминания о лекарствах

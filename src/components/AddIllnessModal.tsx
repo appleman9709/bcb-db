@@ -469,4 +469,3 @@ export default function AddIllnessModal({ isOpen, onClose, onSuccess }: AddIllne
     document.body
   )
 }
-

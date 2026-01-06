@@ -909,6 +909,15 @@ class DataService {
       console.error('Error adding feeding activity', activityError)
     }
 
+    // Отменяем все запланированные напоминания о кормлении перед планированием нового
+    try {
+      const { reminderService } = await import('./reminderService')
+      await reminderService.cancelReminders(familyId, 'feeding')
+    } catch (cancelError) {
+      console.error('Error canceling feeding reminders', cancelError)
+      // Не прерываем выполнение, продолжаем планирование нового напоминания
+    }
+
     // Планируем напоминание о следующем кормлении сразу после добавления
     try {
       // Импортируем динамически, чтобы избежать циклических зависимостей

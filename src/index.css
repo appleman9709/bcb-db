@@ -543,7 +543,6 @@ canvas {
     min-height: 44px; /* Минимальный размер для удобного тапа */
   }
 
-
   /* Apple Liquid Glass Tab Bar Styles - оптимизированная версия */
   .liquid-glass-tab-bar {
     position: var(--tab-bar-position);
