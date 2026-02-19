@@ -112,26 +112,29 @@ class PushService {
       throw new Error('VAPID ключи не настроены. Создайте файл .env и добавьте VITE_VAPID_PUBLIC_KEY')
     }
     
-    // Check if key is in correct format
     const keyLength = vapidKey.length
-    const expectedLength = 87
-    
     console.log('VAPID key info:', {
       length: keyLength,
-      expectedLength,
       startsWith: vapidKey.substring(0, 3),
       firstChars: vapidKey.substring(0, 10) + '...'
     })
-    
-    if (keyLength !== expectedLength) {
-      console.error(`Invalid VAPID key length: ${keyLength}, expected: ${expectedLength}`)
-      throw new Error(`Неверная длина VAPID ключа: ${keyLength} символов (должно быть ${expectedLength}). Генерируйте новые ключи через: web-push generate-vapid-keys`)
-    }
-    
-    // Check format (URL-safe base64)
+
     if (!vapidKey.match(/^[A-Za-z0-9_-]+$/)) {
       console.error('Invalid VAPID key format: contains invalid characters')
       throw new Error('VAPID ключ содержит недопустимые символы. Используйте только буквы, цифры, дефисы и подчеркивания')
+    }
+
+    let applicationServerKey: Uint8Array
+    try {
+      applicationServerKey = urlBase64ToUint8Array(vapidKey)
+    } catch (error) {
+      console.error('Failed to decode VAPID key:', error)
+      throw new Error('VAPID ключ имеет неверный формат. Перегенерируйте ключи через: web-push generate-vapid-keys')
+    }
+
+    if (applicationServerKey.length !== 65) {
+      console.error(`Invalid VAPID key byte length: ${applicationServerKey.length}, expected 65`)
+      throw new Error(`Неверный размер VAPID ключа: ${applicationServerKey.length} байт (должно быть 65). Перегенерируйте ключи через: web-push generate-vapid-keys`)
     }
 
     // Request permission
@@ -147,7 +150,12 @@ class PushService {
       
       if (!registration) {
         // Если SW не зарегистрирован, регистрируем его
-        registration = await navigator.serviceWorker.register('/sw.js')
+        try {
+          registration = await navigator.serviceWorker.register('/sw.js', { type: 'module' })
+        } catch (error) {
+          console.warn('Module service worker registration failed, retrying as classic', error)
+          registration = await navigator.serviceWorker.register('/sw.js')
+        }
         // Ждем активации
         await navigator.serviceWorker.ready
       } else {
@@ -158,7 +166,7 @@ class PushService {
       // Subscribe to push manager
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey)
+        applicationServerKey
       })
 
       // Extract keys
@@ -459,4 +467,3 @@ class PushService {
 }
 
 export const pushService = new PushService()
-
