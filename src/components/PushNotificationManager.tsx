@@ -53,6 +53,9 @@ export default function PushNotificationManager() {
           errorMessage = 'VAPID ключи не настроены. Проверьте настройки сервера.'
         } else if (err.message.includes('Permission')) {
           errorMessage = 'Разрешение на уведомления было отклонено. Разрешите уведомления в настройках браузера.'
+        } else if (err.message.includes('push service not available')) {
+          errorMessage =
+            'Служба push-уведомлений в браузере недоступна. Проверьте, что вы используете обычный профиль браузера (не гость/инкогнито) и что уведомления не отключены на уровне браузера или системы.'
         } else if (err.message.includes('serviceWorker')) {
           errorMessage = 'Service Worker не поддерживается или не зарегистрирован. Обновите страницу.'
         }

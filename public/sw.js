@@ -1,53 +1,75 @@
-import { precacheAndRoute, matchPrecache } from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
-import { ExpirationPlugin } from 'workbox-expiration';
-import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+// Простой Service Worker без внешних импортов, совместимый с dev-сервером Vite
 
-const OFFLINE_PAGE = '/offline.html';
+const CACHE_NAME = 'babycare-dashboard-simple-v1'
+const DEFAULT_ICON = '/icons/icon-192x192.png'
+const DEFAULT_BADGE = '/icons/icon-96x96.png'
+const DEFAULT_SNOOZE_MS = 5 * 60 * 1000
 
-precacheAndRoute([...self.__WB_MANIFEST, { url: OFFLINE_PAGE, revision: null }]);
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(() => {
+      console.log('[sw] installed, cache opened')
+    })
+  )
+  self.skipWaiting()
+})
 
-const CACHE_NAME = 'babycare-dashboard-v1';
-const DEFAULT_ICON = '/icons/icon-192x192.png';
-const DEFAULT_BADGE = '/icons/icon-96x96.png';
-const DEFAULT_SNOOZE_MS = 5 * 60 * 1000;
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('[sw] deleting old cache', cacheName)
+            return caches.delete(cacheName)
+          }
+          return undefined
+        })
+      )
+    )
+  )
+  self.clients.claim()
+})
 
-self.addEventListener('push', handlePush);
-self.addEventListener('notificationclick', handleNotificationClick);
-self.addEventListener('notificationclose', handleNotificationClose);
-self.addEventListener('install', handleInstall);
-self.addEventListener('activate', handleActivate);
-self.addEventListener('sync', handleSync);
-self.addEventListener('periodicsync', handlePeriodicSync);
+// Базовая стратегия: сначала сеть, при ошибке — кэш
+self.addEventListener('fetch', (event) => {
+  const { request } = event
 
-function handlePush(event) {
-  console.log('[sw] push payload received');
+  // Только GET-запросы
+  if (request.method !== 'GET') return
 
-  let payload = {};
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        const cloned = response.clone()
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, cloned))
+        return response
+      })
+      .catch(() =>
+        caches.match(request).then((cached) => {
+          if (cached) return cached
+          throw new Error('Network error and no cache')
+        })
+      )
+  )
+})
+
+// Обработка push-уведомлений
+self.addEventListener('push', (event) => {
+  console.log('[sw] push payload received')
+
+  let payload = {}
   if (event.data) {
     try {
-      payload = event.data.json();
+      payload = event.data.json()
     } catch (error) {
-      console.error('[sw] failed to parse push payload:', error);
+      console.error('[sw] failed to parse push payload:', error)
     }
   }
 
-  const title = payload.title || 'BabyCare reminder';
-  const options = buildNotificationOptions(title, payload);
+  const title = payload.title || 'BabyCare reminder'
 
-  event.waitUntil(self.registration.showNotification(title, options));
-}
-
-function buildNotificationOptions(title, payload = {}) {
-  const baseData = payload.data && typeof payload.data === 'object' ? payload.data : {};
-  const actions =
-    Array.isArray(payload.actions) && payload.actions.length > 0
-      ? payload.actions
-      : [
-          { action: 'open', title: 'Open' },
-          { action: 'snooze', title: 'Snooze 5 min' }
-        ];
+  const data = (payload && payload.data && typeof payload.data === 'object' ? payload.data : {}) || {}
 
   const options = {
     body: payload.body || 'Stay on top of BabyCare routines together.',
@@ -57,83 +79,92 @@ function buildNotificationOptions(title, payload = {}) {
     requireInteraction: payload.requireInteraction ?? false,
     renotify: payload.renotify ?? true,
     data: {
-      url: baseData.url || '/',
-      snoozeMs: Number(baseData.snoozeMs) || DEFAULT_SNOOZE_MS,
-      ...baseData
+      url: data.url || '/',
+      snoozeMs: Number(data.snoozeMs) || DEFAULT_SNOOZE_MS,
+      original: {
+        title,
+        body: payload.body || 'Stay on top of BabyCare routines together.',
+        icon: payload.icon || DEFAULT_ICON,
+        badge: payload.badge || DEFAULT_BADGE,
+        tag: payload.tag || 'babycare-reminder',
+        requireInteraction: payload.requireInteraction ?? false,
+        renotify: payload.renotify ?? true,
+        actions:
+          Array.isArray(payload.actions) && payload.actions.length > 0
+            ? payload.actions
+            : [
+                { action: 'open', title: 'Open' },
+                { action: 'snooze', title: 'Snooze 5 min' }
+              ]
+      },
+      ...data
     },
-    actions
-  };
-
-  const original = {
-    title,
-    body: options.body,
-    icon: options.icon,
-    badge: options.badge,
-    tag: options.tag,
-    requireInteraction: options.requireInteraction,
-    renotify: options.renotify,
-    actions: options.actions
-  };
-
-  options.data.original = original;
-
-  return options;
-}
-
-function handleNotificationClick(event) {
-  console.log('[sw] notification click', { action: event.action });
-
-  const action = event.action || 'open';
-  event.notification.close();
-
-  if (action === 'snooze') {
-    event.waitUntil(scheduleSnoozedNotification(event.notification));
-    return;
+    actions:
+      Array.isArray(payload.actions) && payload.actions.length > 0
+        ? payload.actions
+        : [
+            { action: 'open', title: 'Open' },
+            { action: 'snooze', title: 'Snooze 5 min' }
+          ]
   }
 
-  event.waitUntil(openNotificationTarget(event.notification));
-}
+  event.waitUntil(self.registration.showNotification(title, options))
+})
 
-function handleNotificationClose(event) {
+self.addEventListener('notificationclick', (event) => {
+  console.log('[sw] notification click', { action: event.action })
+
+  const action = event.action || 'open'
+  event.notification.close()
+
+  if (action === 'snooze') {
+    event.waitUntil(scheduleSnoozedNotification(event.notification))
+    return
+  }
+
+  event.waitUntil(openNotificationTarget(event.notification))
+})
+
+self.addEventListener('notificationclose', (event) => {
   console.log('[sw] notification closed', {
-    tag: event.notification?.tag,
-    topic: event.notification?.data?.topic
-  });
-}
+    tag: event.notification && event.notification.tag,
+    topic: event.notification && event.notification.data && event.notification.data.topic
+  })
+})
 
 function openNotificationTarget(notification) {
-  const urlToOpen = notification?.data?.url || '/';
-  const targetUrl = new URL(urlToOpen, self.location.origin).href;
+  const urlToOpen = (notification && notification.data && notification.data.url) || '/'
+  const targetUrl = new URL(urlToOpen, self.location.origin).href
 
   return clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
     for (const client of clientList) {
       if (client.url === targetUrl && 'focus' in client) {
-        return client.focus();
+        return client.focus()
       }
     }
 
     if (clients.openWindow) {
-      return clients.openWindow(targetUrl);
+      return clients.openWindow(targetUrl)
     }
 
-    return undefined;
-  });
+    return undefined
+  })
 }
 
 function scheduleSnoozedNotification(notification) {
-  const original = notification?.data?.original;
-  const snoozeMs = Number(notification?.data?.snoozeMs) || DEFAULT_SNOOZE_MS;
+  const original = notification && notification.data && notification.data.original
+  const snoozeMs = Number(notification && notification.data && notification.data.snoozeMs) || DEFAULT_SNOOZE_MS
 
   if (!original) {
-    console.warn('[sw] snooze requested but original payload is missing');
-    return Promise.resolve();
+    console.warn('[sw] snooze requested but original payload is missing')
+    return Promise.resolve()
   }
 
-  const nextData = Object.assign({}, notification.data, {
+  const nextData = Object.assign({}, notification.data || {}, {
     snoozed: true,
     snoozedAt: Date.now(),
     original
-  });
+  })
 
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -150,151 +181,9 @@ function scheduleSnoozedNotification(notification) {
         })
         .then(resolve)
         .catch((error) => {
-          console.error('[sw] failed to show snoozed notification:', error);
-          resolve();
-        });
-    }, snoozeMs);
-  });
-}
-
-function handleInstall(event) {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(() => {
-      console.log('[sw] cache opened during install');
-    })
-  );
-  self.skipWaiting();
-}
-
-function handleActivate(event) {
-  event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('[sw] deleting old cache', cacheName);
-            return caches.delete(cacheName);
-          }
-          return undefined;
+          console.error('[sw] failed to show snoozed notification:', error)
+          resolve()
         })
-      )
-    )
-  );
-  if (self.registration.navigationPreload) {
-    event.waitUntil(self.registration.navigationPreload.enable());
-  }
-  self.clients.claim();
-}
-
-function handleSync(event) {
-  if (event.tag === 'background-sync') {
-    event.waitUntil(doBackgroundSync());
-  }
-}
-
-async function doBackgroundSync() {
-  console.log('[sw] background sync placeholder');
-  // Extend with offline-aware data sync when ready.
-}
-
-/**
- * Обработчик периодической синхронизации для обработки напоминаний
- */
-async function handlePeriodicSync(event) {
-  console.log('[sw] periodic sync triggered:', event.tag);
-  
-  if (event.tag === 'process-reminders') {
-    event.waitUntil(processRemindersInBackground());
-  }
-}
-
-/**
- * Обрабатывает напоминания в фоне через Service Worker
- */
-async function processRemindersInBackground() {
-  try {
-    const apiUrl = '/api/push/process-reminders';
-    
-    console.log('[sw] Processing reminders in background...');
-    
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      cache: 'no-cache'
-    });
-
-    if (!response.ok) {
-      console.error('[sw] Failed to process reminders:', response.status);
-      return;
-    }
-
-    const result = await response.json();
-    
-    if (result.success && result.processed > 0) {
-      console.log(`[sw] Processed ${result.processed} reminders: ${result.sent} sent, ${result.failed} failed`);
-    } else {
-      console.log('[sw] No reminders to process');
-    }
-  } catch (error) {
-    console.error('[sw] Error processing reminders in background:', error);
-  }
-}
-
-// === Кэширование навигации, API и иконок ===
-const pageNetworkFirst = new NetworkFirst({
-  cacheName: 'pages-cache',
-  networkTimeoutSeconds: 10,
-  plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })]
-});
-
-const apiNetworkFirst = new NetworkFirst({
-  cacheName: 'api-cache',
-  networkTimeoutSeconds: 10,
-  plugins: [
-    new CacheableResponsePlugin({ statuses: [0, 200] }),
-    new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 60 * 5 })
-  ]
-});
-
-const iconsCacheFirst = new CacheFirst({
-  cacheName: 'icons-cache',
-  plugins: [
-    new CacheableResponsePlugin({ statuses: [0, 200] }),
-    new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 })
-  ]
-});
-
-registerRoute(
-  ({ request }) => request.mode === 'navigate',
-  new NavigationRoute(async ({ event }) => {
-    try {
-      const preloadResponse = await event.preloadResponse;
-      if (preloadResponse) return preloadResponse;
-
-      const networkResponse = await pageNetworkFirst.handle({ event });
-      if (networkResponse) return networkResponse;
-    } catch (error) {
-      console.warn('[sw] navigation fallback to offline page', error);
-    }
-
-    const offline = await matchPrecache(OFFLINE_PAGE);
-    return offline || Response.error();
+    }, snoozeMs)
   })
-);
-
-registerRoute(({ url }) => url.pathname.startsWith('/api/'), apiNetworkFirst);
-
-registerRoute(
-  ({ request, url }) => request.destination === 'image' && url.pathname.startsWith('/icons/'),
-  iconsCacheFirst
-);
-
-registerRoute(
-  ({ request }) => request.destination === 'script' || request.destination === 'style',
-  new StaleWhileRevalidate({
-    cacheName: 'static-assets',
-    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })]
-  })
-);
+}
