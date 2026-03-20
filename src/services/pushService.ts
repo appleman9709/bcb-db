@@ -171,7 +171,18 @@ class PushService {
         registration = await navigator.serviceWorker.ready
       }
 
-      // Subscribe to push manager
+      // Удаляем существующую подписку, если она была создана с другим applicationServerKey
+      const existingSubscription = await registration.pushManager.getSubscription()
+      if (existingSubscription) {
+        try {
+          await existingSubscription.unsubscribe()
+          console.log('Existing push subscription removed before creating a new one')
+        } catch (unsubscribeError) {
+          console.warn('Failed to unsubscribe existing push subscription:', unsubscribeError)
+        }
+      }
+
+      // Subscribe to push manager с актуальным VAPID ключом
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         // `applicationServerKey` expects `BufferSource` in DOM types, but TS may infer a wider
