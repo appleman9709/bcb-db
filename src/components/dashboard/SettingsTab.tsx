@@ -132,13 +132,13 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 <div className="slider-track">
                   <div
                     className="slider-progress feeding-progress"
-                    style={{ width: `${((settings.feedingInterval - 1) / 5) * 100}%` }}
+                    style={{ width: `${((settings.feedingInterval - 1) / 11) * 100}%` }}
                   ></div>
                 </div>
                 <input
                   type="range"
                   min="1"
-                  max="9"
+                  max="12"
                   value={settings.feedingInterval}
                   onChange={(event) => onSettingChange('feedingInterval', Number(event.target.value))}
                   className="modern-slider"
