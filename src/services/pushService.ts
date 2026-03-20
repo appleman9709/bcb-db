@@ -1,5 +1,13 @@
 import { supabase } from '../lib/supabaseClient'
 
+// Vite injects `import.meta.env`, but the default TS type for `ImportMeta` may not include it
+// (e.g. when `vite/client` types aren't picked up). We cast once to keep this file clean.
+const viteEnv = (import.meta as any).env as {
+  VITE_PUSH_API_BASE_URL?: string
+  VITE_VAPID_PUBLIC_KEY?: string
+  PROD?: boolean
+}
+
 export interface PushSubscription {
   id?: number
   family_id: number
@@ -40,12 +48,12 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
 }
 
 const PUSH_API_BASE_URL = (() => {
-  const override = import.meta.env.VITE_PUSH_API_BASE_URL?.trim()
+  const override = viteEnv.VITE_PUSH_API_BASE_URL?.trim()
   if (override) {
     return override.replace(/\/$/, '')
   }
 
-  if (import.meta.env.PROD) {
+  if (viteEnv.PROD) {
     return ''
   }
 
@@ -103,7 +111,7 @@ class PushService {
     }
 
     // Check VAPID key
-    const vapidKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
+    const vapidKey = viteEnv.VITE_VAPID_PUBLIC_KEY
     
     if (!vapidKey || vapidKey.trim() === '') {
       console.error('VAPID_PUBLIC_KEY is not configured.')
@@ -166,7 +174,9 @@ class PushService {
       // Subscribe to push manager
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey
+        // `applicationServerKey` expects `BufferSource` in DOM types, but TS may infer a wider
+        // generic typed-array type depending on the TS/lib setup.
+        applicationServerKey: applicationServerKey as unknown as BufferSource
       })
 
       // Extract keys

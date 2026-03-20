@@ -138,7 +138,7 @@ const SettingsTab: React.FC<SettingsTabProps> = ({
                 <input
                   type="range"
                   min="1"
-                  max="6"
+                  max="9"
                   value={settings.feedingInterval}
                   onChange={(event) => onSettingChange('feedingInterval', Number(event.target.value))}
                   className="modern-slider"
