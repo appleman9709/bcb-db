@@ -1,4 +1,8 @@
 // Простой Service Worker без внешних импортов, совместимый с dev-сервером Vite
+// Placeholder для Workbox injectManifest в production-сборке (Vite PWA)
+// В процессе билда плагин заменит `self.__WB_MANIFEST` на массив ресурсов для precache.
+// Здесь мы просто обращаемся к свойству, чтобы Workbox нашёл точку для инъекции.
+self.__WB_MANIFEST
 
 const CACHE_NAME = 'babycare-dashboard-simple-v1'
 const DEFAULT_ICON = '/icons/icon-192x192.png'
