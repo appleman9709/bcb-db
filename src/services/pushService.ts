@@ -107,7 +107,7 @@ class PushService {
     // Check if notifications are supported
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
       console.error('Push notifications are not supported')
-      return null
+      throw new Error('Push-уведомления не поддерживаются в этом браузере. Попробуйте другой браузер.')
     }
 
     // Check VAPID key
@@ -199,7 +199,7 @@ class PushService {
 
       if (error) {
         console.error('Error saving push subscription:', error)
-        return null
+        throw new Error('Не удалось сохранить подписку на уведомления. Попробуйте ещё раз позже.')
       }
 
       console.log('Push subscription saved:', data)
@@ -210,7 +210,10 @@ class PushService {
       return data
     } catch (error) {
       console.error('Error subscribing to push notifications:', error)
-      return null
+      if (error instanceof Error) {
+        throw error
+      }
+      throw new Error('Неизвестная ошибка при подписке на уведомления')
     }
   }
 
